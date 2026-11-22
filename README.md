@@ -12,7 +12,7 @@ docker compose up --build
 
 El panel queda en <http://localhost:8000>. Hace falta Docker con Compose 2.24 o más nuevo. No hace falta `.env`: sin configuración corre en modo `mock`, que no usa red ni claves. Las variables que se pueden cambiar están en `.env.example`.
 
-Para probarlo: en "Cargar un ejemplo", elegir *Choque con moto · la llamada llega de a un intercambio*, tildar "Reproducir de a un intercambio" y apretar "Analizar llamada". La llamada llega de a poco: la altura aparece cuando el operador la pregunta, y mientras tanto se puede editar, marcar el protocolo y derivar.
+Para probarlo: en "Cargar un ejemplo", elegir *Choque con moto · la llamada llega de a un intercambio*, tildar "Reproducir de a un intercambio" y apretar "Analizar llamada". La llamada llega de a poco: la altura aparece cuando el operador la pregunta. Mientras tanto se puede corregir la sugerencia, elegir el subtipo para marcar su protocolo y derivar; lo que el operador cambia no se pisa.
 
 El estado de las llamadas se guarda en un volumen de Docker: una llamada que quedó a medias sigue ahí después de `docker compose down` y de volver a levantar.
 

@@ -28,6 +28,7 @@ Qué se eligió, por qué y qué se dejó afuera.
 - **El tipo de hecho nunca falta.** Si lo dicho no alcanza para reconocerlo, vale "sin determinar", que es un tipo con el que se puede derivar.
 - **Para derivar hacen falta la calle, el tipo de hecho y la prioridad.** Lo demás puede faltar: la carta lo muestra como faltante, no lo esconde.
 - **Lo que el operador no cambia conserva su origen y su cita; lo que cambia pasa a ser suyo.** Volver a escribir lo mismo con otras mayúsculas o acentos no es un cambio. Vaciar un dato sugerido queda registrado como una decisión del operador, que no es lo mismo que un dato que nadie dijo.
+- **La línea por la que entró la llamada no se deduce del saludo.** El dataset la trae en una columna aparte (`origen_reporte`: 911, 107, 103, 147 o la aplicación), y en una sala ese dato lo da la telefonía antes de que alguien hable. Leyendo los 30 saludos, alcanzan para saber la línea en 26; "Emergencias de la Ciudad", "Monitoreo Urbano" y "Guardia Urbana" no lo dicen. Cuando el servicio se integre, la línea entra como un dato del alta.
 - **Lo guardado se valida al leerlo.** El grafo guarda datos planos y cada nodo los valida al entrar: de la base no sale una llamada que rompa sus propias reglas. Una llamada guardada con un formato anterior se informa como ilegible: en un prototipo no hay migración de datos.
 
 ## El catálogo de protocolos
