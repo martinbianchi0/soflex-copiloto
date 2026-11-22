@@ -130,6 +130,16 @@ export type Llamada = {
   | { estado: 'derivada'; sugerencia: Sugerencia; carta: Carta }
 )
 
+export type PosibleDuplicado = {
+  llamada_id: string
+  recibida_en: string
+  ubicacion: string
+  categoria: TipoHecho
+  derivada: boolean
+}
+
+export type Duplicados = { llamada_id: string; recibida_en: string | null; posibles: PosibleDuplicado[] }
+
 export type Salud = { status: string; llm_provider: string; modelo: string | null }
 export type DetalleValidacion = { loc: (string | number)[]; msg: string }
 
@@ -181,6 +191,10 @@ export function crearLlamada(texto: string, senal: AbortSignal) {
 
 export function consultarLlamada(identificador: string, senal: AbortSignal) {
   return pedir<Llamada>(`/llamadas/${encodeURIComponent(identificador)}`, senal)
+}
+
+export function consultarDuplicados(identificador: string, senal: AbortSignal) {
+  return pedir<Duplicados>(`/llamadas/${encodeURIComponent(identificador)}/duplicados`, senal, { cache: 'no-store' })
 }
 
 export function consultarHistorial(identificador: string, senal: AbortSignal) {

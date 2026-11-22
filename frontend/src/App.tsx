@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { analizarLlamada, consultarCatalogo, consultarEjemplos, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi, sumarTurno } from './api'
-import type { Ajustes, Aviso, Catalogo, DetalleValidacion, Ejemplo, Llamada, Turno } from './api'
+import { analizarLlamada, consultarCatalogo, consultarDuplicados, consultarEjemplos, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi, sumarTurno } from './api'
+import type { Ajustes, Aviso, Catalogo, DetalleValidacion, Ejemplo, Llamada, PosibleDuplicado, Turno } from './api'
+import AvisoDuplicados from './AvisoDuplicados'
 import CartaLlamada from './CartaLlamada'
 import FormularioSugerencia from './FormularioSugerencia'
 import FormularioTurno from './FormularioTurno'
@@ -16,6 +17,13 @@ const gruposEjemplos = [
 ] as const
 
 type Reproduccion = { intercambios: string[]; recibidos: number }
+type EstadoDuplicados = {
+  llamadaId: string
+  recibidaEn: string | null
+  posibles: PosibleDuplicado[]
+  firma: string
+  anuncia: boolean
+}
 
 function leerIdentificador() {
   return new URLSearchParams(window.location.search).get('llamada') || null
@@ -68,6 +76,7 @@ function App() {
   const [reproduccion, setReproduccion] = useState<Reproduccion | null>(null)
   const [identificador, setIdentificador] = useState(leerIdentificador)
   const [llamada, setLlamada] = useState<Llamada | null>(null)
+  const [duplicados, setDuplicados] = useState<EstadoDuplicados | null>(null)
   const [huboAnalisis, setHuboAnalisis] = useState(false)
   const [transcripcion, setTranscripcion] = useState('')
   const [ocupado, setOcupado] = useState(false)
@@ -77,6 +86,7 @@ function App() {
   const [sumando, setSumando] = useState<'turno' | 'intercambio' | null>(null)
   const [errorTurno, setErrorTurno] = useState('')
   const solicitud = useRef<AbortController | null>(null)
+  const solicitudDuplicados = useRef<AbortController | null>(null)
   const pausa = useRef<number | undefined>(undefined)
   const reanalizando = useRef(false)
   const regionAvisos = useRef<HTMLDivElement>(null)
@@ -94,6 +104,8 @@ function App() {
     : ''
   const muestraSugerencia = analizando || llamada?.estado === 'esperando_operador'
   const muestraFormulario = muestraSugerencia && (analizando || huboAnalisis || Boolean(catalogo))
+  const duplicadosVisibles = muestraFormulario && duplicados?.llamadaId === llamada.llamada_id &&
+    duplicados.recibidaEn && duplicados.posibles.length > 0 ? duplicados : null
   const erroresGenerales = Array.isArray(error)
     ? error.filter((detalle) => !muestraFormulario || !campoSugerencia(detalle))
     : []
@@ -163,18 +175,48 @@ function App() {
     }
   }, [])
 
+  const mostrarLlamada = useCallback((recibida: Llamada | null) => {
+    solicitudDuplicados.current?.abort()
+    solicitudDuplicados.current = null
+    setLlamada(recibida)
+    if (recibida?.estado !== 'analizando' && recibida?.estado !== 'esperando_operador') {
+      setDuplicados((anterior) => anterior?.anuncia ? { ...anterior, anuncia: false } : anterior)
+      return
+    }
+
+    const id = recibida.llamada_id
+    const control = new AbortController()
+    solicitudDuplicados.current = control
+    consultarDuplicados(id, control.signal).then(
+      ({ llamada_id, recibida_en: recibidaEn, posibles }) => {
+        if (control.signal.aborted || llamada_id !== id) return
+        const firma = JSON.stringify(posibles)
+        setDuplicados((anterior) => ({
+          llamadaId: id, recibidaEn, posibles, firma,
+          anuncia: anterior?.llamadaId === id && anterior.firma === firma
+            ? anterior.anuncia : posibles.length > 0,
+        }))
+      },
+      () => {
+        if (control.signal.aborted) return
+        setDuplicados((anterior) => anterior?.llamadaId === id
+          ? { ...anterior, posibles: [], anuncia: false } : null)
+      },
+    )
+  }, [])
+
   const recibirLlamada = useCallback(async (recibida: Llamada, senal: AbortSignal, origen: 'consulta' | 'alta' | 'turno' | 'intercambio' = 'consulta') => {
     if (senal.aborted) return
     const sumado = origen === 'intercambio' ? 'Se sumó un intercambio.' : 'Se sumó un turno.'
     const nuevoTurno = origen === 'turno' || origen === 'intercambio'
     const trasSumar = nuevoTurno || reanalizando.current
-    setLlamada(recibida)
+    mostrarLlamada(recibida)
     if (recibida.estado === 'analizando') {
       reanalizando.current = trasSumar
       setAnuncio(nuevoTurno ? sumado : anunciarAvisos(recibida.sugerencia.avisos))
       const definitiva = await analizarLlamada(recibida.llamada_id, senal)
       if (senal.aborted) return
-      setLlamada(definitiva)
+      mostrarLlamada(definitiva)
       setHuboAnalisis(true)
       reanalizando.current = false
       if (trasSumar && definitiva.estado === 'esperando_operador') {
@@ -189,7 +231,7 @@ function App() {
     } else {
       setAnuncio(anunciarResultado(recibida))
     }
-  }, [])
+  }, [mostrarLlamada])
 
   useEffect(() => {
     function abrirDesdeUrl() {
@@ -201,7 +243,8 @@ function App() {
       setErrorTurno('')
       const actual = leerIdentificador()
       setIdentificador(actual)
-      setLlamada(null)
+      mostrarLlamada(null)
+      setDuplicados(null)
       setHuboAnalisis(false)
       setTranscripcion('')
       setEjemploElegido('')
@@ -224,8 +267,9 @@ function App() {
       window.removeEventListener('popstate', abrirDesdeUrl)
       solicitud.current?.abort()
       solicitud.current = null
+      solicitudDuplicados.current?.abort()
     }
-  }, [detenerReproduccion, recibirLlamada, solicitar])
+  }, [detenerReproduccion, mostrarLlamada, recibirLlamada, solicitar])
 
   useEffect(() => {
     if (mostrarErrorArriba || aviso || modo === null || catalogo === null) {
@@ -324,18 +368,18 @@ function App() {
       try {
         const derivada = await derivarLlamada(id, ajustes, senal)
         if (senal.aborted) return
-        setLlamada(derivada)
+        mostrarLlamada(derivada)
         setAnuncio(derivada.carta?.avisos?.length
           ? 'Carta derivada. Hay avisos sin confirmar.'
           : 'Carta derivada.')
       } catch (fallo) {
         if (senal.aborted) return
         if (!(fallo instanceof ErrorApi) || fallo.estado !== 409) throw fallo
-        setLlamada(null)
+        mostrarLlamada(null)
         const actual = await consultarLlamada(id, senal)
         if (senal.aborted) return
         if (actual.estado === 'derivada') {
-          setLlamada(actual)
+          mostrarLlamada(actual)
           setAviso('La llamada ya estaba derivada.')
         } else {
           await recibirLlamada(actual, senal)
@@ -355,7 +399,8 @@ function App() {
     setOcupado(false)
     cambiarUrl(null)
     setIdentificador(null)
-    setLlamada(null)
+    mostrarLlamada(null)
+    setDuplicados(null)
     setHuboAnalisis(false)
     setTranscripcion('')
     setEjemploElegido('')
@@ -392,38 +437,45 @@ function App() {
       </header>
 
       <div className="avisos" ref={regionAvisos} role={analisisEnCurso ? 'status' : undefined}
-        aria-live="polite" aria-atomic={!analisisEnCurso}>
-        {analisisEnCurso && <p className="aviso">El modelo está leyendo la llamada… La ubicación ya está leída.</p>}
-        <span className="solo-lectores">{ocupado && !analizando
-          ? (sumandoIntercambio ? 'Sumando intercambio…' : sumando ? 'Sumando turno…' : llamada?.estado === 'esperando_operador' ? 'Derivando carta…' : identificador ? 'Consultando llamada…' : 'Analizando llamada…')
-          : anuncio}</span>
-        <span className="solo-lectores">{estadoReproduccion}</span>
-        {aviso && <p className="aviso">{aviso}</p>}
-        {modo === null && error !== errorConexion && <p className="error">{errorConexion}</p>}
-        {catalogo === undefined && <p id="estado-catalogo" className="aviso">Cargando el catálogo de protocolos…</p>}
-        {catalogo === null && (
-          <p id="estado-catalogo" className="error">
-            No se pudo cargar el catálogo de protocolos.{' '}
-            <button type="button" className="secundario" onClick={reintentarCatalogo}>Reintentar</button>
-          </p>
-        )}
-        {Array.isArray(error) ? (
-          <div className="error">
-            <p>{erroresGenerales.length ? 'Revisá los datos.' : 'Revisá los campos marcados.'}</p>
-            {erroresGenerales.length > 0 && (
-              <ul>
-                {erroresGenerales.map(({ loc, msg }, indice) => <li key={indice}>{nombrarCampo(loc)}: {msg}</li>)}
-              </ul>
-            )}
-          </div>
-        ) : error && (
-          <p className="error">
-            {error}
-            {analizando && !ocupado && (
-              <>{' '}<button type="button" className="secundario" onClick={reintentarAnalisis}>Reintentar el análisis</button></>
-            )}
-          </p>
-        )}
+        aria-live="polite" aria-atomic={false}>
+        <div aria-atomic={!analisisEnCurso}>
+          {analisisEnCurso && <p className="aviso">El modelo está leyendo la llamada… La ubicación ya está leída.</p>}
+          <span className="solo-lectores">{ocupado && !analizando
+            ? (sumandoIntercambio ? 'Sumando intercambio…' : sumando ? 'Sumando turno…' : llamada?.estado === 'esperando_operador' ? 'Derivando carta…' : identificador ? 'Consultando llamada…' : 'Analizando llamada…')
+            : anuncio}</span>
+          <span className="solo-lectores">{estadoReproduccion}</span>
+          {aviso && <p className="aviso">{aviso}</p>}
+          {modo === null && error !== errorConexion && <p className="error">{errorConexion}</p>}
+          {catalogo === undefined && <p id="estado-catalogo" className="aviso">Cargando el catálogo de protocolos…</p>}
+          {catalogo === null && (
+            <p id="estado-catalogo" className="error">
+              No se pudo cargar el catálogo de protocolos.{' '}
+              <button type="button" className="secundario" onClick={reintentarCatalogo}>Reintentar</button>
+            </p>
+          )}
+          {Array.isArray(error) ? (
+            <div className="error">
+              <p>{erroresGenerales.length ? 'Revisá los datos.' : 'Revisá los campos marcados.'}</p>
+              {erroresGenerales.length > 0 && (
+                <ul>
+                  {erroresGenerales.map(({ loc, msg }, indice) => <li key={indice}>{nombrarCampo(loc)}: {msg}</li>)}
+                </ul>
+              )}
+            </div>
+          ) : error && (
+            <p className="error">
+              {error}
+              {analizando && !ocupado && (
+                <>{' '}<button type="button" className="secundario" onClick={reintentarAnalisis}>Reintentar el análisis</button></>
+              )}
+            </p>
+          )}
+        </div>
+        <span className="solo-lectores" aria-atomic="true">
+          {duplicadosVisibles?.anuncia && (
+            <span key={duplicadosVisibles.firma}>Hay otra llamada reciente del mismo lugar.</span>
+          )}
+        </span>
       </div>
 
       {!identificador && (
@@ -479,6 +531,9 @@ function App() {
         muestraFormulario ? (
           <FormularioSugerencia key={llamada.llamada_id} analizando={analizando} pieTranscripcion={pieTranscripcion}
             turnos={llamada.turnos} sugerencia={llamada.sugerencia} catalogo={catalogo ?? null}
+            avisoDuplicados={duplicadosVisibles?.recibidaEn && (
+              <AvisoDuplicados recibidaEn={duplicadosVisibles.recibidaEn} posibles={duplicadosVisibles.posibles} />
+            )}
             derivacionBloqueada={bloqueado || analizando || !catalogo} edicionBloqueada={edicionBloqueada || !catalogo}
             ocupado={ocupado && !analizando && !sumando} nuevaLlamadaBloqueada={nuevaLlamadaBloqueada}
             alDerivar={derivar} errores={Array.isArray(error) ? error : []}

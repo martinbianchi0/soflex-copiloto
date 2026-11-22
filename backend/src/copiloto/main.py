@@ -12,7 +12,7 @@ from copiloto import callejero, catalogo, dataset, ejemplos
 from copiloto.catalogo import Catalogo, SubtipoInvalido
 from copiloto.config import Configuracion
 from copiloto.ejemplos import Ejemplo
-from copiloto.esquemas import Derivacion, Historial, Llamada, NuevaLlamada, NuevoTurno
+from copiloto.esquemas import Derivacion, Duplicados, Historial, Llamada, NuevaLlamada, NuevoTurno
 from copiloto.flujo import DictadoInvalido, FaltanDatos, MarcaInvalida
 from copiloto.llamadas import (
     LlamadaIlegible,
@@ -129,6 +129,11 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
     @api.get("/llamadas/{llamada_id}")
     def consultar_llamada(llamada_id: str) -> Llamada:
         return llamadas().consultar(llamada_id)
+
+    @api.get("/llamadas/{llamada_id}/duplicados")
+    def consultar_duplicados(llamada_id: str) -> Duplicados:
+        recibida_en, posibles = llamadas().consultar_duplicados(llamada_id)
+        return Duplicados(llamada_id=llamada_id, recibida_en=recibida_en, posibles=posibles)
 
     @api.get("/llamadas/{llamada_id}/historial")
     def consultar_historial(llamada_id: str) -> Historial:

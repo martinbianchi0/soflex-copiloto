@@ -7,7 +7,7 @@ llamada que quedó esperando al operador se puede derivar aunque el servicio se 
 import sqlite3
 import threading
 import uuid
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -18,7 +18,8 @@ from pydantic import ValidationError
 
 from copiloto import flujo, historial
 from copiloto.config import ESPERA_DEL_MODELO_S
-from copiloto.esquemas import Ajustes, Historial, Llamada, NuevaLlamada, Turno
+from copiloto.duplicados import UbicacionesRecientes
+from copiloto.esquemas import Ajustes, Historial, Llamada, NuevaLlamada, PosibleDuplicado, Turno
 from copiloto.grafo import Estado, construir
 from copiloto.modelo import Modelo
 from copiloto.turnos import separar_hablantes
@@ -46,12 +47,18 @@ def _hilo(llamada_id: str) -> RunnableConfig:
 
 class Llamadas:
     def __init__(
-        self, ruta: Path, modelo: Modelo | None = None, espera_s: float = ESPERA_DEL_MODELO_S
+        self,
+        ruta: Path,
+        modelo: Modelo | None = None,
+        espera_s: float = ESPERA_DEL_MODELO_S,
+        reloj: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         ruta.parent.mkdir(parents=True, exist_ok=True)
         # Los pedidos llegan desde varios hilos: SqliteSaver ordena el acceso a la conexión.
         self._conexion = sqlite3.connect(ruta, check_same_thread=False)
         self._grafo = construir(modelo, espera_s).compile(checkpointer=SqliteSaver(self._conexion))
+        self._ubicaciones_recientes = UbicacionesRecientes(ruta)
+        self._reloj = reloj
         self._pausa_tras_las_reglas = ["analizar"] if modelo is not None else None
         self._analizando = threading.Lock()
         self._analisis_en_curso: str | None = None
@@ -60,17 +67,21 @@ class Llamadas:
         self._modificando = threading.Lock()
 
     def cerrar(self) -> None:
+        self._ubicaciones_recientes.cerrar()
         self._conexion.close()
 
     def iniciar(self, turnos: list[Turno]) -> Llamada:
         """Guarda lo que proponen las reglas para que el operador lo vea enseguida."""
+        recibida_en = self._reloj()
         llamada_id = uuid.uuid4().hex
         # Se guarda ya partida en turnos: las citas señalan cada turno por su posición.
         planos = [turno.model_dump(mode="json") for turno in separar_hablantes(turnos)]
         self._avanzar(
             {"llamada_id": llamada_id, "turnos": planos}, llamada_id, self._pausa_tras_las_reglas
         )
-        return self._leer(llamada_id)
+        llamada = self._leer(llamada_id)
+        self._ubicaciones_recientes.actualizar(llamada, recibida_en)
+        return llamada
 
     def completar_analisis(self, llamada_id: str) -> Llamada:
         """Completa la sugerencia si todavía falta consultar al modelo."""
@@ -78,11 +89,14 @@ class Llamadas:
             with self._modificando:
                 llamada = self._leer(llamada_id)
                 if llamada.estado != "analizando":
+                    self._ubicaciones_recientes.actualizar(llamada)
                     return llamada
                 self._analisis_en_curso = llamada_id
             try:
                 self._avanzar(None, llamada_id)
-                return self._leer(llamada_id)
+                llamada = self._leer(llamada_id)
+                self._ubicaciones_recientes.actualizar(llamada)
+                return llamada
             finally:
                 with self._modificando:
                     self._analisis_en_curso = None
@@ -94,6 +108,12 @@ class Llamadas:
                 if self._analisis_en_curso != llamada_id:
                     llamada = self._terminar_lo_que_quedo_a_medias(llamada_id)
         return llamada
+
+    def consultar_duplicados(
+        self, llamada_id: str
+    ) -> tuple[datetime | None, list[PosibleDuplicado]]:
+        self._leer(llamada_id)
+        return self._ubicaciones_recientes.consultar(llamada_id)
 
     def consultar_historial(self, llamada_id: str) -> Historial:
         fotos = list(self._grafo.get_state_history(_hilo(llamada_id)))
@@ -131,7 +151,9 @@ class Llamadas:
                 llamada_id,
                 self._pausa_tras_las_reglas,
             )
-            return self._leer(llamada_id)
+            llamada = self._leer(llamada_id)
+            self._ubicaciones_recientes.actualizar(llamada)
+            return llamada
 
     def derivar(self, llamada_id: str, ajustes: Ajustes) -> Llamada:
         """Retoma la llamada con lo que cambió el operador y arma la Carta de Llamada."""
@@ -157,7 +179,9 @@ class Llamadas:
             # Los ajustes van envueltos: LangGraph lee un diccionario vacío suelto como "no se
             # contesta ninguna pausa", y una derivación sin cambios dejaría la llamada esperando.
             self._avanzar(Command(resume={"ajustes": planos}), llamada_id)
-            return self._leer(llamada_id)
+            llamada = self._leer(llamada_id)
+            self._ubicaciones_recientes.actualizar(llamada)
+            return llamada
 
     def _avanzar(
         self,
