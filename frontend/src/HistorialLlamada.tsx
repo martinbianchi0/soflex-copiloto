@@ -23,7 +23,7 @@ function ValorHistorial({ valor, campo }: { valor: ValorCambio; campo: string })
       </ul>
     )
   }
-  if ('respondida' in valor) return valor.respondida ? 'respondida' : 'pendiente'
+  if ('respondida' in valor) return valor.respondida ? 'respondida' : valor.propuesta ? 'posible respuesta' : 'pendiente'
   return <DatoHistorial dato={valor} campo={campo} />
 }
 

@@ -131,7 +131,8 @@ export default function FormularioSugerencia({
   const checklist = protocolo?.preguntas.map(({ id, texto }): Pregunta => {
     const base = sugeridas.find((item) => item.id === id && item.pregunta === texto) ??
       { id, pregunta: texto, respondida: false, cita: null, del_operador: false }
-    return marcas.has(id) ? { ...base, respondida: !base.respondida, cita: null, del_operador: true } : base
+    // Al confirmar una posible respuesta, la cita que se tenía a la vista queda con la pregunta.
+    return marcas.has(id) ? { ...base, respondida: !base.respondida, cita: base.respondida ? null : base.cita, del_operador: true } : base
   }) ?? (catalogo ? [] : sugerencia.checklist)
   const citas = [
     ...Object.entries(datos).flatMap(([control, dato]) => {

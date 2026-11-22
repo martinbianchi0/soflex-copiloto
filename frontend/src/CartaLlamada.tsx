@@ -23,9 +23,13 @@ function DatoCarta({ etiqueta, dato, texto }: { etiqueta: string; dato: Dato<str
 }
 
 function estadoPregunta({ respondida, cita, del_operador }: Pregunta) {
-  if (del_operador) return respondida ? 'Respondida · marcada por el operador' : 'Pendiente · desmarcada por el operador'
-  if (!respondida) return 'Pendiente'
-  return cita ? `Respondida · Turno ${cita.turno + 1} «${cita.texto}»` : 'Respondida'
+  const dicho = cita ? ` · Turno ${cita.turno + 1} «${cita.texto}»` : ''
+  if (del_operador) {
+    if (!respondida) return 'Pendiente · desmarcada por el operador'
+    return cita ? `Respondida · confirmada por el operador${dicho}` : 'Respondida · marcada por el operador'
+  }
+  if (!respondida) return cita ? `Pendiente · posible respuesta sin confirmar${dicho}` : 'Pendiente'
+  return `Respondida${dicho}`
 }
 
 export default function CartaLlamada({ carta, catalogo }: { carta: Carta; catalogo: Catalogo | null }) {

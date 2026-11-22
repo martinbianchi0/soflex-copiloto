@@ -356,8 +356,8 @@ def test_el_historial_devuelve_los_cambios_resueltos_de_la_carta(cliente):
         {"campo": "prioridad", "sugerido": sugerencia["prioridad"], "final": carta["prioridad"]},
         {
             "campo": "pregunta SFX-001-Q2",
-            "sugerido": {"respondida": False},
-            "final": {"respondida": True},
+            "sugerido": {"respondida": False, "propuesta": False},
+            "final": {"respondida": True, "propuesta": False},
         },
     ]
 

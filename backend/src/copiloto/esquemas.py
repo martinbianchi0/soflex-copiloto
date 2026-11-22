@@ -195,22 +195,24 @@ class Ubicacion(Esquema):
 
 
 class ItemChecklist(Esquema):
-    """Una pregunta del protocolo y si ya quedó respondida en la llamada."""
+    """Una pregunta del protocolo y si ya quedó respondida en la llamada.
+
+    Una pendiente con cita es una posible respuesta: el sistema la propone y todavía no la confirmó
+    nadie. Si el operador la marca, queda respondida por él y conserva la cita que se le mostró.
+    """
 
     id: Texto
     pregunta: TextoLargo
     respondida: bool
-    # Dónde se respondió, cuando lo detecta el sistema.
+    # Dónde lo dijo el llamante, cuando lo detecta el sistema.
     cita: Cita | None = None
     # La marcó o la desmarcó el operador. Su palabra no necesita cita.
     del_operador: bool = False
 
     @model_validator(mode="after")
     def con_respaldo(self) -> Self:
-        if self.cita is not None and not self.respondida:
-            raise ValueError("Una pregunta pendiente no lleva cita.")
-        if self.cita is not None and self.del_operador:
-            raise ValueError("Lo que marca el operador no lleva cita.")
+        if self.cita is not None and self.del_operador and not self.respondida:
+            raise ValueError("Una pregunta que el operador desmarcó no lleva cita.")
         if self.respondida and self.cita is None and not self.del_operador:
             raise ValueError("Una pregunta respondida lleva su cita, o la marcó el operador.")
         return self
@@ -362,6 +364,8 @@ class EventoHistorial(Esquema):
 
 class EstadoPregunta(Esquema):
     respondida: bool
+    # El sistema la proponía como posible respuesta, sin darla por respondida.
+    propuesta: bool = False
 
 
 type ValorCambio = Dato[Texto | Altura] | list[Dato[Texto]] | EstadoPregunta

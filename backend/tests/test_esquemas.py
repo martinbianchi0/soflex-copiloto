@@ -80,16 +80,19 @@ def test_una_esquina_sin_nombre_no_va_en_la_lista(esquina):
         Ubicacion.model_validate({"calle": DICHA, "altura": FALTA, "esquinas": [esquina]})
 
 
-def test_una_pregunta_pendiente_no_lleva_cita():
-    with pytest.raises(ValidationError, match="pendiente"):
-        ItemChecklist.model_validate(
-            {
-                "id": "a",
-                "pregunta": "¿Hay humo?",
-                "respondida": False,
-                "cita": {"turno": 0, "texto": "x"},
-            }
-        )
+def test_una_pregunta_pendiente_con_cita_es_una_posible_respuesta():
+    pregunta = ItemChecklist.model_validate(
+        {
+            "id": "a",
+            "pregunta": "¿Hay humo?",
+            "respondida": False,
+            "cita": {"turno": 0, "texto": "x"},
+        }
+    )
+
+    assert not pregunta.respondida
+    assert not pregunta.del_operador
+    assert pregunta.cita == Cita(turno=0, texto="x")
 
 
 def test_una_pregunta_pendiente_sin_cita_queda_sin_marca_del_operador():
@@ -99,10 +102,19 @@ def test_una_pregunta_pendiente_sin_cita_queda_sin_marca_del_operador():
     assert pregunta.del_operador is False
 
 
-def test_una_pregunta_marcada_por_el_operador_no_lleva_cita(sugerencia_completa):
+def test_una_pregunta_que_confirmo_el_operador_conserva_la_cita(sugerencia_completa):
     pregunta = {**sugerencia_completa["checklist"][0], "del_operador": True}
 
-    with pytest.raises(ValidationError, match="marca el operador no lleva cita"):
+    confirmada = ItemChecklist.model_validate(pregunta)
+
+    assert confirmada.respondida
+    assert confirmada.cita is not None
+
+
+def test_una_pregunta_que_el_operador_desmarco_no_lleva_cita(sugerencia_completa):
+    pregunta = {**sugerencia_completa["checklist"][0], "respondida": False, "del_operador": True}
+
+    with pytest.raises(ValidationError, match="desmarcó no lleva cita"):
         ItemChecklist.model_validate(pregunta)
 
 

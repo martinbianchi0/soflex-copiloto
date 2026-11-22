@@ -134,7 +134,7 @@ def _leer_clasificacion(texto: str) -> Clasificacion:
 def revisar_protocolo(
     modelo: Modelo, usuario: str, protocolo: Protocolo, turnos: list[Turno], vence: float
 ) -> tuple[list[ItemChecklist], list[Aviso]]:
-    """Segundo pedido: confirma que el subtipo propuesto corresponde y qué preguntas ya se respondieron.
+    """Segundo pedido: confirma el subtipo propuesto y qué preguntas pudo haber respondido el llamante.
 
     Al clasificar, el modelo tiende a elegir el subtipo más parecido aunque ninguno corresponda.
     Preguntarle después por ese subtipo solo, por sí o por no, frena la mayoría de esos casos: si
@@ -174,8 +174,10 @@ Marcá respondida como true sólo si el llamante ya dio esa información. La cit
             descartadas.add(identificador)
             continue
         pregunta = por_id[identificador]
+        # Queda como posible respuesta: la cita prueba que el llamante lo dijo, no que eso
+        # conteste la pregunta. La da por respondida el operador.
         verificadas[identificador] = ItemChecklist(
-            id=pregunta.id, pregunta=pregunta.texto, respondida=True, cita=cita
+            id=pregunta.id, pregunta=pregunta.texto, respondida=False, cita=cita
         )
     avisos = [
         _aviso_de_respuesta_descartada(pregunta.texto)
