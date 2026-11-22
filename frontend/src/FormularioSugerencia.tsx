@@ -186,14 +186,17 @@ export default function FormularioSugerencia({
 
   function marcarPregunta(id: string) {
     const pregunta = checklist.find((item) => item.id === id)
-    if (!pregunta) return
+    const sugerida = baseChecklist.find((item) => item.id === id)
+    if (!pregunta || !sugerida) return
     const respondida = !pregunta.respondida
-    const cita = respondida ? pregunta.cita ?? baseChecklist.find((item) => item.id === id)?.cita ?? null : null
-    setBorrador((actual) => ({
-      ...actual,
-      editados: new Set([...actual.editados, 'categoria', 'subtipo']),
-      marcas: new Map(actual.marcas).set(id, { id, respondida, cita }),
-    }))
+    const cita = respondida ? pregunta.cita ?? sugerida.cita : null
+    setBorrador((actual) => {
+      const marcas = new Map(actual.marcas)
+      // Volver a como estaba no es un cambio del operador: la pregunta recupera su origen y su cita.
+      if (respondida === sugerida.respondida) marcas.delete(id)
+      else marcas.set(id, { id, respondida, cita })
+      return { ...actual, editados: new Set([...actual.editados, 'categoria', 'subtipo']), marcas }
+    })
   }
 
   function marcarDictado(id: string) {
