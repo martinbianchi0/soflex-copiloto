@@ -50,7 +50,7 @@ type UbicacionAjustada = {
 export type Pregunta = { id: string; pregunta: string; respondida: boolean; cita: Cita | null; del_operador: boolean }
 type TextoProtocolo = { id: string; texto: string }
 
-export type Ejemplo = { id: string; titulo: string; origen: 'dataset' | 'nueva'; texto: string }
+export type Ejemplo = { id: string; titulo: string; origen: 'dataset' | 'nueva'; texto: string; turnos: Turno[] }
 
 export type Protocolo = {
   id: string

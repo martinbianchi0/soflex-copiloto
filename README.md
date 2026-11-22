@@ -12,6 +12,8 @@ docker compose up --build
 
 El panel queda en <http://localhost:8000>. Hace falta Docker con Compose 2.24 o más nuevo. No hace falta `.env`: sin configuración corre en modo `mock`, que no usa red ni claves. Las variables que se pueden cambiar están en `.env.example`.
 
+Para probarlo: en "Cargar un ejemplo", elegir *Choque con moto · la llamada llega de a un intercambio*, tildar "Reproducir de a un intercambio" y apretar "Analizar llamada". La llamada llega de a poco: la altura aparece cuando el operador la pregunta, y mientras tanto se puede editar, marcar el protocolo y derivar.
+
 El estado de las llamadas se guarda en un volumen de Docker: una llamada que quedó a medias sigue ahí después de `docker compose down` y de volver a levantar.
 
 ## Con un modelo local (opcional)
@@ -66,7 +68,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 - **Un piso para la prioridad.** El modelo dejó en P2 dos llamadas P1 del dataset. Señales de riesgo de vida detectadas por reglas podrían subir la propuesta sin depender del modelo; hay que validarlas con casos reales para no subir todo.
 - **Una segunda lectura de la dirección cuando las reglas avisan que no cierra.** Hoy el aviso le pide al operador que la lea de vuelta; el modelo podría proponer una corrección consultando el callejero, siempre para que la confirme el operador.
 - **Protocolos para lo que el catálogo no cubre**, definidos por quien tiene la autoridad para hacerlo.
-- **Entrada en vivo.** Hoy el operador escribe cada turno; lo siguiente sería recibirlos a medida que se transcribe la llamada.
+- **Entrada en vivo.** Hoy el operador escribe cada turno, o se reproduce un ejemplo; lo siguiente sería recibirlos a medida que se transcribe la llamada.
 - **Aviso de llamadas sobre el mismo hecho:** misma esquina y pocos minutos de diferencia.
 - **Coordenadas además de calle y altura**, y contraste con el servicio de direcciones de la Ciudad cuando hay red.
 - **Trazas de cada pedido al modelo** (qué se le mandó, qué devolvió, cuánto tardó), para revisar un caso sin volver a correrlo.

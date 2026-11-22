@@ -1,12 +1,15 @@
 """Llamadas listas para probar el panel sin tener que buscar ni pegar una transcripción."""
 
 import json
-from functools import cache
+from functools import cache, cached_property
 from importlib import resources
 from typing import Literal
 
+from pydantic import computed_field
+
 from copiloto import dataset
-from copiloto.esquemas import Esquema, Texto, TextoDeTurno
+from copiloto.esquemas import Esquema, Texto, TextoDeTurno, Turno
+from copiloto.turnos import separar_hablantes
 
 NUEVAS = "llamadas_de_ejemplo.json"
 
@@ -17,6 +20,13 @@ class Ejemplo(Esquema):
     # "dataset": una de las llamadas provistas. "nueva": una que el servicio no conoce.
     origen: Literal["dataset", "nueva"]
     texto: TextoDeTurno
+
+    # mypy no admite un decorador sobre una propiedad; es el uso que documenta Pydantic para un
+    # campo calculado.
+    @computed_field  # type: ignore[prop-decorator]
+    @cached_property
+    def turnos(self) -> list[Turno]:
+        return separar_hablantes([Turno(texto=self.texto)])
 
 
 @cache

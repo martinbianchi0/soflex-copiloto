@@ -1,12 +1,14 @@
 import { useRef, useState } from 'react'
 import type { Turno } from './api'
 
-export default function FormularioTurno({ bloqueado, sumando, error, alSumar, alEditar }: {
+export default function FormularioTurno({ bloqueado, edicionBloqueada, sumando, error, alSumar, alEditar, alReintentar }: {
   bloqueado: boolean
+  edicionBloqueada: boolean
   sumando: boolean
   error: string
   alSumar: (turno: Turno, alAceptar: () => void) => void
   alEditar: () => void
+  alReintentar?: () => void
 }) {
   const [texto, setTexto] = useState('')
   const [hablante, setHablante] = useState<'llamante' | 'operador'>('llamante')
@@ -33,7 +35,7 @@ export default function FormularioTurno({ bloqueado, sumando, error, alSumar, al
         <legend>Sumar lo que se dijo después</legend>
         <label>
           Quién habla
-          <select value={hablante} disabled={bloqueado} onChange={(evento) => {
+          <select value={hablante} disabled={edicionBloqueada} onChange={(evento) => {
             setHablante(evento.target.value === 'operador' ? 'operador' : 'llamante')
             alEditar()
           }}>
@@ -43,7 +45,7 @@ export default function FormularioTurno({ bloqueado, sumando, error, alSumar, al
         </label>
         <label className="campo">
           Texto del turno
-          <textarea ref={area} rows={3} value={texto} readOnly={bloqueado}
+          <textarea ref={area} rows={3} value={texto} readOnly={edicionBloqueada}
             aria-invalid={error ? true : undefined} aria-describedby={error ? 'error-turno' : undefined}
             onChange={(evento) => {
               setTexto(evento.target.value)
@@ -57,6 +59,7 @@ export default function FormularioTurno({ bloqueado, sumando, error, alSumar, al
           {sumando ? 'Sumando…' : 'Sumar a la llamada'}
         </button>
         <small className="atajo"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></small>
+        {alReintentar && <button type="button" className="secundario" onClick={alReintentar}>Reintentar el análisis</button>}
       </div>
     </form>
   )

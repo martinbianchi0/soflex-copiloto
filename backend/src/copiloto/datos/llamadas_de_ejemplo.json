@@ -18,5 +18,10 @@
   "id": "nueva-4",
   "titulo": "Luminaria apagada · un reclamo, en varios turnos",
   "texto": "Operador: 147 Ciudad, buenas tardes. Llamante: Hola, quería avisar que hace una semana que no anda la luminaria de mi cuadra, en Yerbal al 2300. Operador: ¿Hay cables sueltos o chispas? Llamante: No, nada de eso, está apagada nomás."
+ },
+ {
+  "id": "nueva-5",
+  "titulo": "Choque con moto · la llamada llega de a un intercambio",
+  "texto": "Operador: 911, ¿cuál es su emergencia? Llamante: Chocaron un auto y una moto en Av. San Juan, el de la moto quedó tirado en la calle. Operador: ¿A qué altura? Llamante: Al 2100. Operador: ¿El motociclista respira? ¿Le responde? Llamante: Sí, respira y me contesta, pero dice que le duele mucho la pierna. Operador: No le saquen el casco. ¿Lo tiene puesto? Llamante: Sí, lo tiene puesto, no se lo tocamos. Operador: ¿Ve nafta o aceite en el asfalto? Llamante: Sí, hay una mancha de nafta debajo de la moto."
  }
 ]
