@@ -87,7 +87,9 @@ type Ficha = {
   datos_dictados: DatoDictado[]
 }
 
-export type Sugerencia = Ficha
+export type DireccionAlternativa = UbicacionAjustada
+
+export type Sugerencia = Ficha & { direccion_alternativa: DireccionAlternativa | null }
 
 export type MarcaChecklist = Pick<Pregunta, 'id' | 'respondida'> & { cita: Cita | null }
 

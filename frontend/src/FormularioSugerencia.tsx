@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent, ReactNode } from 'react'
 import { citaDato, idDictado, nombresTiposHecho, textoOrigen, valorDato } from './api'
-import type { Ajustes, Catalogo, Criterio, Dato, DetalleValidacion, Pregunta, Prioridad, Sugerencia, TipoHecho, Turno } from './api'
-import { actualizarBorrador, iniciarBorrador, leerAltura } from './borradorSugerencia'
+import type { Ajustes, Catalogo, Criterio, Dato, DetalleValidacion, DireccionAlternativa, Pregunta, Prioridad, Sugerencia, TipoHecho, Turno } from './api'
+import { actualizarBorrador, iniciarBorrador, leerAltura, usarDireccion } from './borradorSugerencia'
 import type { CamposSugerencia } from './borradorSugerencia'
 import AvisosSugerencia from './AvisosSugerencia'
 import DatosDictados from './DatosDictados'
@@ -25,6 +25,7 @@ type Propiedades = {
   pieTranscripcion: ReactNode
   avisoDuplicados: ReactNode
   alCambiarProtocolo: (mensaje: string) => void
+  alAnunciarDireccion: (mensaje: string) => void
   alDerivar: (ajustes: Ajustes) => void
   alValidar: (errores: DetalleValidacion[]) => void
   alEmpezar: () => void
@@ -35,6 +36,12 @@ const faltante = { origen: 'falta' } as const
 
 function datoVisible<Valor>(dato: Dato<Valor>, valor: Valor | null, invalido = false): Dato<Valor> {
   return invalido || valor !== valorDato(dato) ? { origen: 'operador', valor } : dato
+}
+
+function nombreComparable(nombre: string) {
+  return nombre.toLowerCase().normalize('NFD')
+    .replace(/\p{M}/gu, (marca) => marca === '\u0303' ? marca : '')
+    .normalize('NFC').replace(/[^\p{L}\p{N}]+/gu, ' ').trim()
 }
 
 function CampoSugerido({ nombre, etiqueta, dato, opcional, nota, errores = [], errorCompartido, children: dibujarControl }: {
@@ -90,7 +97,7 @@ function CriterioPrioridad({ niveles, reglas }: Criterio) {
 export default function FormularioSugerencia({
   turnos, sugerencia: recibida, catalogo, analizando, derivacionBloqueada, edicionBloqueada, ocupado,
   nuevaLlamadaBloqueada, errores, pieTranscripcion, avisoDuplicados,
-  alCambiarProtocolo, alDerivar, alValidar, alEmpezar,
+  alCambiarProtocolo, alAnunciarDireccion, alDerivar, alValidar, alEmpezar,
 }: Propiedades) {
   const [borrador, setBorrador] = useState(() => iniciarBorrador(recibida, catalogo))
   // Durante el reanálisis se conserva la última sugerencia completa como base de las ediciones.
@@ -109,6 +116,12 @@ export default function FormularioSugerencia({
   const [enFoco, setEnFoco] = useState('')
   const formulario = useRef<HTMLFormElement>(null)
   const { numero: numeroAltura, invalida: alturaInvalida } = leerAltura(altura)
+  const esquinas = [esquinaUno, esquinaDos].filter((esquina) => esquina.trim())
+  const alternativa = sugerencia.direccion_alternativa
+  const coincideConAlternativa = alternativa && !alturaInvalida && numeroAltura === alternativa.altura &&
+    nombreComparable(calle) === nombreComparable(alternativa.calle) &&
+    esquinas.length === alternativa.esquinas.length &&
+    alternativa.esquinas.every((nombre) => esquinas.some((esquina) => nombreComparable(esquina) === nombreComparable(nombre)))
   const datos = {
     calle: datoVisible(ubicacion.calle, calle || null),
     altura: datoVisible(ubicacion.altura, numeroAltura, alturaInvalida),
@@ -175,6 +188,11 @@ export default function FormularioSugerencia({
     }))
   }
 
+  function aplicarDireccion(direccion: DireccionAlternativa) {
+    setBorrador((actual) => usarDireccion(actual, direccion))
+    formulario.current?.querySelector<HTMLInputElement>('#calle')?.focus()
+  }
+
   function elegirSubtipo(elegido: string | null, tipo = categoria) {
     setBorrador((actual) => ({
       ...actual, campos: { ...actual.campos, categoria: tipo, subtipo: elegido }, marcas: new Map(),
@@ -212,7 +230,6 @@ export default function FormularioSugerencia({
     evento.preventDefault()
     if (derivacionBloqueada) return
 
-    const esquinas = [esquinaUno, esquinaDos].filter((esquina) => esquina.trim())
     const pendientes: DetalleValidacion[] = []
     if (!calle.trim()) pendientes.push({ loc: ['calle'], msg: 'Ingresá una calle.' })
     const nombres = [calle, ...esquinas].map((nombre) => nombre.trim().toLowerCase())
@@ -270,7 +287,8 @@ export default function FormularioSugerencia({
         <fieldset disabled={edicionBloqueada}>
           <legend>Sugerencia</legend>
           {avisoDuplicados}
-          <AvisosSugerencia avisos={sugerencia.avisos} />
+          <AvisosSugerencia avisos={sugerencia.avisos} alternativa={coincideConAlternativa ? null : alternativa}
+            alUsarDireccion={aplicarDireccion} alAnunciarDireccion={alAnunciarDireccion} />
           <div className="direccion">
             <CampoSugerido nombre="calle" etiqueta="Calle" dato={datos.calle} errores={erroresDe('calle')}
               nota={direccionAlternativa ? `El análisis ahora sugiere otra dirección: ${direccionAlternativa}.` : undefined}>

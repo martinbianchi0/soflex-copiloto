@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test } from 'vitest'
 import App from './App'
@@ -179,6 +179,100 @@ describe('Sumar lo que se dijo después', () => {
 
     expect(screen.getByText('Se sumó un turno. Sugerencia actualizada.')).toBeTruthy()
     expect(document.activeElement).toBe(transcripcion)
+  })
+})
+
+describe('Dirección alternativa del modelo', () => {
+  const { llamadaConAviso } = respuestas
+  const direccion = { calle: 'Aráoz', altura: 1236, esquinas: ['José A. Cabrera'] }
+  const ruta = `POST /api/llamadas/${llamadaConAviso.llamada_id}`
+  const derivacion = `${ruta}/derivar`
+  const nombreBoton = 'Usar esta dirección'
+  const mensaje = 'El modelo leyó otra dirección: Aráoz 1236, esquina José A. Cabrera. Confirmala con el llamante antes de usarla.'
+
+  function conAlternativa() {
+    const llamada = structuredClone(llamadaConAviso)
+    if (!llamada.sugerencia) throw new Error('La llamada guardada no trae sugerencia')
+    llamada.sugerencia.direccion_alternativa = direccion
+    llamada.sugerencia.prioridad = { origen: 'inferido', valor: 'P2', fuente: 'modelo' }
+    return { llamada, sugerencia: llamada.sugerencia }
+  }
+
+  function camposDeUbicacion() {
+    return [
+      screen.getByRole<HTMLInputElement>('textbox', { name: 'Calle' }),
+      campoAltura(),
+      screen.getByRole<HTMLInputElement>('textbox', { name: 'Primera esquina (opcional)' }),
+      screen.getByRole<HTMLInputElement>('textbox', { name: 'Segunda esquina (opcional)' }),
+    ]
+  }
+
+  test('Anuncia la alternativa y Enter en el botón carga la ubicación sin derivar', async () => {
+    const servicio = abrirLlamada(conAlternativa().llamada)
+    servicio.responder(derivacion, () => contestacionPendiente().promesa)
+    const operador = userEvent.setup()
+    const usar = await screen.findByRole('button', { name: nombreBoton })
+    const derivar = screen.getByRole<HTMLButtonElement>('button', { name: 'Derivar Carta de Llamada' })
+    expect(derivar.disabled).toBe(false)
+    expect(usar.previousElementSibling?.textContent).toBe(mensaje)
+    expect((await screen.findByText(mensaje)).closest('[aria-live="polite"]')).toBeTruthy()
+
+    const [calle, altura, esquina, otraEsquina] = camposDeUbicacion()
+    await operador.click(calle)
+    await operador.tab({ shift: true })
+    expect(document.activeElement).toBe(usar)
+    await operador.keyboard('{Enter}')
+    expect(document.activeElement).toBe(calle)
+    expect(servicio.pedidosA(derivacion)).toEqual([])
+    expect([calle.value, altura.value, esquina.value, otraEsquina.value])
+      .toEqual(['Aráoz', '1236', 'José A. Cabrera', ''])
+    for (const campo of [calle, altura, esquina]) {
+      expect(campo.getAttribute('aria-describedby')).toContain(`${campo.id}-origen`)
+      expect(document.getElementById(`${campo.id}-origen`)?.textContent).toBe('del operador')
+    }
+    expect(screen.queryByRole('button', { name: nombreBoton })).toBeNull()
+    await waitFor(() => expect(servicio.pedidosA('POST /api/mapa').at(-1)?.cuerpo).toEqual(direccion))
+
+    await operador.click(derivar)
+    expect(servicio.pedidosA(derivacion).map(({ cuerpo }) => cuerpo))
+      .toEqual([{ ajustes: { ubicacion: direccion } }])
+  })
+
+  test('Sin alternativa no aparece el bloque', async () => {
+    abrirLlamada(llamadaConAviso)
+    await screen.findByRole('group', { name: 'Sugerencia' })
+    expect(screen.queryByRole('button', { name: nombreBoton })).toBeNull()
+    expect(screen.queryByText(/El modelo leyó otra dirección/)).toBeNull()
+  })
+
+  test('El bloque se oculta cuando la dirección ya coincide con el formulario', async () => {
+    const { llamada, sugerencia } = conAlternativa()
+    sugerencia.ubicacion = {
+      calle: { origen: 'inferido', valor: 'Araoz', fuente: 'callejero' },
+      altura: { origen: 'inferido', valor: direccion.altura, fuente: 'callejero' },
+      esquinas: [{ origen: 'inferido', valor: 'Jose A Cabrera', fuente: 'callejero' }],
+    }
+    abrirLlamada(llamada)
+    await screen.findByRole('group', { name: 'Sugerencia' })
+    expect(screen.queryByRole('button', { name: nombreBoton })).toBeNull()
+    expect(screen.queryByText(/El modelo leyó otra dirección/)).toBeNull()
+  })
+
+  test('La dirección usada se conserva entera al sumar un turno', async () => {
+    const { llamada } = conAlternativa()
+    const nueva = structuredClone(llamadaPorTurnosConAltura)
+    const turno = { texto: 'Ya salieron todos.', hablante: null }
+    nueva.llamada_id = llamada.llamada_id
+    nueva.turnos = [...llamada.turnos, turno]
+    const servicio = abrirLlamada(llamada)
+    servicio.responder(`${ruta}/turnos`, nueva)
+    const operador = userEvent.setup()
+    await operador.click(await screen.findByRole('button', { name: nombreBoton }))
+    await operador.type(textoDelTurno(), turno.texto)
+    await operador.click(screen.getByRole('button', { name: 'Sumar a la llamada' }))
+
+    await screen.findByText('Se sumó un turno. Sugerencia actualizada.')
+    expect(camposDeUbicacion().map(({ value }) => value)).toEqual(['Aráoz', '1236', 'José A. Cabrera', ''])
   })
 })
 

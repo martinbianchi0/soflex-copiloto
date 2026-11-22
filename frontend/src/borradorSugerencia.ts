@@ -1,5 +1,5 @@
 import { valorDato } from './api'
-import type { Catalogo, MarcaChecklist, Prioridad, Sugerencia, TipoHecho } from './api'
+import type { Catalogo, DireccionAlternativa, MarcaChecklist, Prioridad, Sugerencia, TipoHecho } from './api'
 
 export type CamposSugerencia = {
   calle: string
@@ -56,6 +56,18 @@ export function leerAltura(altura: string) {
   const numero = texto ? Number(texto) : null
   const invalida = numero !== null && (!/^\d+$/.test(texto) || numero < 1 || numero > 99999)
   return { numero, invalida }
+}
+
+export function usarDireccion(borrador: BorradorSugerencia, direccion: DireccionAlternativa): BorradorSugerencia {
+  const [esquinaUno = '', esquinaDos = ''] = direccion.esquinas
+  return {
+    ...borrador,
+    campos: {
+      ...borrador.campos, calle: direccion.calle, altura: direccion.altura?.toString() ?? '',
+      esquinaUno, esquinaDos,
+    },
+    editados: new Set([...borrador.editados, ...camposUbicacion]),
+  }
 }
 
 export function actualizarBorrador(borrador: BorradorSugerencia, sugerencia: Sugerencia, catalogo: Catalogo | null): BorradorSugerencia {
