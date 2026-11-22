@@ -28,11 +28,12 @@ function datoVisible<Valor>(dato: Dato<Valor>, valor: Valor | null, invalido = f
   return invalido || valor !== valorDato(dato) ? { origen: 'operador', valor } : dato
 }
 
-function CampoSugerido({ nombre, etiqueta, dato, opcional, errores = [], errorCompartido, children: dibujarControl }: {
+function CampoSugerido({ nombre, etiqueta, dato, opcional, nota, errores = [], errorCompartido, children: dibujarControl }: {
   nombre: string
   etiqueta: string
   dato: Dato<unknown>
   opcional?: boolean
+  nota?: string
   errores?: string[]
   errorCompartido?: string
   children: (control: Control) => ReactNode
@@ -40,7 +41,8 @@ function CampoSugerido({ nombre, etiqueta, dato, opcional, errores = [], errorCo
   const origen = `${nombre}-origen`
   const cita = dato.origen === 'dicho' ? `${nombre}-cita` : undefined
   const error = errores.length > 0 ? `error-${nombre}` : undefined
-  const descripcion = [origen, cita, error, errorCompartido].filter(Boolean).join(' ')
+  const idNota = nota ? `${nombre}-nota` : undefined
+  const descripcion = [origen, cita, idNota, error, errorCompartido].filter(Boolean).join(' ')
 
   return (
     <div className="campo">
@@ -51,6 +53,7 @@ function CampoSugerido({ nombre, etiqueta, dato, opcional, errores = [], errorCo
       <div>
         {dibujarControl({ id: nombre, name: nombre, 'aria-describedby': descripcion, 'aria-invalid': error || errorCompartido ? true : undefined })}
         {dato.origen === 'dicho' && <small id={cita} className="cita">Turno {dato.cita.turno + 1} · «{dato.cita.texto}»</small>}
+        {nota && <small id={idNota} className="cita">{nota}</small>}
         {error && <p id={error} className="error-campo">{errores.join(' ')}</p>}
       </div>
     </div>
@@ -109,6 +112,12 @@ export default function FormularioSugerencia({
     subtipo: datoVisible(sugerencia.subtipo, subtipo),
     prioridad: datoVisible(sugerencia.prioridad, prioridad || null),
   }
+  // Una entrecalle del callejero vale para la dirección sugerida: si el operador la cambia, el
+  // servicio la vuelve a comprobar al derivar y la quita si ya no corresponde.
+  const cambioLaDireccion = datos.calle.origen === 'operador' || datos.altura.origen === 'operador'
+  const notaDeEsquina = (dato: Dato<unknown>) => cambioLaDireccion && dato.origen === 'inferido' && dato.fuente === 'callejero'
+    ? 'Era de la dirección sugerida: se vuelve a comprobar al derivar.'
+    : undefined
   const { niveles } = catalogo.criterio
   const nivelElegido = niveles.find(({ id }) => id === prioridad)
   const protocolos = catalogo.protocolos.filter((protocolo) => protocolo.categoria === categoria)
@@ -216,10 +225,10 @@ export default function FormularioSugerencia({
             </CampoSugerido>
           </div>
           <div className="esquinas">
-            <CampoSugerido nombre="primera_esquina" etiqueta="Primera esquina" dato={datos.primera_esquina} errorCompartido={errorEsquinas} opcional>
+            <CampoSugerido nombre="primera_esquina" etiqueta="Primera esquina" dato={datos.primera_esquina} nota={notaDeEsquina(datos.primera_esquina)} errorCompartido={errorEsquinas} opcional>
               {(control) => <input {...control} value={esquinaUno} onChange={(evento) => setEsquinaUno(evento.target.value)} />}
             </CampoSugerido>
-            <CampoSugerido nombre="segunda_esquina" etiqueta="Segunda esquina" dato={datos.segunda_esquina} errorCompartido={errorEsquinas} opcional>
+            <CampoSugerido nombre="segunda_esquina" etiqueta="Segunda esquina" dato={datos.segunda_esquina} nota={notaDeEsquina(datos.segunda_esquina)} errorCompartido={errorEsquinas} opcional>
               {(control) => <input {...control} value={esquinaDos} onChange={(evento) => setEsquinaDos(evento.target.value)} />}
             </CampoSugerido>
             {errorEsquinas && <p id={errorEsquinas} className="error-campo">{erroresEsquinas.join(' ')}</p>}

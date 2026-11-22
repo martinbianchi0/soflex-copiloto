@@ -95,6 +95,7 @@ Qué se eligió, por qué y qué se dejó afuera.
 - **El checklist se marca con casillas, y cada una dice quién la marcó:** la cita del sistema, o "marcada por vos" y "desmarcada por vos".
 - **Las instrucciones de pre-arribo van arriba del checklist, con letra más grande:** son lo que el operador lee en voz alta.
 - **Enter dentro de un campo no deriva; Ctrl+Enter deriva desde cualquier lugar.** Una carta derivada no se puede deshacer: el envío implícito del formulario al apretar Enter en un campo de texto está apagado.
+- **Si el operador cambia la calle o la altura, el panel avisa junto a cada entrecalle del callejero** que era de la dirección sugerida y que se vuelve a comprobar al derivar.
 - **Sin librería de componentes ni de rutas.** Son tres vistas; el formulario usa los controles del navegador con sus etiquetas, y los avisos se anuncian en una región `aria-live`.
 
 ## Empaquetado
