@@ -346,6 +346,39 @@ class Llamada(Esquema):
         return self
 
 
+# ---------- El historial de la llamada ----------
+
+
+type TipoEvento = Literal[
+    "recibida", "sugerencia_reglas", "sugerencia_modelo", "ajustes_operador", "derivada"
+]
+
+
+class EventoHistorial(Esquema):
+    tipo: TipoEvento
+    cuando: AwareDatetime
+    detalle: TextoLargo
+
+
+class EstadoPregunta(Esquema):
+    respondida: bool
+
+
+type ValorCambio = Dato[Texto | Altura] | list[Dato[Texto]] | EstadoPregunta
+
+
+class CambioHistorial(Esquema):
+    campo: Texto
+    sugerido: ValorCambio
+    final: ValorCambio
+
+
+class Historial(Esquema):
+    llamada_id: Texto
+    eventos: list[EventoHistorial]
+    cambios: list[CambioHistorial]
+
+
 # ---------- Lo que la API acepta ----------
 
 

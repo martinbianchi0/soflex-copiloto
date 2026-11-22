@@ -94,6 +94,20 @@ export type Carta = Ficha & {
   derivada_en: string
 }
 
+type EventoHistorial = {
+  tipo: 'recibida' | 'sugerencia_reglas' | 'sugerencia_modelo' | 'ajustes_operador' | 'derivada'
+  cuando: string
+  detalle: string
+}
+
+export type ValorCambio = Dato<string | number> | Dato<string>[] | { respondida: boolean }
+
+export type Historial = {
+  llamada_id: string
+  eventos: EventoHistorial[]
+  cambios: { campo: string; sugerido: ValorCambio; final: ValorCambio }[]
+}
+
 export type Turno = { texto: string; hablante: 'operador' | 'llamante' | null }
 
 export type Llamada = {
@@ -157,6 +171,10 @@ export function crearLlamada(texto: string, senal: AbortSignal) {
 
 export function consultarLlamada(identificador: string, senal: AbortSignal) {
   return pedir<Llamada>(`/llamadas/${encodeURIComponent(identificador)}`, senal)
+}
+
+export function consultarHistorial(identificador: string, senal: AbortSignal) {
+  return pedir<Historial>(`/llamadas/${encodeURIComponent(identificador)}/historial`, senal)
 }
 
 export function analizarLlamada(identificador: string, senal: AbortSignal) {

@@ -1,4 +1,6 @@
 import json
+from datetime import datetime
+from itertools import pairwise
 
 import pytest
 from conftest import DATOS_EMPAQUETADOS, FILAS_DATASET, REFERENCIA, TEXTO, TURNOS, TURNOS_SIN_DATOS
@@ -174,6 +176,7 @@ def test_derivar_dos_veces_devuelve_409_y_no_cambia_la_carta(cliente):
 
 def test_una_llamada_que_no_existe_devuelve_404(cliente):
     assert cliente.get("/api/llamadas/no-existe").status_code == 404
+    assert cliente.get("/api/llamadas/no-existe/historial").status_code == 404
     assert derivar(cliente, "no-existe", COMPLETOS).status_code == 404
 
 
@@ -285,6 +288,80 @@ def test_una_llamada_del_dataset_se_deriva_sin_cambios_con_su_protocolo(cliente)
     assert cliente.get(f"/api/llamadas/{llamada_id}").json() == derivada
 
 
+def test_el_historial_en_mock_usa_los_puntos_guardados_en_sqlite(cliente):
+    texto = FILAS_DATASET["SFX-001"]["transcripcion_cruda"]
+    llamada_id = iniciar(cliente, [{"texto": texto}])
+    ruta = f"/api/llamadas/{llamada_id}/historial"
+    pendiente = cliente.get(ruta)
+    assert pendiente.status_code == 200
+    assert pendiente.json()["cambios"] == []
+    assert [evento["tipo"] for evento in pendiente.json()["eventos"]] == [
+        "recibida",
+        "sugerencia_reglas",
+    ]
+
+    assert derivar(cliente, llamada_id, {}).status_code == 200
+    respuesta = cliente.get(ruta)
+
+    assert respuesta.status_code == 200
+    cuerpo = respuesta.json()
+    assert cuerpo["llamada_id"] == llamada_id
+    assert cuerpo["cambios"] == []
+    eventos = cuerpo["eventos"]
+    assert [(evento["tipo"], evento["detalle"]) for evento in eventos] == [
+        ("recibida", "Llamada recibida, con 2 turnos."),
+        ("sugerencia_reglas", "Sugerencia de las reglas, sin avisos."),
+        ("ajustes_operador", "El operador confirmó sin cambios."),
+        ("derivada", "Carta de Llamada derivada."),
+    ]
+    assert eventos[:2] == pendiente.json()["eventos"]
+    assert all(evento["cuando"].endswith("Z") for evento in eventos)
+    horas = [datetime.fromisoformat(evento["cuando"]) for evento in eventos]
+    assert all(antes < despues for antes, despues in pairwise(horas))
+
+    grafo = cliente.app.state.llamadas._grafo
+    puntos = list(reversed(list(grafo.get_state_history(_hilo(llamada_id)))))
+    # El punto de entrada está vacío y el del modelo en mock conserva el estado anterior.
+    assert horas == [datetime.fromisoformat(puntos[n].created_at) for n in (1, 2, 4, 5)]
+
+
+def test_el_historial_devuelve_los_cambios_resueltos_de_la_carta(cliente):
+    alta = cliente.post("/api/llamadas", json=LLAMADA).json()
+    llamada_id = alta["llamada_id"]
+    ajustes = {
+        "ubicacion": {"calle": "av corrientes", "altura": 1548, "esquinas": ["Montevideo"]},
+        "prioridad": "P2",
+        "checklist": [{"id": "SFX-001-Q2", "respondida": True}],
+    }
+    derivada = derivar(cliente, llamada_id, ajustes)
+    assert derivada.status_code == 200
+
+    respuesta = cliente.get(f"/api/llamadas/{llamada_id}/historial")
+
+    assert respuesta.status_code == 200
+    cuerpo = respuesta.json()
+    sugerencia, carta = alta["sugerencia"], derivada.json()["carta"]
+    assert cuerpo["eventos"][-2]["detalle"] == "El operador confirmó con 4 cambios."
+    assert cuerpo["cambios"] == [
+        {
+            "campo": "altura",
+            "sugerido": sugerencia["ubicacion"]["altura"],
+            "final": carta["ubicacion"]["altura"],
+        },
+        {
+            "campo": "esquinas",
+            "sugerido": sugerencia["ubicacion"]["esquinas"],
+            "final": carta["ubicacion"]["esquinas"],
+        },
+        {"campo": "prioridad", "sugerido": sugerencia["prioridad"], "final": carta["prioridad"]},
+        {
+            "campo": "pregunta SFX-001-Q2",
+            "sugerido": {"respondida": False},
+            "final": {"respondida": True},
+        },
+    ]
+
+
 def test_derivar_con_marcas_devuelve_la_carta_con_los_cambios_en_el_checklist(cliente):
     alta = cliente.post("/api/llamadas", json=LLAMADA)
     assert alta.status_code == 201
@@ -376,7 +453,7 @@ def test_la_descripcion_de_la_api_se_genera_con_los_esquemas(cliente):
     descripcion = cliente.get("/api/openapi.json")
 
     assert descripcion.status_code == 200
-    assert "Llamada" in descripcion.json()["components"]["schemas"]
+    assert {"Llamada", "Historial"} <= descripcion.json()["components"]["schemas"].keys()
 
 
 def test_una_llamada_guardada_con_otro_formato_se_informa_como_ilegible(cliente):
@@ -390,9 +467,11 @@ def test_una_llamada_guardada_con_otro_formato_se_informa_como_ilegible(cliente)
     grafo.update_state(_hilo(llamada_id), {"sugerencia": de_otra_version})
 
     consulta = cliente.get(f"/api/llamadas/{llamada_id}")
+    historial = cliente.get(f"/api/llamadas/{llamada_id}/historial")
     intento = derivar(cliente, llamada_id, {"prioridad": "P1"})
 
-    assert consulta.status_code == intento.status_code == 500
+    assert consulta.status_code == historial.status_code == intento.status_code == 500
+    assert historial.json() == consulta.json()
     assert "formato" in consulta.json()["detail"]
     assert "Corrientes" not in consulta.text
 
@@ -512,10 +591,12 @@ def test_unos_ajustes_guardados_con_otro_formato_se_informan_como_ilegibles(clie
     viejos = {"ajustes": {"tipo_hecho": "INCENDIO_RESCATE"}}
     grafo.update_state(_hilo(llamada_id), viejos, as_node="esperar_operador")
 
+    historial = cliente.get(f"/api/llamadas/{llamada_id}/historial")
     consulta = cliente.get(f"/api/llamadas/{llamada_id}")
     intento = derivar(cliente, llamada_id, COMPLETOS)
 
-    assert consulta.status_code == intento.status_code == 500
+    assert consulta.status_code == historial.status_code == intento.status_code == 500
+    assert historial.json() == consulta.json()
     assert "formato" in consulta.json()["detail"]
 
 

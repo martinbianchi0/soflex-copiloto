@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { citaDato, nombresTiposHecho, textoOrigen, valorDato } from './api'
 import type { Carta, Catalogo, Dato, Pregunta } from './api'
 import { GrupoAvisos } from './AvisosSugerencia'
+import HistorialLlamada from './HistorialLlamada'
 import Instrucciones from './Instrucciones'
 import PrioridadEtiqueta from './PrioridadEtiqueta'
 
@@ -71,6 +72,7 @@ export default function CartaLlamada({ carta, catalogo }: { carta: Carta; catalo
           </ul>
         </section>
       )}
+      <HistorialLlamada key={carta.llamada_id} carta={carta} />
     </>
   )
 }
