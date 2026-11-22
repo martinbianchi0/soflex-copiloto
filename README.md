@@ -79,7 +79,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 - **Que el aviso de otra llamada del mismo lugar compare por distancia.** Hoy compara calle, altura y esquinas, y una calle que el operador escribió con otro nombre no coincide.
 - **Coordenadas en la carta, además de calle y altura**, y contraste con el servicio de direcciones de la Ciudad cuando hay red. Hoy el punto del plano se interpola sobre la cuadra y no se guarda.
 - **Trazas de cada pedido al modelo** (qué se le mandó, qué devolvió, cuánto tardó), para revisar un caso sin volver a correrlo.
-- **Tests de los componentes del panel.** Hoy tiene tests su lógica (qué se conserva de lo que editó el operador cuando llega otra sugerencia, los rótulos del plano, los errores de validación); los formularios, el teclado y el foco se comprueban en el navegador.
+- **Tests del panel en un navegador real.** Los que hay corren sobre un DOM simulado, con la API simulada a partir de respuestas reales del servicio: prueban qué pide y qué muestra el panel, no la disposición ni los estilos.
 - **Probarlo con un lector de pantalla y en Linux.** Los anuncios y el foco están pensados para un lector de pantalla, pero no se probaron con uno, y el modo con modelo no se probó en Linux.
 
 ## Cómo está armado
