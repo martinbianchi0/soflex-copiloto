@@ -2,7 +2,7 @@
 
 Prototipo que asiste al operador de una sala de emergencias: lee la transcripción de una llamada, propone ubicación, tipo de hecho y prioridad, y el operador revisa, ajusta y deriva la Carta de Llamada.
 
-**Estado:** el análisis todavía no interpreta el texto: devuelve la misma sugerencia de ejemplo para cualquier llamada, para probar el recorrido completo (analizar, revisar y derivar).
+**Estado:** el análisis todavía no interpreta el texto. Deja la ubicación y la prioridad como faltantes y el tipo de hecho como "sin determinar", y lo completa el operador. Todavía no hay intérprete por reglas ni con modelo.
 
 ## Cómo levantarlo
 

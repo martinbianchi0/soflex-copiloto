@@ -2,23 +2,67 @@ export const prioridades = ['P1', 'P2', 'P3', 'P4'] as const
 
 export type Prioridad = (typeof prioridades)[number]
 
+export const nombresTiposHecho = {
+  INCENDIO_RESCATE: 'Incendio o rescate',
+  EMERGENCIA_MEDICA: 'Emergencia médica',
+  ACCIDENTE_VIAL: 'Accidente vial',
+  DEFENSA_CIVIL: 'Defensa civil',
+  SERVICIOS_PUBLICOS: 'Servicios públicos',
+  CONVIVENCIA_SEGURIDAD: 'Convivencia y seguridad',
+  NO_DETERMINADA: 'Sin determinar',
+}
+
+export type TipoHecho = keyof typeof nombresTiposHecho
+export type Cita = { turno: number; texto: string }
+
+export type Dato<Valor> =
+  | { origen: 'dicho'; valor: Valor; cita: Cita }
+  | { origen: 'inferido'; valor: Valor; fuente: 'callejero' | 'reglas' | 'modelo' }
+  | { origen: 'operador'; valor: Valor | null }
+  | { origen: 'falta' }
+
+export function valorDato<Valor>(dato: Dato<Valor>): Valor | null {
+  return dato.origen === 'falta' ? null : dato.valor
+}
+
+export function textoOrigen(dato: Dato<unknown>): string {
+  if (dato.origen === 'inferido') return `inferido · ${dato.fuente}`
+  if (dato.origen === 'operador') return 'del operador'
+  return dato.origen
+}
+
 export type Ubicacion = {
+  calle: Dato<string>
+  altura: Dato<number>
+  esquinas: Dato<string>[]
+}
+
+type UbicacionAjustada = {
   calle: string
   altura: number | null
   esquinas: string[]
 }
 
+type Pregunta = { id: string; pregunta: string; respondida: boolean; cita: Cita | null }
+type Instruccion = { id: string; texto: string }
+
 export type Sugerencia = {
   ubicacion: Ubicacion
-  tipo_hecho: string
-  prioridad: Prioridad
+  tipo_hecho: Dato<TipoHecho>
+  prioridad: Dato<Prioridad>
+  checklist: Pregunta[]
+  instrucciones: Instruccion[]
 }
 
-export type Ajustes = Partial<Sugerencia>
+export type Ajustes = {
+  ubicacion?: UbicacionAjustada
+  tipo_hecho?: TipoHecho
+  prioridad?: Prioridad
+}
 
 export type Carta = Sugerencia & {
   llamada_id: string
-  ajustado_por_operador: (keyof Sugerencia)[]
+  derivada_en: string
 }
 
 export type Llamada = {

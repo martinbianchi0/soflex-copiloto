@@ -1,31 +1,40 @@
-import type { Carta, Sugerencia } from './api'
+import { nombresTiposHecho, textoOrigen, valorDato } from './api'
+import type { Carta, Dato } from './api'
+import DetallesSugerencia from './DetallesSugerencia'
 
-const nombres: Record<keyof Sugerencia, string> = {
-  ubicacion: 'Ubicación',
-  tipo_hecho: 'Tipo de hecho',
-  prioridad: 'Prioridad',
+function DatoCarta({ etiqueta, dato, texto }: { etiqueta: string; dato: Dato<string | number>; texto?: string }) {
+  return (
+    <>
+      <dt>{etiqueta}</dt>
+      <dd>
+        {texto ?? valorDato(dato) ?? 'Sin dato'}
+        <small className="origen">
+          {textoOrigen(dato)}{dato.origen === 'dicho' && <> «{dato.cita.texto}»</>}
+        </small>
+      </dd>
+    </>
+  )
 }
 
 export default function CartaLlamada({ carta }: { carta: Carta }) {
   const { calle, altura, esquinas } = carta.ubicacion
+  const tipoHecho = valorDato(carta.tipo_hecho)
 
   return (
     <>
       <h2>Carta de Llamada</h2>
       <dl className="datos-carta">
-        <dt>Ubicación</dt>
-        <dd>{calle}{altura !== null && ` ${altura}`}</dd>
-        {!!esquinas.length && <><dt>Esquinas</dt><dd>{esquinas.join(' y ')}</dd></>}
-        <dt>Tipo de hecho</dt>
-        <dd>{carta.tipo_hecho}</dd>
-        <dt>Prioridad</dt>
-        <dd>{carta.prioridad}</dd>
+        <DatoCarta etiqueta="Calle" dato={calle} />
+        <DatoCarta etiqueta="Altura" dato={altura} />
+        {esquinas.map((dato, indice) => (
+          <DatoCarta key={indice} etiqueta={indice === 0 ? 'Primera esquina' : 'Segunda esquina'} dato={dato} />
+        ))}
+        <DatoCarta etiqueta="Tipo de hecho" dato={carta.tipo_hecho} texto={tipoHecho ? nombresTiposHecho[tipoHecho] : undefined} />
+        <DatoCarta etiqueta="Prioridad" dato={carta.prioridad} />
+        <dt>Derivación</dt>
+        <dd><time dateTime={carta.derivada_en}>{new Date(carta.derivada_en).toLocaleString('es-AR', { hourCycle: 'h23' })}</time></dd>
       </dl>
-      <p className="ajustes">
-        {carta.ajustado_por_operador.length
-          ? <>Campos ajustados: {carta.ajustado_por_operador.map((campo) => nombres[campo]).join(', ')}</>
-          : 'Sin ajustes del operador'}
-      </p>
+      <DetallesSugerencia checklist={carta.checklist} instrucciones={carta.instrucciones} />
     </>
   )
 }
