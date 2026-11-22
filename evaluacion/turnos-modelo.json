@@ -1,0 +1,3282 @@
+{
+  "proveedor": "ollama",
+  "modelo": "qwen3.5:4b-q4_K_M",
+  "fecha": "2026-11-22T21:21:46+00:00",
+  "guiones": [
+    {
+      "id": "G01",
+      "titulo": "Choque en Saavedra · primero la altura, después la moto",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": null,
+            "respondidas": [],
+            "calle_oficial": "SAN ISIDRO LABRADOR AV.",
+            "altura": null,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": null,
+            "calle": "Av. San Isidro Labrador",
+            "altura": null,
+            "esquinas": [],
+            "checklist": []
+          },
+          "avisos": [
+            "falta_altura"
+          ],
+          "pedidos": 2,
+          "segundos": 6.725,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "espera",
+            "ubicacion": "acierta"
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": null,
+            "respondidas": [],
+            "calle_oficial": "SAN ISIDRO LABRADOR AV.",
+            "altura": 4528,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": null,
+            "calle": "Av. San Isidro Labrador",
+            "altura": 4528,
+            "esquinas": [
+              "Ramallo",
+              "Arias"
+            ],
+            "checklist": []
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 6.634,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "espera",
+            "ubicacion": "acierta"
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-005",
+            "respondidas": [],
+            "calle_oficial": "SAN ISIDRO LABRADOR AV.",
+            "altura": 4528,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-005",
+            "calle": "Av. San Isidro Labrador",
+            "altura": 4528,
+            "esquinas": [
+              "Ramallo",
+              "Arias"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-005-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-005-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-005-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 14.679,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 0,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-005-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-005-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-005",
+            "respondidas": [
+              "SFX-005-Q2"
+            ],
+            "calle_oficial": "SAN ISIDRO LABRADOR AV.",
+            "altura": 4528,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-005",
+            "calle": "Av. San Isidro Labrador",
+            "altura": 4528,
+            "esquinas": [
+              "Ramallo",
+              "Arias"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-005-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-005-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-005-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 13.793,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-005-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-005-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-005",
+            "respondidas": [
+              "SFX-005-Q2",
+              "SFX-005-Q1"
+            ],
+            "calle_oficial": "SAN ISIDRO LABRADOR AV.",
+            "altura": 4528,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-005",
+            "calle": "Av. San Isidro Labrador",
+            "altura": 4528,
+            "esquinas": [
+              "Ramallo",
+              "Arias"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-005-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-005-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-005-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 16.126,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 2,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-005-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-005-Q3",
+                "clase": "bien"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02",
+      "titulo": "Auto de costado contra un cantero · tres datos del vuelco",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-029",
+            "respondidas": [],
+            "calle_oficial": "PERON, EVA AV.",
+            "altura": 4042,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-029",
+            "calle": "Av. Eva Peron",
+            "altura": 4042,
+            "esquinas": [
+              "Av. Bruix",
+              "Av. Lacarra"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-029-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-029-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-029-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 10.691,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 0,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-029-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-029-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-029",
+            "respondidas": [
+              "SFX-029-Q1"
+            ],
+            "calle_oficial": "PERON, EVA AV.",
+            "altura": 4042,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-029",
+            "calle": "Av. Eva Peron",
+            "altura": 4042,
+            "esquinas": [
+              "Av. Bruix",
+              "Av. Lacarra"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-029-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-029-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-029-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [
+            "prioridad_cambiada"
+          ],
+          "pedidos": 2,
+          "segundos": 12.63,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-029-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-029-Q2",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-029",
+            "respondidas": [
+              "SFX-029-Q1",
+              "SFX-029-Q2"
+            ],
+            "calle_oficial": "PERON, EVA AV.",
+            "altura": 4042,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-029",
+            "calle": "Av. Eva Peron",
+            "altura": 4042,
+            "esquinas": [
+              "Av. Bruix",
+              "Av. Lacarra"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-029-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-029-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-029-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 15.661,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 2,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-029-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-029-Q3",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-029",
+            "respondidas": [
+              "SFX-029-Q1",
+              "SFX-029-Q2",
+              "SFX-029-Q3"
+            ],
+            "calle_oficial": "PERON, EVA AV.",
+            "altura": 4042,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "ACCIDENTE_VIAL",
+            "subtipo": "SFX-029",
+            "calle": "Av. Eva Peron",
+            "altura": 4042,
+            "esquinas": [
+              "Av. Bruix",
+              "Av. Lacarra"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-029-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-029-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-029-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 15.659,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 3,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-029-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": null,
+                "clase": "bien"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G03",
+      "titulo": "Pelea en la feria · el daño se conoce después del cruce",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": "CONVIVENCIA_SEGURIDAD",
+            "subtipo": null,
+            "respondidas": [],
+            "calle_oficial": "DONADO",
+            "altura": null,
+            "esquina_oficial": "CONGRESO AV."
+          },
+          "propuesto": {
+            "categoria": "CONVIVENCIA_SEGURIDAD",
+            "subtipo": null,
+            "calle": "Donado",
+            "altura": null,
+            "esquinas": [
+              "Av. Congreso"
+            ],
+            "checklist": []
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 5.749,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "espera",
+            "ubicacion": "acierta"
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "CONVIVENCIA_SEGURIDAD",
+            "subtipo": "SFX-015",
+            "respondidas": [],
+            "calle_oficial": "DONADO",
+            "altura": null,
+            "esquina_oficial": "CONGRESO AV."
+          },
+          "propuesto": {
+            "categoria": "CONVIVENCIA_SEGURIDAD",
+            "subtipo": "SFX-015",
+            "calle": "Donado",
+            "altura": null,
+            "esquinas": [
+              "Av. Congreso"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-015-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-015-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-015-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 10.1,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 0,
+              "de_mas": 2,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-015-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-015-Q2",
+                "clase": "saltea_una_pendiente"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "CONVIVENCIA_SEGURIDAD",
+            "subtipo": "SFX-015",
+            "respondidas": [
+              "SFX-015-Q1"
+            ],
+            "calle_oficial": "DONADO",
+            "altura": null,
+            "esquina_oficial": "CONGRESO AV."
+          },
+          "propuesto": {
+            "categoria": "CONVIVENCIA_SEGURIDAD",
+            "subtipo": "SFX-015",
+            "calle": "Donado",
+            "altura": null,
+            "esquinas": [
+              "Av. Congreso"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-015-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-015-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-015-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 10.67,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 0,
+              "de_mas": 0,
+              "faltan": 1
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-015-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-015-Q1",
+                "clase": "ya_respondida"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G04",
+      "titulo": "Ascensor de un hotel · el pedido de ayuda llega primero",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": null,
+            "subtipo": null,
+            "respondidas": [],
+            "calle_oficial": "BACACAY",
+            "altura": 3437,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "NO_DETERMINADA",
+            "subtipo": null,
+            "calle": "Bacacay",
+            "altura": 3437,
+            "esquinas": [
+              "Concordia",
+              "Emilio Lamarca"
+            ],
+            "checklist": []
+          },
+          "avisos": [],
+          "pedidos": 1,
+          "segundos": 4.397,
+          "lectura": {
+            "categoria": "espera",
+            "subtipo": "espera",
+            "ubicacion": "acierta"
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-003",
+            "respondidas": [
+              "SFX-003-Q1"
+            ],
+            "calle_oficial": "BACACAY",
+            "altura": 3437,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-003",
+            "calle": "Bacacay",
+            "altura": 3437,
+            "esquinas": [
+              "Concordia",
+              "Emilio Lamarca"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-003-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-003-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-003-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [
+            "prioridad_cambiada"
+          ],
+          "pedidos": 2,
+          "segundos": 14.133,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-003-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-003-Q2",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-003",
+            "respondidas": [
+              "SFX-003-Q1",
+              "SFX-003-Q3"
+            ],
+            "calle_oficial": "BACACAY",
+            "altura": 3437,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-003",
+            "calle": "Bacacay",
+            "altura": 3437,
+            "esquinas": [
+              "Concordia",
+              "Emilio Lamarca"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-003-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-003-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-003-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 15.519,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 2,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-003-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-003-Q2",
+                "clase": "bien"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G05",
+      "titulo": "Fuego en el taller de la escuela · la altura se confirma desde el patio",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-017",
+            "respondidas": [],
+            "calle_oficial": "MELIAN AV.",
+            "altura": null,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-017",
+            "calle": "Av. Melian",
+            "altura": null,
+            "esquinas": [],
+            "checklist": [
+              {
+                "id": "SFX-017-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-017-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-017-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [
+            "falta_altura"
+          ],
+          "pedidos": 2,
+          "segundos": 10.562,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 0,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-017-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-017-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-017",
+            "respondidas": [
+              "SFX-017-Q2"
+            ],
+            "calle_oficial": "MELIAN AV.",
+            "altura": 1856,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-017",
+            "calle": "Av. Melian",
+            "altura": 1856,
+            "esquinas": [
+              "la Pampa",
+              "Mcal. Antonio Jose de Sucre"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-017-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-017-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-017-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [
+            "prioridad_cambiada"
+          ],
+          "pedidos": 2,
+          "segundos": 12.287,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-017-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-017-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-017",
+            "respondidas": [
+              "SFX-017-Q2",
+              "SFX-017-Q3"
+            ],
+            "calle_oficial": "MELIAN AV.",
+            "altura": 1856,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-017",
+            "calle": "Av. Melian",
+            "altura": 1856,
+            "esquinas": [
+              "la Pampa",
+              "Mcal. Antonio Jose de Sucre"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-017-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-017-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-017-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 11.474,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 2,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-017-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-017-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G06",
+      "titulo": "Fuego en un edificio bajo · después se sabe qué funciona ahí",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": null,
+            "respondidas": [],
+            "calle_oficial": "MURGUIONDO",
+            "altura": 2378,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": null,
+            "calle": "Murguiondo",
+            "altura": 2378,
+            "esquinas": [
+              "Paseo de los Artistas",
+              "Remedios"
+            ],
+            "checklist": []
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 6.153,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "espera",
+            "ubicacion": "acierta"
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-030",
+            "respondidas": [
+              "SFX-030-Q2"
+            ],
+            "calle_oficial": "MURGUIONDO",
+            "altura": 2378,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-030",
+            "calle": "Murguiondo",
+            "altura": 2378,
+            "esquinas": [
+              "Paseo de los Artistas",
+              "Remedios"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-030-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-030-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-030-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 11.624,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-030-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-030-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-030",
+            "respondidas": [
+              "SFX-030-Q2",
+              "SFX-030-Q1"
+            ],
+            "calle_oficial": "MURGUIONDO",
+            "altura": 2378,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "INCENDIO_RESCATE",
+            "subtipo": "SFX-030",
+            "calle": "Murguiondo",
+            "altura": 2378,
+            "esquinas": [
+              "Paseo de los Artistas",
+              "Remedios"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-030-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-030-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-030-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 15.602,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 2,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-030-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-030-Q3",
+                "clase": "bien"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G07",
+      "titulo": "Asma en casa · cómo habla, cómo respira y si estuvo en terapia",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-009",
+            "respondidas": [],
+            "calle_oficial": "BRASIL",
+            "altura": 1273,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-009",
+            "calle": "Brasil",
+            "altura": 1273,
+            "esquinas": [
+              "Salta",
+              "Santiago del Estero"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-009-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-009-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-009-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 10.7,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 0,
+              "de_mas": 1,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-009-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-009-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-009",
+            "respondidas": [
+              "SFX-009-Q1"
+            ],
+            "calle_oficial": "BRASIL",
+            "altura": 1273,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-009",
+            "calle": "Brasil",
+            "altura": 1273,
+            "esquinas": [
+              "Salta",
+              "Santiago del Estero"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-009-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-009-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-009-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 10.441,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 0,
+              "de_mas": 0,
+              "faltan": 1
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-009-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-009-Q1",
+                "clase": "ya_respondida"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-009",
+            "respondidas": [
+              "SFX-009-Q1",
+              "SFX-009-Q2"
+            ],
+            "calle_oficial": "BRASIL",
+            "altura": 1273,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-009",
+            "calle": "Brasil",
+            "altura": 1273,
+            "esquinas": [
+              "Salta",
+              "Santiago del Estero"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-009-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-009-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-009-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 11.978,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 0,
+              "faltan": 1
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-009-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-009-Q1",
+                "clase": "ya_respondida"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-009",
+            "respondidas": [
+              "SFX-009-Q1",
+              "SFX-009-Q2",
+              "SFX-009-Q3"
+            ],
+            "calle_oficial": "BRASIL",
+            "altura": 1273,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-009",
+            "calle": "Brasil",
+            "altura": 1273,
+            "esquinas": [
+              "Salta",
+              "Santiago del Estero"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-009-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-009-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-009-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 17.629,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 3,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-009-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": null,
+                "clase": "bien"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G08",
+      "titulo": "Picadura en un local · del pedido de ayuda al cuadro alérgico",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": null,
+            "subtipo": null,
+            "respondidas": [],
+            "calle_oficial": "AGRELO",
+            "altura": null,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "NO_DETERMINADA",
+            "subtipo": null,
+            "calle": "Agrelo",
+            "altura": null,
+            "esquinas": [],
+            "checklist": []
+          },
+          "avisos": [
+            "falta_altura"
+          ],
+          "pedidos": 1,
+          "segundos": 5.409,
+          "lectura": {
+            "categoria": "espera",
+            "subtipo": "espera",
+            "ubicacion": "acierta"
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": null,
+            "respondidas": [],
+            "calle_oficial": "AGRELO",
+            "altura": 3846,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": null,
+            "calle": "Agrelo",
+            "altura": 3846,
+            "esquinas": [
+              "Castro Barros",
+              "Castro"
+            ],
+            "checklist": []
+          },
+          "avisos": [
+            "prioridad_cambiada"
+          ],
+          "pedidos": 2,
+          "segundos": 7.055,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "espera",
+            "ubicacion": "acierta"
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-019",
+            "respondidas": [
+              "SFX-019-Q3"
+            ],
+            "calle_oficial": "AGRELO",
+            "altura": 3846,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-019",
+            "calle": "Agrelo",
+            "altura": 3846,
+            "esquinas": [
+              "Castro Barros",
+              "Castro"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-019-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-019-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-019-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 13.178,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-019-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-019-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-019",
+            "respondidas": [
+              "SFX-019-Q3",
+              "SFX-019-Q2"
+            ],
+            "calle_oficial": "AGRELO",
+            "altura": 3846,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-019",
+            "calle": "Agrelo",
+            "altura": 3846,
+            "esquinas": [
+              "Castro Barros",
+              "Castro"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-019-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-019-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-019-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 12.901,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 2,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-019-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-019-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G09",
+      "titulo": "Caída de una silla · la dirección se completa antes de preguntar por el desmayo",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-010",
+            "respondidas": [
+              "SFX-010-Q3"
+            ],
+            "calle_oficial": "ARGERICH",
+            "altura": null,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-010",
+            "calle": "Argerich",
+            "altura": null,
+            "esquinas": [],
+            "checklist": [
+              {
+                "id": "SFX-010-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-010-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-010-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [
+            "falta_altura"
+          ],
+          "pedidos": 2,
+          "segundos": 8.614,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-010-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-010-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-010",
+            "respondidas": [
+              "SFX-010-Q3"
+            ],
+            "calle_oficial": "ARGERICH",
+            "altura": 4926,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-010",
+            "calle": "Argerich",
+            "altura": 4926,
+            "esquinas": [
+              "Griveo",
+              "Ladines"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-010-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-010-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-010-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 8.874,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-010-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-010-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-010",
+            "respondidas": [
+              "SFX-010-Q3",
+              "SFX-010-Q2"
+            ],
+            "calle_oficial": "ARGERICH",
+            "altura": 4926,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "EMERGENCIA_MEDICA",
+            "subtipo": "SFX-010",
+            "calle": "Argerich",
+            "altura": 4926,
+            "esquinas": [
+              "Griveo",
+              "Ladines"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-010-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-010-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-010-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 15.574,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 2,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-010-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-010-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G10",
+      "titulo": "Vereda hundida en La Boca · el caño roto aparece al contar qué pasó",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": null,
+            "subtipo": null,
+            "respondidas": [],
+            "calle_oficial": "OLAVARRIA",
+            "altura": 1126,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "NO_DETERMINADA",
+            "subtipo": null,
+            "calle": "Olavarria",
+            "altura": 1126,
+            "esquinas": [
+              "Hernandarias",
+              "Av. Regimiento de Patricios"
+            ],
+            "checklist": []
+          },
+          "avisos": [],
+          "pedidos": 1,
+          "segundos": 5.918,
+          "lectura": {
+            "categoria": "espera",
+            "subtipo": "espera",
+            "ubicacion": "acierta"
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "DEFENSA_CIVIL",
+            "subtipo": "SFX-012",
+            "respondidas": [
+              "SFX-012-Q2"
+            ],
+            "calle_oficial": "OLAVARRIA",
+            "altura": 1126,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "DEFENSA_CIVIL",
+            "subtipo": "SFX-012",
+            "calle": "Olavarria",
+            "altura": 1126,
+            "esquinas": [
+              "Hernandarias",
+              "Av. Regimiento de Patricios"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-012-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-012-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-012-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [
+            "prioridad_cambiada"
+          ],
+          "pedidos": 2,
+          "segundos": 12.05,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-012-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-012-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "DEFENSA_CIVIL",
+            "subtipo": "SFX-012",
+            "respondidas": [
+              "SFX-012-Q2",
+              "SFX-012-Q1"
+            ],
+            "calle_oficial": "OLAVARRIA",
+            "altura": 1126,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "DEFENSA_CIVIL",
+            "subtipo": "SFX-012",
+            "calle": "Olavarria",
+            "altura": 1126,
+            "esquinas": [
+              "Hernandarias",
+              "Av. Regimiento de Patricios"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-012-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-012-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-012-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 15.598,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 2,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-012-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-012-Q3",
+                "clase": "bien"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G11",
+      "titulo": "Algo colgado del frente · la marquesina se identifica al tercer intercambio",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": "DEFENSA_CIVIL",
+            "subtipo": null,
+            "respondidas": [],
+            "calle_oficial": "GOYENA, PEDRO AV.",
+            "altura": null,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "DEFENSA_CIVIL",
+            "subtipo": "SFX-014",
+            "calle": "Av. Pedro Goyena",
+            "altura": null,
+            "esquinas": [],
+            "checklist": [
+              {
+                "id": "SFX-014-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-014-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-014-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [
+            "falta_altura"
+          ],
+          "pedidos": 2,
+          "segundos": 10.848,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "se_adelanta",
+            "ubicacion": "acierta"
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "DEFENSA_CIVIL",
+            "subtipo": null,
+            "respondidas": [],
+            "calle_oficial": "GOYENA, PEDRO AV.",
+            "altura": 661,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "DEFENSA_CIVIL",
+            "subtipo": "SFX-014",
+            "calle": "Av. Pedro Goyena",
+            "altura": 661,
+            "esquinas": [
+              "Riglos",
+              "San Jose de Calasanz"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-014-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-014-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-014-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 14.599,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "se_adelanta",
+            "ubicacion": "acierta"
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "DEFENSA_CIVIL",
+            "subtipo": "SFX-014",
+            "respondidas": [
+              "SFX-014-Q1"
+            ],
+            "calle_oficial": "GOYENA, PEDRO AV.",
+            "altura": 661,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "DEFENSA_CIVIL",
+            "subtipo": "SFX-014",
+            "calle": "Av. Pedro Goyena",
+            "altura": 661,
+            "esquinas": [
+              "Riglos",
+              "San Jose de Calasanz"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-014-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-014-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-014-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 13.177,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 1,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-014-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-014-Q3",
+                "clase": "saltea_una_pendiente"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "DEFENSA_CIVIL",
+            "subtipo": "SFX-014",
+            "respondidas": [
+              "SFX-014-Q1",
+              "SFX-014-Q3"
+            ],
+            "calle_oficial": "GOYENA, PEDRO AV.",
+            "altura": 661,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "DEFENSA_CIVIL",
+            "subtipo": "SFX-014",
+            "calle": "Av. Pedro Goyena",
+            "altura": 661,
+            "esquinas": [
+              "Riglos",
+              "San Jose de Calasanz"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-014-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-014-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-014-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 15.007,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 2,
+              "de_mas": 1,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-014-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": null,
+                "clase": "saltea_una_pendiente"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G12",
+      "titulo": "Semáforos fijos en rojo · tres datos sobre el cruce",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-024",
+            "respondidas": [],
+            "calle_oficial": "ASAMBLEA AV.",
+            "altura": null,
+            "esquina_oficial": "LA PLATA AV."
+          },
+          "propuesto": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-024",
+            "calle": "Av. Asamblea",
+            "altura": null,
+            "esquinas": [
+              "Av. la Plata"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-024-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-024-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-024-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 10.054,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 0,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-024-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-024-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-024",
+            "respondidas": [
+              "SFX-024-Q1"
+            ],
+            "calle_oficial": "ASAMBLEA AV.",
+            "altura": null,
+            "esquina_oficial": "LA PLATA AV."
+          },
+          "propuesto": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-024",
+            "calle": "Av. Asamblea",
+            "altura": null,
+            "esquinas": [
+              "Av. la Plata"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-024-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-024-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-024-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 13.847,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-024-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-024-Q2",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-024",
+            "respondidas": [
+              "SFX-024-Q1",
+              "SFX-024-Q2"
+            ],
+            "calle_oficial": "ASAMBLEA AV.",
+            "altura": null,
+            "esquina_oficial": "LA PLATA AV."
+          },
+          "propuesto": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-024",
+            "calle": "Av. Asamblea",
+            "altura": null,
+            "esquinas": [
+              "Av. la Plata"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-024-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-024-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-024-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 14.86,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 2,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-024-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-024-Q3",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-024",
+            "respondidas": [
+              "SFX-024-Q1",
+              "SFX-024-Q2",
+              "SFX-024-Q3"
+            ],
+            "calle_oficial": "ASAMBLEA AV.",
+            "altura": null,
+            "esquina_oficial": "LA PLATA AV."
+          },
+          "propuesto": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-024",
+            "calle": "Av. Asamblea",
+            "altura": null,
+            "esquinas": [
+              "Av. la Plata"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-024-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-024-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-024-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 15.458,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 3,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-024-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": null,
+                "clase": "bien"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G13",
+      "titulo": "Agua en toda la calzada · la vereda cede después",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-028",
+            "respondidas": [],
+            "calle_oficial": "VARELA AV.",
+            "altura": null,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-028",
+            "calle": "Av. Varela",
+            "altura": null,
+            "esquinas": [],
+            "checklist": [
+              {
+                "id": "SFX-028-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-028-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-028-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [
+            "falta_altura"
+          ],
+          "pedidos": 2,
+          "segundos": 10.481,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 0,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-028-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-028-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-028",
+            "respondidas": [],
+            "calle_oficial": "VARELA AV.",
+            "altura": 914,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-028",
+            "calle": "Av. Varela",
+            "altura": 914,
+            "esquinas": [
+              "Primera Junta",
+              "Tte. Cnel. Casimiro Recuero"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-028-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-028-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-028-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 10.824,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 0,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-028-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-028-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-028",
+            "respondidas": [
+              "SFX-028-Q3"
+            ],
+            "calle_oficial": "VARELA AV.",
+            "altura": 914,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "SERVICIOS_PUBLICOS",
+            "subtipo": "SFX-028",
+            "calle": "Av. Varela",
+            "altura": 914,
+            "esquinas": [
+              "Primera Junta",
+              "Tte. Cnel. Casimiro Recuero"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-028-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-028-Q2",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-028-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 14.032,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-028-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-028-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "G14",
+      "titulo": "Perro suelto en una plaza · la mordedura se confirma al final",
+      "intercambios": [
+        {
+          "esperado": {
+            "categoria": "CONVIVENCIA_SEGURIDAD",
+            "subtipo": "SFX-016",
+            "respondidas": [
+              "SFX-016-Q2"
+            ],
+            "calle_oficial": "ARENAL, CONCEPCION",
+            "altura": 3222,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "CONVIVENCIA_SEGURIDAD",
+            "subtipo": "SFX-016",
+            "calle": "Concepcion Arenal",
+            "altura": 3222,
+            "esquinas": [
+              "Conde",
+              "Gral. Enrique Martinez"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-016-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-016-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-016-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 13.01,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 1,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-016-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-016-Q3",
+                "clase": "saltea_una_pendiente"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "CONVIVENCIA_SEGURIDAD",
+            "subtipo": "SFX-016",
+            "respondidas": [
+              "SFX-016-Q2"
+            ],
+            "calle_oficial": "ARENAL, CONCEPCION",
+            "altura": 3222,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "CONVIVENCIA_SEGURIDAD",
+            "subtipo": "SFX-016",
+            "calle": "Concepcion Arenal",
+            "altura": 3222,
+            "esquinas": [
+              "Conde",
+              "Gral. Enrique Martinez"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-016-Q1",
+                "respondida": false,
+                "con_cita": false
+              },
+              {
+                "id": "SFX-016-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-016-Q3",
+                "respondida": false,
+                "con_cita": true
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 13.55,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 1,
+              "de_mas": 1,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-016-Q1",
+                "clase": "bien"
+              },
+              "salteando_posibles": {
+                "id": "SFX-016-Q1",
+                "clase": "bien"
+              }
+            }
+          }
+        },
+        {
+          "esperado": {
+            "categoria": "CONVIVENCIA_SEGURIDAD",
+            "subtipo": "SFX-016",
+            "respondidas": [
+              "SFX-016-Q2",
+              "SFX-016-Q1"
+            ],
+            "calle_oficial": "ARENAL, CONCEPCION",
+            "altura": 3222,
+            "esquina_oficial": null
+          },
+          "propuesto": {
+            "categoria": "CONVIVENCIA_SEGURIDAD",
+            "subtipo": "SFX-016",
+            "calle": "Concepcion Arenal",
+            "altura": 3222,
+            "esquinas": [
+              "Conde",
+              "Gral. Enrique Martinez"
+            ],
+            "checklist": [
+              {
+                "id": "SFX-016-Q1",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-016-Q2",
+                "respondida": false,
+                "con_cita": true
+              },
+              {
+                "id": "SFX-016-Q3",
+                "respondida": false,
+                "con_cita": false
+              }
+            ]
+          },
+          "avisos": [],
+          "pedidos": 2,
+          "segundos": 14.138,
+          "lectura": {
+            "categoria": "acierta",
+            "subtipo": "acierta",
+            "ubicacion": "acierta",
+            "respuestas": {
+              "bien": 2,
+              "de_mas": 0,
+              "faltan": 0
+            },
+            "proxima_pregunta": {
+              "orden_del_catalogo": {
+                "id": "SFX-016-Q1",
+                "clase": "ya_respondida"
+              },
+              "salteando_posibles": {
+                "id": "SFX-016-Q3",
+                "clase": "bien"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "resumen": {
+    "por_intercambio": {
+      "1": {
+        "intercambios": 14,
+        "categoria": {
+          "acierta": 11,
+          "sin_determinar": 0,
+          "espera": 3,
+          "se_adelanta": 0,
+          "mal": 0
+        },
+        "subtipo": {
+          "acierta": 7,
+          "sin_subtipo": 0,
+          "espera": 6,
+          "se_adelanta": 1,
+          "mal": 0
+        },
+        "ubicacion": {
+          "acierta": 14,
+          "incompleta": 0,
+          "sin_calle": 0,
+          "espera": 0,
+          "mal": 0
+        },
+        "respuestas": {
+          "bien": 2,
+          "de_mas": 2,
+          "faltan": 0
+        },
+        "proxima_pregunta": {
+          "orden_del_catalogo": {
+            "bien": 7,
+            "ya_respondida": 0,
+            "saltea_una_pendiente": 0
+          },
+          "salteando_posibles": {
+            "bien": 6,
+            "ya_respondida": 0,
+            "saltea_una_pendiente": 1
+          }
+        },
+        "segundos": {
+          "mediana": 9.334,
+          "p95": 13.01,
+          "maximo": 13.01
+        },
+        "pedidos": {
+          "mediana": 2.0,
+          "maximo": 2
+        }
+      },
+      "2": {
+        "intercambios": 14,
+        "categoria": {
+          "acierta": 14,
+          "sin_determinar": 0,
+          "espera": 0,
+          "se_adelanta": 0,
+          "mal": 0
+        },
+        "subtipo": {
+          "acierta": 11,
+          "sin_subtipo": 0,
+          "espera": 2,
+          "se_adelanta": 1,
+          "mal": 0
+        },
+        "ubicacion": {
+          "acierta": 14,
+          "incompleta": 0,
+          "sin_calle": 0,
+          "espera": 0,
+          "mal": 0
+        },
+        "respuestas": {
+          "bien": 8,
+          "de_mas": 3,
+          "faltan": 1
+        },
+        "proxima_pregunta": {
+          "orden_del_catalogo": {
+            "bien": 7,
+            "ya_respondida": 4,
+            "saltea_una_pendiente": 0
+          },
+          "salteando_posibles": {
+            "bien": 9,
+            "ya_respondida": 1,
+            "saltea_una_pendiente": 1
+          }
+        },
+        "segundos": {
+          "mediana": 11.837,
+          "p95": 14.599,
+          "maximo": 14.599
+        },
+        "pedidos": {
+          "mediana": 2.0,
+          "maximo": 2
+        }
+      },
+      "3": {
+        "intercambios": 14,
+        "categoria": {
+          "acierta": 14,
+          "sin_determinar": 0,
+          "espera": 0,
+          "se_adelanta": 0,
+          "mal": 0
+        },
+        "subtipo": {
+          "acierta": 14,
+          "sin_subtipo": 0,
+          "espera": 0,
+          "se_adelanta": 0,
+          "mal": 0
+        },
+        "ubicacion": {
+          "acierta": 14,
+          "incompleta": 0,
+          "sin_calle": 0,
+          "espera": 0,
+          "mal": 0
+        },
+        "respuestas": {
+          "bien": 20,
+          "de_mas": 1,
+          "faltan": 2
+        },
+        "proxima_pregunta": {
+          "orden_del_catalogo": {
+            "bien": 5,
+            "ya_respondida": 9,
+            "saltea_una_pendiente": 0
+          },
+          "salteando_posibles": {
+            "bien": 11,
+            "ya_respondida": 2,
+            "saltea_una_pendiente": 1
+          }
+        },
+        "segundos": {
+          "mediana": 14.4085,
+          "p95": 15.661,
+          "maximo": 15.661
+        },
+        "pedidos": {
+          "mediana": 2.0,
+          "maximo": 2
+        }
+      },
+      "4+": {
+        "intercambios": 7,
+        "categoria": {
+          "acierta": 7,
+          "sin_determinar": 0,
+          "espera": 0,
+          "se_adelanta": 0,
+          "mal": 0
+        },
+        "subtipo": {
+          "acierta": 7,
+          "sin_subtipo": 0,
+          "espera": 0,
+          "se_adelanta": 0,
+          "mal": 0
+        },
+        "ubicacion": {
+          "acierta": 7,
+          "incompleta": 0,
+          "sin_calle": 0,
+          "espera": 0,
+          "mal": 0
+        },
+        "respuestas": {
+          "bien": 16,
+          "de_mas": 1,
+          "faltan": 0
+        },
+        "proxima_pregunta": {
+          "orden_del_catalogo": {
+            "bien": 2,
+            "ya_respondida": 5,
+            "saltea_una_pendiente": 0
+          },
+          "salteando_posibles": {
+            "bien": 6,
+            "ya_respondida": 0,
+            "saltea_una_pendiente": 1
+          }
+        },
+        "segundos": {
+          "mediana": 15.458,
+          "p95": 17.629,
+          "maximo": 17.629
+        },
+        "pedidos": {
+          "mediana": 2,
+          "maximo": 2
+        }
+      }
+    },
+    "total": {
+      "intercambios": 49,
+      "categoria": {
+        "acierta": 46,
+        "sin_determinar": 0,
+        "espera": 3,
+        "se_adelanta": 0,
+        "mal": 0
+      },
+      "subtipo": {
+        "acierta": 39,
+        "sin_subtipo": 0,
+        "espera": 8,
+        "se_adelanta": 2,
+        "mal": 0
+      },
+      "ubicacion": {
+        "acierta": 49,
+        "incompleta": 0,
+        "sin_calle": 0,
+        "espera": 0,
+        "mal": 0
+      },
+      "respuestas": {
+        "bien": 46,
+        "de_mas": 7,
+        "faltan": 3
+      },
+      "proxima_pregunta": {
+        "orden_del_catalogo": {
+          "bien": 21,
+          "ya_respondida": 18,
+          "saltea_una_pendiente": 0
+        },
+        "salteando_posibles": {
+          "bien": 32,
+          "ya_respondida": 3,
+          "saltea_una_pendiente": 4
+        }
+      },
+      "segundos": {
+        "mediana": 12.287,
+        "p95": 15.661,
+        "maximo": 17.629
+      },
+      "pedidos": {
+        "mediana": 2,
+        "maximo": 2
+      }
+    },
+    "primera_vez": {
+      "subtipo": {
+        "antes": 1,
+        "igual": 13,
+        "despues": 0,
+        "nunca": 0
+      },
+      "direccion_completa": {
+        "antes": 0,
+        "igual": 14,
+        "despues": 0,
+        "nunca": 0
+      },
+      "por_guion": [
+        {
+          "id": "G01",
+          "subtipo": {
+            "esperado": 3,
+            "propuesto": 3,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 2,
+            "propuesto": 2,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G02",
+          "subtipo": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G03",
+          "subtipo": {
+            "esperado": 2,
+            "propuesto": 2,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G04",
+          "subtipo": {
+            "esperado": 2,
+            "propuesto": 2,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G05",
+          "subtipo": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 2,
+            "propuesto": 2,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G06",
+          "subtipo": {
+            "esperado": 2,
+            "propuesto": 2,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G07",
+          "subtipo": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G08",
+          "subtipo": {
+            "esperado": 3,
+            "propuesto": 3,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 2,
+            "propuesto": 2,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G09",
+          "subtipo": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 2,
+            "propuesto": 2,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G10",
+          "subtipo": {
+            "esperado": 2,
+            "propuesto": 2,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G11",
+          "subtipo": {
+            "esperado": 3,
+            "propuesto": 1,
+            "clase": "antes"
+          },
+          "direccion_completa": {
+            "esperado": 2,
+            "propuesto": 2,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G12",
+          "subtipo": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G13",
+          "subtipo": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 2,
+            "propuesto": 2,
+            "clase": "igual"
+          }
+        },
+        {
+          "id": "G14",
+          "subtipo": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          },
+          "direccion_completa": {
+            "esperado": 1,
+            "propuesto": 1,
+            "clase": "igual"
+          }
+        }
+      ]
+    }
+  }
+}

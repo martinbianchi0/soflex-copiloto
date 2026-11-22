@@ -82,16 +82,22 @@ cd backend && uv run python herramientas/evaluar_direccion.py --proveedor ollama
 
 ### A medida que llega la llamada
 
-`backend/herramientas/evaluar_turnos.py` pasa 14 guiones de 3 a 5 intercambios (49 en total, en `backend/tests/datos/guiones.json`) por el camino que usa el panel al sumar un turno, y después de cada intercambio compara lo propuesto con lo que hasta ahí se dijo. En modo `mock` (detalle en `evaluacion/turnos-reglas.json`):
+`backend/herramientas/evaluar_turnos.py` pasa 14 guiones de 3 a 5 intercambios (49 en total, en `backend/tests/datos/guiones.json`) por el camino que usa el panel al sumar un turno, y después de cada intercambio compara lo propuesto con lo que hasta ahí se dijo (detalle en `evaluacion/turnos-reglas.json` y `evaluacion/turnos-modelo.json`):
 
-| | Reglas (`mock`), 49 intercambios |
-|---|---|
-| Ubicación igual a lo dicho hasta ahí | 49 |
-| Guiones en los que la dirección queda completa cuando se termina de decir | 14 de 14 |
-| Categoría correcta | 29 (11 sin determinar, 6 mal; en 3 todavía no se podía saber y no propuso ninguna) |
+| | Reglas (`mock`), 49 intercambios | Modelo, 49 intercambios |
+|---|---|---|
+| Ubicación igual a lo dicho hasta ahí | 49 | 49 |
+| Guiones en los que la dirección queda completa cuando se termina de decir | 14 de 14 | 14 de 14 |
+| Categoría correcta | 29 (11 sin determinar, 6 mal; en 3 todavía no se podía saber y no propuso ninguna) | 46 (ninguna mal; en 3 todavía no se podía saber y no propuso ninguna) |
+| Subtipo correcto | no propone | 39 (ninguno equivocado; en 8 todavía no se podía saber y no propuso ninguno; en 2 lo propuso antes de que se pudiera saber) |
+| Respuestas ya dadas que señala como posibles, contando cada pregunta en cada intercambio | — | 46 de 49, y 7 que no se habían respondido |
+| Tiempo por intercambio (mediana y percentil 95) | menos de 0,1 s | 12,3 y 15,7 s |
+
+Cada intercambio vuelve a analizar la llamada entera, así que tarda más a medida que la llamada crece: 9,3 segundos de mediana en el primero y 15,5 del cuarto en adelante (en las mismas condiciones que la corrida de arriba).
 
 ```bash
 cd backend && uv run python herramientas/evaluar_turnos.py --proveedor mock --salida ../evaluacion/turnos-reglas.json
+cd backend && uv run python herramientas/evaluar_turnos.py --proveedor ollama --salida ../evaluacion/turnos-modelo.json
 ```
 
 ## Supuestos
