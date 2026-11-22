@@ -37,11 +37,11 @@ def coinciden(primero: Lugar, segundo: Lugar) -> bool:
     esquinas_segunda = {texto_plano(esquina) for esquina in segundo.esquinas}
     if calle_primera != calle_segunda:
         return calle_primera in esquinas_segunda and calle_segunda in esquinas_primera
-    return bool(esquinas_primera & esquinas_segunda) or (
-        primero.altura is not None
-        and segundo.altura is not None
-        and abs(primero.altura - segundo.altura) <= TOLERANCIA_DE_ALTURA
-    )
+    if primero.altura is not None and segundo.altura is not None:
+        # Con las dos alturas no hace falta mirar las esquinas: las que completa el callejero son
+        # las de la cuadra, y dos cuadras seguidas comparten una aunque estén a 200 de distancia.
+        return abs(primero.altura - segundo.altura) <= TOLERANCIA_DE_ALTURA
+    return bool(esquinas_primera & esquinas_segunda)
 
 
 def iso_utc(fecha: datetime) -> str:
@@ -92,7 +92,8 @@ class UbicacionesRecientes:
                         )
                 with self._conexion:
                     self._actualizar_ubicacion(llamada)
-        except sqlite3.Error:
+        except Exception:  # noqa: BLE001
+            # La llamada ya está guardada: ningún fallo del índice puede hacerla fallar.
             _registro.exception("No se pudo actualizar el índice de la llamada %s.", llamada_id)
 
     def _actualizar_ubicacion(self, llamada: Llamada) -> None:
@@ -126,18 +127,23 @@ class UbicacionesRecientes:
         )
 
     def consultar(self, llamada_id: str) -> tuple[datetime | None, list[PosibleDuplicado]]:
-        with self._candado:
-            fila = self._conexion.execute(
-                "SELECT recibida_en, calle, altura, esquinas FROM ubicaciones_recientes "
-                "WHERE llamada_id = ?",
-                (llamada_id,),
-            ).fetchone()
-            if fila is None:
-                return None, []
-            recibida, calle, altura, esquinas = fila
-            recibida_en = datetime.fromisoformat(recibida)
-            lugar = Lugar(calle, altura, tuple(json.loads(esquinas)))
-            posibles = self._buscar(llamada_id, recibida_en, lugar)
+        try:
+            with self._candado:
+                fila = self._conexion.execute(
+                    "SELECT recibida_en, calle, altura, esquinas FROM ubicaciones_recientes "
+                    "WHERE llamada_id = ?",
+                    (llamada_id,),
+                ).fetchone()
+                if fila is None:
+                    return None, []
+                recibida, calle, altura, esquinas = fila
+                recibida_en = datetime.fromisoformat(recibida)
+                lugar = Lugar(calle, altura, tuple(json.loads(esquinas)))
+                posibles = self._buscar(llamada_id, recibida_en, lugar)
+        except (sqlite3.Error, ValueError, TypeError):
+            # Sin índice no hay aviso, pero la llamada se sigue atendiendo.
+            _registro.exception("No se pudo consultar el índice de la llamada %s.", llamada_id)
+            return None, []
         return recibida_en, posibles
 
     def _buscar(
@@ -159,19 +165,24 @@ class UbicacionesRecientes:
         )
         try:
             for otro_id, fecha, calle, altura, esquinas, categoria, derivada in filas:
-                otro = Lugar(calle, altura, tuple(json.loads(esquinas)))
-                if coinciden(lugar, otro):
-                    posibles.append(
-                        PosibleDuplicado(
-                            llamada_id=otro_id,
-                            recibida_en=datetime.fromisoformat(fecha),
-                            ubicacion=otro.mostrar(),
-                            categoria=Categoria(categoria),
-                            derivada=bool(derivada),
-                        )
+                try:
+                    otro = Lugar(calle, altura, tuple(json.loads(esquinas)))
+                    if not coinciden(lugar, otro):
+                        continue
+                    posible = PosibleDuplicado(
+                        llamada_id=otro_id,
+                        recibida_en=datetime.fromisoformat(fecha),
+                        ubicacion=otro.mostrar(),
+                        categoria=Categoria(categoria),
+                        derivada=bool(derivada),
                     )
-                    if len(posibles) == MAXIMO_DE_COINCIDENCIAS:
-                        break
+                except (ValueError, TypeError):
+                    # Una fila mal guardada no deja sin aviso a las demás.
+                    _registro.exception("El índice de la llamada %s no se puede leer.", otro_id)
+                    continue
+                posibles.append(posible)
+                if len(posibles) == MAXIMO_DE_COINCIDENCIAS:
+                    break
         finally:
             filas.close()
         return posibles

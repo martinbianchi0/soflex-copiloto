@@ -72,7 +72,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 - **Protocolos para lo que el catálogo no cubre**, definidos por quien tiene la autoridad para hacerlo.
 - **Patentes y teléfonos como llegan de un reconocimiento de voz:** deletreados o con los números en palabras. Hoy se leen escritos con letras y cifras.
 - **Entrada en vivo.** Hoy el operador escribe cada turno, o se reproduce un ejemplo; lo siguiente sería recibirlos a medida que se transcribe la llamada.
-- **Que el aviso de otra llamada del mismo lugar se actualice solo y compare por distancia.** Hoy se consulta cuando la llamada cambia, y compara calle, altura y esquinas.
+- **Que el aviso de otra llamada del mismo lugar compare por distancia.** Hoy compara calle, altura y esquinas, y una calle que el operador escribió con otro nombre no coincide.
 - **Coordenadas además de calle y altura**, y contraste con el servicio de direcciones de la Ciudad cuando hay red.
 - **Trazas de cada pedido al modelo** (qué se le mandó, qué devolvió, cuánto tardó), para revisar un caso sin volver a correrlo.
 - **Tests automáticos del panel.** El backend tiene los suyos; el panel no tiene.
