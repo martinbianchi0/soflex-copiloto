@@ -313,6 +313,13 @@ def test_la_altura_del_mismo_tramo_se_conserva():
         "¿Cuál es el número de la calle?",
         "¿qué numeración?",
         "¿A qué altura de Av. Corrientes?",
+        "¿A qué altura de la avenida?",
+        "¿A qué altura de la avenida Corrientes?",
+        "¿En qué altura de Corrientes?",
+        "¿A qué altura está el local?",
+        "¿A qué altura fue el choque?",
+        "¿A qué altura queda eso?",
+        "¿A qué número de Corrientes mandamos la ambulancia?",
     ],
 )
 def test_lee_la_altura_si_el_operador_la_pide_en_el_turno_anterior(pregunta):
@@ -356,6 +363,20 @@ def test_lee_la_altura_si_el_operador_la_pide_en_el_turno_anterior(pregunta):
         ("Av. Corrientes.", "¿A qué altura?", "19, y cuarto"),
         ("Av. Corrientes.", "¿A qué altura?", "2 ambulancias"),
         ("Av. Corrientes.", "¿A qué altura?", "11 2345 6789"),
+        ("Av. Corrientes.", "¿A qué altura de la avenida Rivadavia?", "Al 1540."),
+        ("Av. Corrientes.", "¿A qué altura de Rivadavia fue?", "Al 1540."),
+        ("Av. Corrientes.", "¿A qué altura de Corrientes o Rivadavia?", "Al 1540."),
+        ("Av. Corrientes.", "¿A qué altura está y cuántos heridos hay?", "2"),
+        ("Av. Corrientes.", "¿A qué altura está y qué edad tiene?", "82"),
+        ("Av. Corrientes.", "¿Qué número tiene el colectivo?", "El 60."),
+        ("Av. Corrientes.", "¿Qué número de colectivo era?", "El 60."),
+        ("Av. Corrientes.", "¿Qué número de departamento?", "El 4."),
+        ("Av. Corrientes.", "¿A qué número lo llamamos?", "Al 4783."),
+        ("Av. Corrientes.", "¿A qué número de teléfono lo llamamos?", "Al 4783."),
+        ("Av. Corrientes.", "¿A qué altura está el nene?", "A 3 metros."),
+        ("Av. Corrientes.", "¿Desde qué altura cayó?", "2 metros."),
+        ("Av. Corrientes.", "¿De qué altura se cayó?", "3."),
+        ("Av. Corrientes.", "¿A qué altura?", "Al 1540, en Saavedra."),
     ],
 )
 def test_no_lee_una_altura_si_la_respuesta_o_la_calle_no_son_claras(calle, pregunta, respuesta):
@@ -365,6 +386,21 @@ def test_no_lee_una_altura_si_la_respuesta_o_la_calle_no_son_claras(calle, pregu
         Turno(texto=respuesta, hablante="llamante"),
     ]
     assert interpretar(turnos).ubicacion.altura.origen == "falta"
+
+
+def test_el_barrio_dicho_con_la_altura_no_cuenta_como_otra_calle():
+    # Saavedra también es una calle. Acá es el barrio de esa altura.
+    turnos = [
+        Turno(texto="Hubo un choque en avenida San Isidro Labrador.", hablante="llamante"),
+        Turno(texto="¿A qué altura de la avenida?", hablante="operador"),
+        Turno(texto="Al 4528, en Saavedra, adelante del portón.", hablante="llamante"),
+    ]
+    resultado = interpretar(turnos)
+
+    assert resultado.ubicacion.calle.valor == "Av. San Isidro Labrador"
+    assert resultado.ubicacion.altura.valor == 4528
+    assert resultado.ubicacion.altura.cita == Cita(turno=2, texto="4528")
+    assert not resultado.avisos
 
 
 def test_no_lee_el_numero_si_se_intercalo_otro_turno():

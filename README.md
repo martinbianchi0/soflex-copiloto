@@ -65,8 +65,8 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 
 | | Reglas (`mock`), 49 intercambios |
 |---|---|
-| Ubicación igual a lo dicho hasta ahí | 39 (en 10 falta la altura, que ya se dijo) |
-| Guiones en los que la dirección queda completa cuando se termina de decir | 10 de 14 |
+| Ubicación igual a lo dicho hasta ahí | 49 |
+| Guiones en los que la dirección queda completa cuando se termina de decir | 14 de 14 |
 | Categoría correcta | 29 (11 sin determinar, 6 mal; en 3 todavía no se podía saber y no propuso ninguna) |
 
 ```bash

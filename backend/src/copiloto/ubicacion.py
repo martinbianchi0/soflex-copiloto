@@ -163,12 +163,34 @@ ANTES_DE_ALTURA = {"AL", "ALTURA", "NUMERO", "NRO", "N"}
 FRASE_DEL_OPERADOR = re.compile(r"¿[^¿?¡!\n]*\??|(?:\b(?:AV|NRO)\.|[^¿?¡!.\n;])+\??", re.IGNORECASE)
 PEDIDO_VERBAL = r"(?:DECIME|DIGAME|INDIQUE|INDICAME|ME DECIS|ME DICE)"
 OTRO_PEDIDO = re.compile(rf"^(?:{PEDIDO_VERBAL}|A QUE|QUE|CUAL ES|CUANT[OA]S?|DONDE|CUANDO)\b")
+# «¿A qué altura está la escuela?» pide la altura de la calle igual que «¿A qué altura?». Esa cola
+# libre vale sólo detrás de «altura» o «numeración»: «¿Qué número tiene el colectivo?» pide otra
+# cosa. Y no puede traer otra pregunta («¿a qué altura está y cuántos son?»).
+OTRA_PREGUNTA = r"(?:QUE|CUAL|CUALES|CUANT[OA]S?|DONDE|CUANDO|QUIEN|QUIENES|COMO)"
 PREGUNTA_POR_ALTURA = re.compile(
     rf"(?:{PEDIDO_VERBAL} )?"
-    r"(?:(?:A QUE|QUE|CUAL ES) )?(?:LA |EL )?(?:ALTURA|NUMERACION|NUMERO)"
-    r"(?: (?:DE|EN) (?P<calle>.+)| (?:ES|ESTA|ESTAN|TIENE))?"
+    r"(?:(?:A QUE|EN QUE|QUE|CUAL ES) )?(?:LA |EL )?"
+    r"(?:"
+    r"(?:ALTURA|NUMERACION|NUMERO)(?: (?:DE|EN) (?P<calle>.+)| (?:ES|ESTA|ESTAN|TIENE))?"
+    rf"|(?:ALTURA|NUMERACION) (?:ES|ESTA|ESTAN|QUEDA|FUE) (?!.*\b{OTRA_PREGUNTA}\b).+"
+    r")"
 )
-CALLE_YA_DICHA = {"LA CALLE", "ESA CALLE", "ESTA CALLE", "LA DIRECCION"}
+CALLE_YA_DICHA = {
+    "LA CALLE",
+    "ESA CALLE",
+    "ESTA CALLE",
+    "LA AVENIDA",
+    "ESA AVENIDA",
+    "ESTA AVENIDA",
+    "LA AV",
+    "ESA AV",
+    "ESTA AV",
+    "LA DIRECCION",
+}
+MARCA_ANTES_DEL_NOMBRE = re.compile(r"^(?:LA )?(?:CALLE|AVENIDA|AV) ")
+# Después de la calle, la pregunta puede seguir («¿A qué número de Argerich mandamos la
+# ambulancia?»), salvo que siga con otra calle.
+SIGUE_OTRA_CALLE = {"O", "Y", "E", "CON", "ESQUINA", "ESQ", "CASI"}
 CONFIRMACION_DE_ALTURA = re.compile(r"AL [0-9]+(?: [0-9]{3})?")
 CONTINUACION_DE_ALTURA = re.compile(r"(?:MAS O MENOS|APROXIMADAMENTE|APROXIMADO|Y PICO)")
 OTRA_CIFRA_U_HORA = re.compile(
@@ -277,7 +299,7 @@ def _calles_preguntadas(texto: str) -> list[str] | None:
             hubo_pedido = True
             calle = pedido["calle"]
             if calle and calle not in CALLE_YA_DICHA:
-                calles.append(calle.removeprefix("LA CALLE ").removeprefix("CALLE "))
+                calles.append(MARCA_ANTES_DEL_NOMBRE.sub("", calle))
         elif pregunta and not (hubo_pedido and CONFIRMACION_DE_ALTURA.fullmatch(palabras)):
             return None
     return calles if hubo_pedido else None
@@ -634,8 +656,11 @@ class _Resolvedor:
         calle, alternativas = self._elegir(principal.candidatos, es_av)
         if alternativas:
             return
-        if any(calle not in {c.nombre for c in mencion.candidatos} for mencion in calles_dichas):
-            return
+        otras = [
+            normalizar(mencion.cita.texto)
+            for mencion in calles_dichas
+            if calle not in {c.nombre for c in mencion.candidatos}
+        ]
         if any(
             c.nombre != calle and self.alturas_en_esquina(calle, c.nombre)
             for mencion in self._cruces_marcados(principal.fin, limite)
@@ -645,16 +670,30 @@ class _Resolvedor:
         for altura, calles in respuestas:
             if altura.cita.turno <= principal.cita.turno:
                 continue
-            if any(
-                not any(
-                    c.nombre == calle and c.como in ("exacto", "apellido")
-                    for c in self.candidatos(nombre, difuso=False)
-                )
-                for nombre in calles
-            ):
+            if any(not self._nombra_a(nombre, calle) for nombre in calles):
+                continue
+            # «Al 4528, en Saavedra»: si es el barrio de esa altura, no es otra calle.
+            barrios = {
+                normalizar(barrio) for barrio, _ in self.cj.barrios(calle, altura.valor, False)
+            }
+            if any(otra not in barrios for otra in otras):
                 continue
             existe = bool(self.cj.tramos_en(calle, altura.valor))
             yield _Direccion(principal, calle, [], altura, principal.fin, existe)
+
+    def _nombra_a(self, nombrada: str, calle: str) -> bool:
+        """Si lo que nombró el operador al pedir la altura empieza con esa calle y no con otra."""
+        palabras = nombrada.split()
+        for fin in range(len(palabras), 0, -1):
+            nombres = {
+                c.nombre
+                for c in self.candidatos(" ".join(palabras[:fin]), difuso=False)
+                if c.como in ("exacto", "apellido")
+            }
+            if nombres:
+                sigue = palabras[fin] if fin < len(palabras) else None
+                return calle in nombres and sigue not in SIGUE_OTRA_CALLE
+        return False
 
     def _en_esquina(self, limite: int | None = None) -> tuple[_Mencion, str, _Mencion, str] | None:
         entre = -1
