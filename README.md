@@ -59,6 +59,20 @@ Las 30 llamadas del dataset son las mismas con las que se escribieron el criteri
 cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida ../evaluacion/modelo.json
 ```
 
+### A medida que llega la llamada
+
+`backend/herramientas/evaluar_turnos.py` pasa 14 guiones de 3 a 5 intercambios (49 en total, en `backend/tests/datos/guiones.json`) por el camino que usa el panel al sumar un turno, y después de cada intercambio compara lo propuesto con lo que hasta ahí se dijo. En modo `mock` (detalle en `evaluacion/turnos-reglas.json`):
+
+| | Reglas (`mock`), 49 intercambios |
+|---|---|
+| Ubicación igual a lo dicho hasta ahí | 39 (en 10 falta la altura, que ya se dijo) |
+| Guiones en los que la dirección queda completa cuando se termina de decir | 10 de 14 |
+| Categoría correcta | 29 (11 sin determinar, 6 mal; en 3 todavía no se podía saber y no propuso ninguna) |
+
+```bash
+cd backend && uv run python herramientas/evaluar_turnos.py --proveedor mock --salida ../evaluacion/turnos-reglas.json
+```
+
 ## Supuestos
 
 - **La llamada llega como texto**, en una lista de turnos con quién habla si se sabe. No hay audio ni reconocimiento de voz.
