@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from copiloto.duplicados import Lugar, coinciden
+from copiloto.duplicados import Lugar, UbicacionesRecientes, coinciden
 from copiloto.esquemas import Ajustes, Categoria, PosibleDuplicado, Turno
 from copiloto.llamadas import LlamadaInexistente, Llamadas
 
@@ -24,6 +24,17 @@ CHOQUE = Turno(texto="Hay un choque en Av. Corrientes 1540.")
         (Lugar("Córdoba", None, ()), Lugar("Córdoba", None, ()), False),
         (Lugar("Gaona", 2920, ("Gascón",)), Lugar("Córdoba", 2920, ("Gascón",)), False),
         (Lugar("Av. CÓRDOBA", None, ("GASCÓN",)), Lugar("av cordoba", None, ("gascon",)), True),
+        # Dos cuadras seguidas comparten una esquina del callejero, pero están lejos.
+        (
+            Lugar("Av. Corrientes", 1502, ("Parana", "Montevideo")),
+            Lugar("Av. Corrientes", 1698, ("Montevideo", "Rodriguez Peña")),
+            False,
+        ),
+        (
+            Lugar("Av. Corrientes", 1502, ("Parana", "Montevideo")),
+            Lugar("Av. Corrientes", None, ("Montevideo",)),
+            True,
+        ),
     ],
 )
 def test_coincidencia_de_lugares(primera, segunda, coincide):
@@ -272,3 +283,127 @@ def test_la_api_devuelve_los_duplicados_sin_cambiar_el_json_de_la_llamada(client
 
 def test_la_api_devuelve_404_al_buscar_duplicados_de_una_llamada_inexistente(cliente):
     assert cliente.get("/api/llamadas/no-existe/duplicados").status_code == 404
+
+
+def test_una_base_sin_ninguna_tabla_del_indice_arranca_y_vuelve_a_indexar(tmp_path):
+    ruta = tmp_path / "llamadas.sqlite"
+    antes = Llamadas(ruta, reloj=lambda: AHORA)
+    try:
+        guardada = antes.iniciar([CHOQUE])
+    finally:
+        antes.cerrar()
+    conexion = sqlite3.connect(ruta)
+    try:
+        with conexion:
+            conexion.execute("DROP TABLE ubicaciones_recientes")
+            conexion.execute("DROP TABLE recepciones_llamadas")
+    finally:
+        conexion.close()
+
+    despues = Llamadas(ruta, reloj=lambda: AHORA)
+    try:
+        assert despues.consultar(guardada.llamada_id) == guardada
+        primera = despues.iniciar([CHOQUE]).llamada_id
+        segunda = despues.iniciar([CHOQUE]).llamada_id
+        assert despues.consultar_duplicados(guardada.llamada_id) == (None, [])
+        _, posibles = despues.consultar_duplicados(segunda)
+        assert [posible.llamada_id for posible in posibles] == [primera]
+    finally:
+        despues.cerrar()
+
+
+def test_un_error_cualquiera_del_indice_no_hace_fallar_a_la_llamada(servicio, monkeypatch, caplog):
+    llamadas, _ = servicio
+
+    def falla(*_argumentos, **_opciones):
+        raise TypeError("falla simulada")
+
+    monkeypatch.setattr(UbicacionesRecientes, "_actualizar_ubicacion", falla)
+
+    llamada = llamadas.iniciar([CHOQUE])
+    con_turno = llamadas.sumar_turno(llamada.llamada_id, Turno(texto="Hay un herido."))
+    derivada = llamadas.derivar(llamada.llamada_id, Ajustes.model_validate({"prioridad": "P2"}))
+
+    assert len(con_turno.turnos) == 2
+    assert derivada.estado == "derivada"
+    assert llamadas.consultar_duplicados(llamada.llamada_id) == (None, [])
+    assert caplog.text.count("falla simulada") >= 3
+
+
+def test_una_fila_mal_guardada_no_deja_sin_aviso_a_las_demas(tmp_path, servicio, caplog):
+    llamadas, reloj = servicio
+    primera = llamadas.iniciar([CHOQUE]).llamada_id
+    rota = llamadas.iniciar([CHOQUE]).llamada_id
+    reloj.ahora += timedelta(minutes=1)
+    tercera = llamadas.iniciar([CHOQUE]).llamada_id
+    conexion = sqlite3.connect(tmp_path / "llamadas.sqlite")
+    try:
+        with conexion:
+            conexion.execute(
+                "UPDATE ubicaciones_recientes SET categoria = 'OTRA' WHERE llamada_id = ?", (rota,)
+            )
+    finally:
+        conexion.close()
+
+    _, posibles = llamadas.consultar_duplicados(tercera)
+
+    assert [posible.llamada_id for posible in posibles] == [primera]
+    assert rota in caplog.text
+
+
+def test_sin_la_tabla_del_indice_la_consulta_no_trae_avisos_y_la_llamada_sigue(
+    tmp_path, servicio, caplog
+):
+    llamadas, _ = servicio
+    llamada = llamadas.iniciar([CHOQUE])
+    conexion = sqlite3.connect(tmp_path / "llamadas.sqlite")
+    try:
+        with conexion:
+            conexion.execute("DROP TABLE ubicaciones_recientes")
+    finally:
+        conexion.close()
+
+    assert llamadas.consultar_duplicados(llamada.llamada_id) == (None, [])
+    assert llamadas.sumar_turno(llamada.llamada_id, Turno(texto="Hay un herido.")).turnos
+    assert "No se pudo consultar el índice" in caplog.text
+
+
+def test_al_derivar_con_otra_calle_deja_de_coincidir_con_la_anterior(servicio):
+    llamadas, reloj = servicio
+    primera = llamadas.iniciar([CHOQUE]).llamada_id
+    reloj.ahora += timedelta(minutes=5)
+    segunda = llamadas.iniciar([CHOQUE]).llamada_id
+    tercera = llamadas.iniciar([Turno(texto="Hay un choque en Av. Gaona 2920.")]).llamada_id
+    ajustes = Ajustes.model_validate(
+        {
+            "ubicacion": {"calle": "Av. Gaona", "altura": 2950, "esquinas": []},
+            "tipo_hecho": {"categoria": "ACCIDENTE_VIAL", "subtipo": None},
+            "prioridad": "P2",
+        }
+    )
+
+    llamadas.derivar(primera, ajustes)
+
+    assert llamadas.consultar_duplicados(segunda)[1] == []
+    _, posibles = llamadas.consultar_duplicados(tercera)
+    assert [(posible.llamada_id, posible.ubicacion) for posible in posibles] == [
+        (primera, "Av. Gaona 2950")
+    ]
+
+
+def test_completar_el_analisis_dos_veces_deja_el_mismo_aviso(tmp_path):
+    def modelo(_sistema, _usuario, _vence):
+        return '{"categoria":"DEFENSA_CIVIL","subtipo":null,"prioridad":"P2"}'
+
+    llamadas = Llamadas(tmp_path / "llamadas.sqlite", modelo, reloj=lambda: AHORA)
+    try:
+        primera = llamadas.iniciar([CHOQUE]).llamada_id
+        segunda = llamadas.iniciar([CHOQUE]).llamada_id
+        llamadas.completar_analisis(primera)
+        una_vez = llamadas.consultar_duplicados(segunda)
+
+        llamadas.completar_analisis(primera)
+
+        assert llamadas.consultar_duplicados(segunda) == una_vez
+    finally:
+        llamadas.cerrar()
