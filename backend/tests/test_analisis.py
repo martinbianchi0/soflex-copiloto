@@ -69,6 +69,40 @@ def alta_001(servicio):
     return servicio.iniciar([Turno(texto=TEXTO_001)])
 
 
+@pytest.mark.parametrize("respuesta", [CLASIFICACION, ModeloNoDisponible("sin conexión")])
+def test_los_dictados_del_alta_sobreviven_al_analisis(abrir_servicio, respuesta):
+    modelo = ModeloGuionado(respuesta, CHECKLIST)
+    relato = "Patente ZA 345 BD. Mi celular es 11 1000-0142. Teléfono: 1000 014."
+    with abrir_servicio(modelo) as servicio:
+        inicial = servicio.iniciar(
+            [Turno(texto=TEXTO_001), Turno(texto=relato, hablante="llamante")]
+        )
+        assert inicial.estado == "analizando"
+        assert not modelo.pedidos
+        assert [dato.valor for dato in inicial.sugerencia.datos_dictados] == [
+            "ZA 345 BD",
+            "1110000142",
+        ]
+
+        final = servicio.completar_analisis(inicial.llamada_id)
+
+    assert final.estado == "esperando_operador"
+    assert final.sugerencia.datos_dictados == inicial.sugerencia.datos_dictados
+    assert (
+        [aviso for aviso in final.sugerencia.avisos if aviso.codigo == "dictado_incompleto"]
+        == [aviso for aviso in inicial.sugerencia.avisos if aviso.codigo == "dictado_incompleto"]
+        == [
+            Aviso(
+                codigo="dictado_incompleto",
+                mensaje=(
+                    "El teléfono dictado («1000 014») no parece completo. Pedí que lo repitan."
+                ),
+            )
+        ]
+    )
+    assert relato in modelo.pedidos[0][1]
+
+
 @pytest.mark.parametrize(
     ("respuestas", "cantidad", "error", "cita"),
     [

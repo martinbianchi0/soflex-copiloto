@@ -5,7 +5,7 @@ from datetime import datetime
 from time import monotonic
 from typing import Any, Literal, NotRequired, TypedDict
 
-from copiloto import catalogo, dataset, interprete, tipo, ubicacion
+from copiloto import catalogo, dataset, dictados, interprete, tipo, ubicacion
 from copiloto.catalogo import Pregunta, Protocolo, SubtipoInvalido
 from copiloto.esquemas import (
     Ajustes,
@@ -14,6 +14,8 @@ from copiloto.esquemas import (
     Categoria,
     Cita,
     Dato,
+    DatoDictado,
+    DictadoQuitado,
     Falta,
     Ficha,
     Inferido,
@@ -70,6 +72,13 @@ class MarcaInvalida(ValueError):
         )
 
 
+class DictadoInvalido(ValueError):
+    """Se quiso quitar un dato que no está en la sugerencia."""
+
+    def __init__(self) -> None:
+        super().__init__("Sólo se pueden quitar datos dictados que están en la sugerencia.")
+
+
 _FICHA_SIN_ACTUALIZAR = Aviso(
     codigo="ficha_sin_actualizar",
     mensaje=(
@@ -115,16 +124,20 @@ def analizar(turnos: list[Turno]) -> Sugerencia:
         return analizar_base(turnos)
     relato = dataset.primer_tramo(turnos)
     assert relato is not None  # Se reconoció la llamada por ese tramo.
+    datos_dictados, avisos_dictados = dictados.buscar(turnos)
     lugar = ubicacion.interpretar(turnos)
     protocolo = catalogo.cargar().protocolo(conocida.categoria, conocida.subtipo)
     assert protocolo is not None  # La llamada conocida siempre trae un subtipo del catálogo.
     # La ficha describe el relato del dataset. Si el llamante dijo algo más, eso no la cambia:
     # sin modelo no hay quien lo interprete, y el operador tiene que saberlo.
-    avisos = [*lugar.avisos, *([_FICHA_SIN_ACTUALIZAR] if dataset.se_dijo_algo_mas(turnos) else [])]
+    avisos = [*lugar.avisos, *avisos_dictados]
+    if dataset.se_dijo_algo_mas(turnos):
+        avisos.append(_FICHA_SIN_ACTUALIZAR)
     return Sugerencia.model_validate(
         {
             "ubicacion": lugar.ubicacion,
             "avisos": avisos,
+            "datos_dictados": datos_dictados,
             "tipo_hecho": Inferido[Categoria](valor=conocida.categoria, fuente="dataset"),
             "subtipo": Inferido[str](valor=conocida.subtipo, fuente="dataset"),
             "prioridad": Inferido[Prioridad](valor=conocida.prioridad, fuente="dataset"),
@@ -138,10 +151,12 @@ def analizar(turnos: list[Turno]) -> Sugerencia:
 
 def analizar_base(turnos: list[Turno]) -> Sugerencia:
     """Arma la sugerencia del alta con el callejero y palabras clave."""
+    datos_dictados, avisos_dictados = dictados.buscar(turnos)
     lugar = ubicacion.interpretar(turnos)
     return Sugerencia(
         ubicacion=lugar.ubicacion,
-        avisos=lugar.avisos,
+        avisos=[*lugar.avisos, *avisos_dictados],
+        datos_dictados=datos_dictados,
         tipo_hecho=Inferido[Categoria](valor=tipo.por_palabras_clave(turnos), fuente="reglas"),
         prioridad=Falta(),
     )
@@ -205,6 +220,7 @@ def analizar_con_modelo(
     return Sugerencia(
         ubicacion=base.ubicacion,
         avisos=avisos,
+        datos_dictados=base.datos_dictados,
         tipo_hecho=Inferido[Categoria](valor=propuesta.categoria, fuente="modelo"),
         subtipo=Inferido[str](valor=protocolo.id, fuente="modelo") if protocolo else Falta(),
         prioridad=Inferido[Prioridad](
@@ -353,6 +369,9 @@ def derivar(
             "checklist": _marcar(checklist_de(protocolo, previo), ajustes.checklist or [], turnos),
             "instrucciones": protocolo.instrucciones if protocolo else [],
             "avisos": sin_confirmar,
+            "datos_dictados": _quitar_dictados(
+                sugerencia.datos_dictados, ajustes.dictados_quitados or []
+            ),
         }
     )
     if faltan := ficha.faltantes():
@@ -362,13 +381,21 @@ def derivar(
     )
 
 
-# Avisos sobre cómo se armó la sugerencia: son para quien la revisa, no para quien despacha.
+# Avisos para quien revisa la sugerencia.
 _AVISOS_PARA_EL_OPERADOR = (
     "dato_descartado",
     "modelo_no_disponible",
     "ficha_sin_actualizar",
     "prioridad_cambiada",
+    "dictado_incompleto",
 )
+
+
+def _quitar_dictados(datos: list[DatoDictado], quitados: list[DictadoQuitado]) -> list[DatoDictado]:
+    claves_quitadas = {(dato.tipo, dato.valor) for dato in quitados}
+    if not claves_quitadas <= {(dato.tipo, dato.valor) for dato in datos}:
+        raise DictadoInvalido()
+    return [dato for dato in datos if (dato.tipo, dato.valor) not in claves_quitadas]
 
 
 def _marcar(

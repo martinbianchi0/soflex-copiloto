@@ -17,6 +17,7 @@ export type BorradorSugerencia = {
   campos: CamposSugerencia
   editados: ReadonlySet<keyof CamposSugerencia>
   marcas: ReadonlyMap<string, MarcaChecklist>
+  dictadosQuitados: ReadonlySet<string>
   direccionAlternativa?: string
 }
 
@@ -44,7 +45,10 @@ function camposDe(sugerencia: Sugerencia, catalogo: Catalogo | null): CamposSuge
 }
 
 export function iniciarBorrador(sugerencia: Sugerencia, catalogo: Catalogo | null): BorradorSugerencia {
-  return { sugerencia, catalogo, campos: camposDe(sugerencia, catalogo), editados: new Set(), marcas: new Map() }
+  return {
+    sugerencia, catalogo, campos: camposDe(sugerencia, catalogo), editados: new Set(), marcas: new Map(),
+    dictadosQuitados: new Set(),
+  }
 }
 
 export function leerAltura(altura: string) {
@@ -86,6 +90,8 @@ export function actualizarBorrador(borrador: BorradorSugerencia, sugerencia: Sug
       prioridad: conservar('prioridad'),
     },
     marcas: subtipo === campos.subtipo ? marcas : new Map(),
+    // Se conserva aunque el dato no esté en esta sugerencia: si vuelve, vuelve destildado.
+    dictadosQuitados: borrador.dictadosQuitados,
     direccionAlternativa,
   }
 }

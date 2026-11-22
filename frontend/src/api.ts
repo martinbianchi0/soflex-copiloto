@@ -14,6 +14,12 @@ export const nombresTiposHecho = {
 
 export type TipoHecho = keyof typeof nombresTiposHecho
 export type Cita = { turno: number; texto: string }
+export type DictadoQuitado = { tipo: 'patente' | 'telefono'; valor: string }
+export type DatoDictado = DictadoQuitado & { cita: Cita }
+
+export function idDictado({ tipo, valor }: DictadoQuitado) {
+  return `dictado-${tipo}-${encodeURIComponent(valor)}`
+}
 
 export type Dato<Valor> =
   | { origen: 'dicho'; valor: Valor; cita: Cita }
@@ -66,7 +72,7 @@ export type Criterio = { niveles: Nivel[]; reglas: string[] }
 export type Catalogo = { protocolos: Protocolo[]; criterio: Criterio }
 
 export type Aviso = {
-  codigo: 'sin_calle' | 'falta_altura' | 'calle_ambigua' | 'direccion_no_cierra' | 'cruce_sin_confirmar' | 'ficha_sin_actualizar' | 'prioridad_cambiada' | 'dato_descartado' | 'modelo_no_disponible'
+  codigo: 'sin_calle' | 'falta_altura' | 'calle_ambigua' | 'direccion_no_cierra' | 'cruce_sin_confirmar' | 'ficha_sin_actualizar' | 'prioridad_cambiada' | 'dato_descartado' | 'modelo_no_disponible' | 'dictado_incompleto'
   mensaje: string
 }
 
@@ -78,6 +84,7 @@ type Ficha = {
   checklist: Pregunta[]
   instrucciones: TextoProtocolo[]
   avisos: Aviso[]
+  datos_dictados: DatoDictado[]
 }
 
 export type Sugerencia = Ficha
@@ -89,6 +96,7 @@ export type Ajustes = {
   tipo_hecho?: { categoria: TipoHecho; subtipo: string | null }
   prioridad?: Prioridad
   checklist?: MarcaChecklist[]
+  dictados_quitados?: DictadoQuitado[]
 }
 
 export type Carta = Ficha & {

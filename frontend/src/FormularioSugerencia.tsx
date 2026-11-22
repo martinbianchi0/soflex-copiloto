@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent, ReactNode } from 'react'
-import { citaDato, nombresTiposHecho, textoOrigen, valorDato } from './api'
+import { citaDato, idDictado, nombresTiposHecho, textoOrigen, valorDato } from './api'
 import type { Ajustes, Catalogo, Criterio, Dato, DetalleValidacion, Pregunta, Prioridad, Sugerencia, TipoHecho, Turno } from './api'
 import { actualizarBorrador, iniciarBorrador, leerAltura } from './borradorSugerencia'
 import type { CamposSugerencia } from './borradorSugerencia'
 import AvisosSugerencia from './AvisosSugerencia'
+import DatosDictados from './DatosDictados'
 import DetallesSugerencia from './DetallesSugerencia'
 import PrioridadEtiqueta from './PrioridadEtiqueta'
 import Transcripcion from './Transcripcion'
@@ -94,7 +95,7 @@ export default function FormularioSugerencia({
   if (borrador.catalogo !== catalogo || (!analizando && borrador.sugerencia !== recibida)) {
     setBorrador(actualizarBorrador(borrador, analizando ? borrador.sugerencia : recibida, catalogo))
   }
-  const { sugerencia, campos, marcas, direccionAlternativa } = borrador
+  const { sugerencia, campos, marcas, dictadosQuitados, direccionAlternativa } = borrador
   const { calle, altura, esquinaUno, esquinaDos, categoria, subtipo, prioridad } = campos
   const ubicacion = sugerencia.ubicacion
   const [primeraEsquina = faltante, segundaEsquina = faltante] = ubicacion.esquinas
@@ -142,6 +143,7 @@ export default function FormularioSugerencia({
       return cita ? [{ control, cita }] : []
     }),
     ...checklist.flatMap(({ id, cita }) => cita ? [{ control: `pregunta-${id}`, cita }] : []),
+    ...sugerencia.datos_dictados.map((dato) => ({ control: idDictado(dato), cita: dato.cita })),
   ]
   const citaActiva = edicionBloqueada ? undefined : citas.find(({ control }) => control === enFoco)?.cita
   const erroresDe = (campo: NonNullable<ReturnType<typeof campoSugerencia>>) => errores
@@ -192,6 +194,15 @@ export default function FormularioSugerencia({
     }))
   }
 
+  function marcarDictado(id: string) {
+    setBorrador((actual) => {
+      const quitados = new Set(actual.dictadosQuitados)
+      if (quitados.has(id)) quitados.delete(id)
+      else quitados.add(id)
+      return { ...actual, dictadosQuitados: quitados }
+    })
+  }
+
   function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     if (derivacionBloqueada) return
@@ -225,6 +236,9 @@ export default function FormularioSugerencia({
     if (prioridad && prioridad !== prioridadSugerida) ajustes.prioridad = prioridad
     const cambiosChecklist = checklist.flatMap(({ id }) => marcas.get(id) ?? [])
     if (cambiosChecklist.length) ajustes.checklist = cambiosChecklist
+    const quitados = sugerencia.datos_dictados.filter((dato) => dictadosQuitados.has(idDictado(dato)))
+      .map(({ tipo, valor }) => ({ tipo, valor }))
+    if (quitados.length) ajustes.dictados_quitados = quitados
     alDerivar(ajustes)
   }
 
@@ -269,6 +283,7 @@ export default function FormularioSugerencia({
             </CampoSugerido>
             {errorEsquinas && <p id={errorEsquinas} className="error-campo">{erroresEsquinas.join(' ')}</p>}
           </div>
+          <DatosDictados datos={sugerencia.datos_dictados} edicion={{ quitados: dictadosQuitados, alMarcar: marcarDictado }} />
           <div className="hecho">
             <CampoSugerido nombre="tipo_hecho" etiqueta="Tipo de hecho" dato={datos.tipo_hecho} errores={erroresDe('tipo_hecho')}>
               {(control) => (

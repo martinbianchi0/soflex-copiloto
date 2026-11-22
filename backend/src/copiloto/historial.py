@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from copiloto.esquemas import (
     CambioHistorial,
     Carta,
+    DelOperador,
+    Dicho,
     EstadoPregunta,
     EventoHistorial,
     Historial,
@@ -155,6 +157,16 @@ def comparar(sugerencia: Sugerencia, carta: Carta) -> list[CambioHistorial]:
                     campo=f"pregunta {item.id}",
                     sugerido=EstadoPregunta(respondida=respondida, propuesta=propuesta),
                     final=EstadoPregunta(respondida=item.respondida),
+                )
+            )
+    conservados = {(dato.tipo, dato.valor) for dato in carta.datos_dictados}
+    for dato in sugerencia.datos_dictados:
+        if (dato.tipo, dato.valor) not in conservados:
+            cambios.append(
+                CambioHistorial(
+                    campo=f"dictado_{dato.tipo}",
+                    sugerido=Dicho[str | int](valor=dato.valor, cita=dato.cita),
+                    final=DelOperador[str | int](valor=None),
                 )
             )
     return cambios

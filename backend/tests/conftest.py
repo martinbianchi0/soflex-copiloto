@@ -88,6 +88,7 @@ _SUGERENCIA_COMPLETA = {
         }
     ],
     "avisos": [],
+    "datos_dictados": [],
 }
 
 

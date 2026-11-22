@@ -11,8 +11,7 @@ export function GrupoAvisos({ titulo, avisos }: { titulo: string; avisos: Aviso[
   )
 }
 
-// Avisos sobre cómo se armó la sugerencia, no sobre algo que haya que preguntarle al llamante.
-const sobreElAnalisis: Aviso['codigo'][] = ['dato_descartado', 'modelo_no_disponible', 'ficha_sin_actualizar', 'prioridad_cambiada']
+const conGrupoPropio: Aviso['codigo'][] = ['dato_descartado', 'modelo_no_disponible', 'ficha_sin_actualizar', 'prioridad_cambiada', 'dictado_incompleto']
 
 export default function AvisosSugerencia({ avisos }: { avisos: Aviso[] }) {
   return (
@@ -22,7 +21,9 @@ export default function AvisosSugerencia({ avisos }: { avisos: Aviso[] }) {
       <GrupoAvisos titulo="Al sumar lo que se dijo después"
         avisos={avisos.filter(({ codigo }) => codigo === 'prioridad_cambiada' || codigo === 'ficha_sin_actualizar')} />
       <GrupoAvisos titulo="Para confirmar con el llamante"
-        avisos={avisos.filter(({ codigo }) => !sobreElAnalisis.includes(codigo))} />
+        avisos={avisos.filter(({ codigo }) => !conGrupoPropio.includes(codigo))} />
+      <GrupoAvisos titulo="Datos dictados"
+        avisos={avisos.filter(({ codigo }) => codigo === 'dictado_incompleto')} />
       <GrupoAvisos titulo="Datos descartados por el sistema"
         avisos={avisos.filter(({ codigo }) => codigo === 'dato_descartado')} />
     </>
