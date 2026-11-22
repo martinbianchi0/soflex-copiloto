@@ -92,10 +92,53 @@ def test_una_pregunta_pendiente_no_lleva_cita():
         )
 
 
+def test_una_pregunta_pendiente_sin_cita_queda_sin_marca_del_operador():
+    pregunta = ItemChecklist(id="a", pregunta="¿Hay humo?", respondida=False)
+
+    assert pregunta.cita is None
+    assert pregunta.del_operador is False
+
+
+def test_una_pregunta_marcada_por_el_operador_no_lleva_cita(sugerencia_completa):
+    pregunta = {**sugerencia_completa["checklist"][0], "del_operador": True}
+
+    with pytest.raises(ValidationError, match="marca el operador no lleva cita"):
+        ItemChecklist.model_validate(pregunta)
+
+
+def test_una_pregunta_respondida_por_el_sistema_necesita_cita(sugerencia_completa):
+    pregunta = {**sugerencia_completa["checklist"][0], "cita": None}
+
+    with pytest.raises(ValidationError, match="lleva su cita"):
+        ItemChecklist.model_validate(pregunta)
+
+
+@pytest.mark.parametrize("respondida", [True, False])
+def test_el_operador_puede_marcar_o_desmarcar_una_pregunta_sin_cita(
+    sugerencia_completa, respondida
+):
+    pregunta = {
+        **sugerencia_completa["checklist"][0],
+        "respondida": respondida,
+        "cita": None,
+        "del_operador": True,
+    }
+
+    assert ItemChecklist.model_validate(pregunta).model_dump() == pregunta
+
+
 def test_una_sugerencia_no_trae_datos_del_operador(sugerencia_completa):
     sugerencia_completa["prioridad"] = {"origen": "operador", "valor": "P1"}
 
     with pytest.raises(ValidationError, match="del operador"):
+        Sugerencia.model_validate(sugerencia_completa)
+
+
+@pytest.mark.parametrize("respondida", [True, False])
+def test_una_sugerencia_no_trae_preguntas_marcadas_por_el_operador(sugerencia_completa, respondida):
+    sugerencia_completa["checklist"][0].update(respondida=respondida, cita=None, del_operador=True)
+
+    with pytest.raises(ValidationError, match="preguntas marcadas por el operador"):
         Sugerencia.model_validate(sugerencia_completa)
 
 
@@ -248,6 +291,24 @@ def test_un_ajuste_mal_armado_se_rechaza(ajustes):
 
 def test_un_ajuste_sin_nada_es_valido_y_no_cambia_nada():
     assert Ajustes.model_validate({}).model_dump(exclude_unset=True) == {}
+
+
+def test_un_ajuste_no_puede_marcar_dos_veces_la_misma_pregunta():
+    marcas = [{"id": "SFX-001-Q1", "respondida": valor} for valor in (True, False)]
+
+    with pytest.raises(ValidationError, match="se marca una sola vez"):
+        Ajustes.model_validate({"checklist": marcas})
+
+
+def test_un_ajuste_rechaza_un_checklist_en_null():
+    with pytest.raises(ValidationError, match="no lo mandes: checklist"):
+        Ajustes.model_validate({"checklist": None})
+
+
+def test_un_ajuste_acepta_un_checklist_vacio():
+    ajustes = Ajustes.model_validate({"checklist": []})
+
+    assert ajustes.model_dump(exclude_unset=True) == {"checklist": []}
 
 
 def test_una_cita_se_busca_en_su_turno_y_no_en_otro():

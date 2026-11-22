@@ -68,11 +68,17 @@ Qué se eligió, por qué y qué se dejó afuera.
 - **Cuánto acierta la categoría.** Las palabras se eligieron mirando las 30 llamadas del dataset: 27 quedan bien y 3 "sin determinar". Sobre las 32 llamadas nuevas: 23 bien, 8 "sin determinar" y 1 equivocada, una consulta que dice "no me robaron" y queda como convivencia y seguridad. Las reglas cuentan palabras enteras y no entienden una negación ni algo que ya pasó. Como son pocas y sintéticas, el número es optimista.
 - **No hay protocolo genérico por categoría.** El dataset trae protocolos por subtipo. Mostrar las preguntas de un subtipo parecido, o redactar unas generales, sería poner delante del operador instrucciones que nadie aprobó para ese caso.
 
+## La revisión del operador
+
+- **El operador marca y desmarca las preguntas del protocolo.** Una pregunta que marca queda como respondida *por el operador* y sin cita: la respuesta la escuchó él, no la leyó el sistema. Si desmarca una que el sistema daba por respondida, queda pendiente y su cita no viaja a la carta. Confirmar lo que el sistema ya había detectado no cambia nada: la respuesta conserva su cita.
+- **La carta distingue quién respondió cada pregunta.** Respondida con cita, respondida por el operador, pendiente o desmarcada por el operador: el despachador ve qué se sabe y por quién.
+- **La carta lleva los avisos que quedaron sin resolver.** Si el operador deriva sin cambiar la ubicación, los avisos sobre la dirección viajan en la carta como "quedó sin confirmar con el llamante". Si la cambia, esos avisos ya no describen lo que va en la carta y no se copian. Los avisos de datos que el sistema descartó son para el operador y no van a la carta.
+
 ## API
 
 - **Cuatro operaciones:** leer el catálogo y el criterio de prioridad (`GET /api/catalogo`), iniciar una llamada (`POST /api/llamadas`), consultarla (`GET /api/llamadas/{id}`) y derivarla (`POST /api/llamadas/{id}/derivar`). La llamada entra como una lista de turnos, cada uno con quién habla si se sabe.
 - **Lo que entra se valida antes de tocar el flujo.** Los esquemas rechazan campos desconocidos, textos vacíos y prioridades fuera de P1–P4. Una llamada puede tener hasta 500 turnos y 50.000 caracteres en total, unas cinco veces una llamada de diez minutos: el tope acota lo que tarda el análisis. La regla que depende de la sugerencia (lo mínimo para derivar) también se comprueba antes de retomar el grafo. En todos los casos la respuesta es 422 y la llamada sigue esperando al operador.
-- **El operador manda sólo lo que cambia, con los valores a secas.** Lo que no manda queda como lo sugirió el sistema. La ubicación se manda entera, y el servicio compara cada parte con la sugerida para decidir qué conserva su origen y qué pasa a ser del operador.
+- **El operador manda sólo lo que cambia, con los valores a secas.** Lo que no manda queda como lo sugirió el sistema. La ubicación se manda entera, y el servicio compara cada parte con la sugerida para decidir qué conserva su origen y qué pasa a ser del operador. Del checklist se mandan sólo las preguntas cuya marca cambió; una marca sobre una pregunta que no es del protocolo de la carta se rechaza con 422.
 - **Los errores dicen qué pasó:** 404 si la llamada no existe y 409 si ya no está esperando al operador.
 
 ## Panel
@@ -82,7 +88,7 @@ Qué se eligió, por qué y qué se dejó afuera.
 - **El identificador de la llamada vive en la URL (`?llamada=…`).** Recargar la página o reiniciar el servicio no pierde una llamada a medias: el panel la vuelve a pedir.
 - **El panel manda sólo lo que el operador cambió.** Lo demás queda como lo sugirió el sistema.
 - **La transcripción se muestra por turnos, con quién habla, y lo del llamante resaltado:** es la evidencia que respalda cada cita.
-- **Los avisos del análisis van arriba de la sugerencia y no bloquean la derivación.** Piden confirmar algo con el llamante; decidir sigue siendo del operador. La carta no los lleva.
+- **Los avisos del análisis van arriba de la sugerencia y no bloquean la derivación.** Piden confirmar algo con el llamante; decidir sigue siendo del operador.
 - **Sin librería de componentes ni de rutas.** Son tres vistas; el formulario usa los controles del navegador con sus etiquetas, y los avisos se anuncian en una región `aria-live`.
 
 ## Empaquetado

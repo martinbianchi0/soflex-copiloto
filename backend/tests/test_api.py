@@ -84,6 +84,7 @@ def test_derivar_devuelve_la_carta_con_lo_que_completo_el_operador(cliente):
         "prioridad": {"origen": "operador", "valor": "P2"},
         "checklist": sugerencia["checklist"],
         "instrucciones": sugerencia["instrucciones"],
+        "avisos": [],
     }
 
 
@@ -95,7 +96,7 @@ def test_la_api_devuelve_cada_dato_con_su_origen_y_su_cita(
         creada = cliente.post("/api/llamadas", json=LLAMADA).json()
         derivada = derivar(cliente, creada["llamada_id"], {"prioridad": "P1"}).json()
 
-    assert creada["sugerencia"] == {**sugerencia_completa, "avisos": []}
+    assert creada["sugerencia"] == sugerencia_completa
     carta = derivada["carta"]
     assert carta.pop("derivada_en").endswith("Z")
     assert carta == {
@@ -263,6 +264,7 @@ def test_una_llamada_del_dataset_se_deriva_sin_cambios_con_su_protocolo(cliente)
             "pregunta": "¿Hay personas atrapadas en el interior?",
             "respondida": True,
             "cita": {"turno": 1, "texto": "adentro quedó el cocinero"},
+            "del_operador": False,
         }
     ]
     assert carta["instrucciones"] == [
@@ -273,6 +275,54 @@ def test_una_llamada_del_dataset_se_deriva_sin_cambios_con_su_protocolo(cliente)
         }
     ]
     assert cliente.get(f"/api/llamadas/{llamada_id}").json() == derivada
+
+
+def test_derivar_con_marcas_devuelve_la_carta_con_los_cambios_en_el_checklist(cliente):
+    alta = cliente.post("/api/llamadas", json=LLAMADA)
+    assert alta.status_code == 201
+    creada = alta.json()
+    sugerencia = creada["sugerencia"]
+    q1, q2, q3 = sugerencia["checklist"]
+    marcas = [{"id": "SFX-001-Q1", "respondida": False}, {"id": "SFX-001-Q2", "respondida": True}]
+
+    respuesta = derivar(cliente, creada["llamada_id"], {"checklist": marcas})
+
+    assert respuesta.status_code == 200
+    llamada = respuesta.json()
+    assert llamada["estado"] == "derivada"
+    assert llamada["sugerencia"] == sugerencia
+    assert llamada["carta"]["checklist"] == [
+        {**q1, "respondida": False, "cita": None, "del_operador": True},
+        {**q2, "respondida": True, "cita": None, "del_operador": True},
+        q3,
+    ]
+    assert cliente.get(f"/api/llamadas/{creada['llamada_id']}").json() == llamada
+
+
+def test_una_marca_ajena_devuelve_422_y_se_puede_derivar_con_una_valida(cliente):
+    llamada_id = iniciar(cliente)
+    valida = {"id": "SFX-001-Q2", "respondida": True}
+    ajena = {"id": "SFX-002-Q1", "respondida": True}
+
+    rechazo = derivar(cliente, llamada_id, {"checklist": [valida, ajena]})
+
+    assert rechazo.status_code == 422
+    assert [error["loc"] for error in rechazo.json()["detail"]] == [["ajustes", "checklist"]]
+    consulta = cliente.get(f"/api/llamadas/{llamada_id}")
+    assert consulta.status_code == 200
+    pendiente = consulta.json()
+    assert pendiente["estado"] == "esperando_operador"
+    assert pendiente["carta"] is None
+
+    respuesta = derivar(cliente, llamada_id, {"checklist": [valida]})
+
+    assert respuesta.status_code == 200
+    llamada = respuesta.json()
+    assert llamada["estado"] == "derivada"
+    marcada = next(item for item in llamada["carta"]["checklist"] if item["id"] == valida["id"])
+    assert marcada["respondida"] is True
+    assert marcada["del_operador"] is True
+    assert marcada["cita"] is None
 
 
 def test_la_llamada_002_avisa_que_la_altura_no_cierra_con_las_esquinas(cliente):
@@ -415,6 +465,36 @@ def test_una_llamada_guardada_antes_de_que_existiera_el_subtipo_se_sigue_leyendo
     assert llamada.status_code == 200
     assert llamada.json()["sugerencia"]["subtipo"] == {"origen": "falta"}
     assert derivar(cliente, llamada_id, COMPLETOS).status_code == 200
+
+
+def test_una_carta_guardada_sin_marcas_del_operador_ni_avisos_se_sigue_leyendo(cliente):
+    llamada_id = iniciar(cliente)
+    respuesta = derivar(cliente, llamada_id, {})
+    assert respuesta.status_code == 200
+    derivada = respuesta.json()
+    carta = derivada["carta"]
+    assert carta["checklist"]
+    carta_vieja = {campo: valor for campo, valor in carta.items() if campo != "avisos"}
+    carta_vieja["checklist"] = [
+        {campo: valor for campo, valor in pregunta.items() if campo != "del_operador"}
+        for pregunta in carta["checklist"]
+    ]
+    grafo = cliente.app.state.llamadas._grafo
+    grafo.update_state(_hilo(llamada_id), {"carta": carta_vieja}, as_node="derivar")
+
+    consulta = cliente.get(f"/api/llamadas/{llamada_id}")
+
+    assert consulta.status_code == 200
+    assert consulta.json() == {
+        **derivada,
+        "carta": {
+            **carta_vieja,
+            "avisos": [],
+            "checklist": [
+                {**pregunta, "del_operador": False} for pregunta in carta_vieja["checklist"]
+            ],
+        },
+    }
 
 
 def test_unos_ajustes_guardados_con_otro_formato_se_informan_como_ilegibles(cliente):
