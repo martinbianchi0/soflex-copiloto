@@ -69,8 +69,10 @@ export function actualizarBorrador(borrador: BorradorSugerencia, sugerencia: Sug
     return editados.has(campo) ? campos[campo] : nueva[campo]
   }
 
-  const categoria = conservar('categoria')
-  const subtipo = subtipoDe(categoria, conservar('subtipo'), catalogo)
+  // Las preguntas marcadas son de un protocolo: mientras quede alguna, el tipo no cambia.
+  const protocoloFijado = marcas.size > 0
+  const categoria = protocoloFijado ? campos.categoria : conservar('categoria')
+  const subtipo = subtipoDe(categoria, protocoloFijado ? campos.subtipo : conservar('subtipo'), catalogo)
   const ubicacion = conservarUbicacion ? campos : nueva
   let direccionAlternativa = borrador.direccionAlternativa
   if (conservarUbicacion && cambioDireccion) {
