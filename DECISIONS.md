@@ -198,10 +198,17 @@ Los números están en el `README.md` y el detalle por llamada, en `evaluacion/`
 - **Si el operador cambia la calle o la altura, el panel avisa junto a cada entrecalle del callejero** que era de la dirección sugerida y que se vuelve a comprobar al derivar.
 - **Sin librería de componentes ni de rutas.** Son tres vistas; el formulario usa los controles del navegador con sus etiquetas, y los avisos se anuncian en una región `aria-live`.
 
+## Tests del panel
+
+- **La lógica del panel se prueba sin navegador.** Qué se conserva de lo que editó el operador cuando llega otra sugerencia, cómo se parte un ejemplo en intercambios, a qué campo corresponde un error de validación y dónde va cada rótulo del plano son funciones sin DOM (`borradorSugerencia.ts`, `reproduccion.ts`, `validacion.ts`, `rotulosDelPlano.ts`). Sus tests corren con Vitest en menos de un segundo.
+- **Los tests usan respuestas reales del servicio, no escritas a mano.** `backend/herramientas/capturar_respuestas.py` recorre la API en modo `mock` como la usa el panel y guarda cada respuesta en `frontend/src/pruebas/respuestas/`, con el identificador y las horas reemplazados por valores fijos. Un test del backend las vuelve a capturar y las compara con las guardadas: si la API cambia de forma, falla ahí, hay que regenerarlas y los tests del panel corren contra la forma nueva.
+- **Lo que más cuesta ver a mano tiene su test.** La ubicación editada se conserva entera y no se mezcla con la sugerida; una edición no se pierde aunque una sugerencia intermedia coincida con ella; las preguntas marcadas se vacían si cambia el subtipo; un rótulo no tapa el punto ni se sale del dibujo.
+- **Qué no cubren.** Los componentes: los formularios, el teclado, el foco y los anuncios se comprueban en el navegador. Tampoco hay tests con un navegador real, así que la disposición y los estilos no se prueban.
+
 ## Empaquetado
 
 - **Una imagen en tres etapas:** Node compila el panel, uv instala el backend y la imagen final lleva sólo Python, el entorno y el panel. Ni Node ni uv quedan en lo que corre.
 - **El servicio corre con un usuario sin privilegios**, y la imagen declara su propio chequeo de salud sobre `/api/health`.
 - **El estado de las llamadas vive en un volumen.** `docker compose down` y `docker compose up --build` no lo borran.
-- **Integración continua.** En cada push a `main` y en cada pull request corren, por separado, los tests, el estilo y los tipos del backend; el estilo y la compilación del panel; y la construcción de la imagen (`.github/workflows/ci.yml`).
+- **Integración continua.** En cada push a `main` y en cada pull request corren, por separado, los tests, el estilo y los tipos del backend; el estilo, los tests y la compilación del panel; y la construcción de la imagen (`.github/workflows/ci.yml`).
 - **`.env` es opcional y no entra a la imagen.** `docker-compose.yml` lo lee si existe y `.dockerignore` lo deja fuera del contexto de construcción.

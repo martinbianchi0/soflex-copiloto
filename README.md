@@ -79,7 +79,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 - **Que el aviso de otra llamada del mismo lugar compare por distancia.** Hoy compara calle, altura y esquinas, y una calle que el operador escribió con otro nombre no coincide.
 - **Coordenadas en la carta, además de calle y altura**, y contraste con el servicio de direcciones de la Ciudad cuando hay red. Hoy el punto del plano se interpola sobre la cuadra y no se guarda.
 - **Trazas de cada pedido al modelo** (qué se le mandó, qué devolvió, cuánto tardó), para revisar un caso sin volver a correrlo.
-- **Tests automáticos del panel.** El backend tiene los suyos; el panel no tiene.
+- **Tests de los componentes del panel.** Hoy tiene tests su lógica (qué se conserva de lo que editó el operador cuando llega otra sugerencia, los rótulos del plano, los errores de validación); los formularios, el teclado y el foco se comprueban en el navegador.
 - **Probarlo con un lector de pantalla y en Linux.** Los anuncios y el foco están pensados para un lector de pantalla, pero no se probaron con uno, y el modo con modelo no se probó en Linux.
 
 ## Cómo está armado
@@ -110,6 +110,7 @@ cd backend && uv run pytest          # tests del backend
 cd backend && uv run ruff check . && uv run mypy src   # estilo y tipos
 cd backend && uv run uvicorn copiloto.main:app --reload
 cd frontend && pnpm install && pnpm dev   # panel con recarga, apuntando a la API local
+cd frontend && pnpm test && pnpm lint    # tests y estilo del panel
 ```
 
 Fuera de Docker la configuración también sale de variables de entorno. Para usar un `.env`: `uv run --env-file ../.env uvicorn copiloto.main:app`.
