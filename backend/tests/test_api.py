@@ -210,8 +210,11 @@ def test_sumar_turnos_en_mock_conserva_los_indices_y_deriva_la_ultima_sugerencia
     derivada = cliente.post(f"{ruta}/derivar", json={"ajustes": {"prioridad": "P2"}})
     assert derivada.status_code == 200
     assert derivada.json()["carta"]["ubicacion"] == ubicacion
-    assert [cambio["campo"] for cambio in cliente.get(f"{ruta}/historial").json()["cambios"]] == [
-        "prioridad"
+    historial = cliente.get(f"{ruta}/historial").json()
+    assert [cambio["campo"] for cambio in historial["cambios"]] == ["prioridad"]
+    assert [e["detalle"] for e in historial["eventos"] if e["tipo"] == "turno_agregado"] == [
+        "Se sumó un turno a la llamada: ahora tiene 2.",
+        "Se sumó un turno a la llamada: ahora tiene 3.",
     ]
     rechazo = cliente.post(f"{ruta}/turnos", json={"turno": respuesta})
     assert rechazo.status_code == 409
@@ -219,14 +222,21 @@ def test_sumar_turnos_en_mock_conserva_los_indices_y_deriva_la_ultima_sugerencia
 
 
 def test_sumar_un_texto_con_marcas_registra_una_vuelta_del_grafo(cliente):
-    llamada_id = iniciar(cliente, [{"texto": "Hay un choque en Corrientes."}])
+    llamada_id = iniciar(
+        cliente,
+        [
+            {"hablante": "operador", "texto": "911, ¿cuál es su emergencia?"},
+            {"hablante": "llamante", "texto": "Hay un choque en Corrientes."},
+            {"hablante": "operador", "texto": "Entendido."},
+        ],
+    )
     ruta = f"/api/llamadas/{llamada_id}"
     turno = {"texto": "Operador: ¿A qué altura? Llamante: Al 1540."}
     primer_historial = cliente.get(f"{ruta}/historial").json()["eventos"]
 
     ampliada = cliente.post(f"{ruta}/turnos", json={"turno": turno})
     assert ampliada.status_code == 200
-    assert ampliada.json()["turnos"][1:] == [
+    assert ampliada.json()["turnos"][3:] == [
         {"hablante": "operador", "texto": "¿A qué altura?"},
         {"hablante": "llamante", "texto": "Al 1540."},
     ]
@@ -235,9 +245,9 @@ def test_sumar_un_texto_con_marcas_registra_una_vuelta_del_grafo(cliente):
     eventos = cliente.get(f"{ruta}/historial").json()["eventos"]
     assert eventos[:2] == primer_historial
     assert [(evento["tipo"], evento["detalle"]) for evento in eventos] == [
-        ("recibida", "Llamada recibida, con 1 turno."),
+        ("recibida", "Llamada recibida, con 3 turnos."),
         ("sugerencia_reglas", "Sugerencia de las reglas, con 1 aviso."),
-        ("turno_agregado", "Se sumó un turno a la llamada: ahora tiene 3."),
+        ("turno_agregado", "Se sumaron 2 turnos a la llamada: ahora tiene 5."),
         ("sugerencia_reglas", "Sugerencia de las reglas, sin avisos."),
         ("ajustes_operador", "El operador confirmó con 1 cambio."),
         ("derivada", "Carta de Llamada derivada."),

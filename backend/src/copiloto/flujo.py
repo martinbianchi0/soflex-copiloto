@@ -86,15 +86,20 @@ def avisar_cambio_de_prioridad(sugerencia: Sugerencia, previa: Prioridad | None)
     volver a analizar.
     """
     nueva = valor_de(sugerencia.prioridad)
-    if previa is None or nueva is None or nueva == previa:
+    if previa is None or nueva == previa:
         return sugerencia
-    aviso = Aviso(
-        codigo="prioridad_cambiada",
-        mensaje=(
-            f"Con lo que se sumó, la prioridad sugerida pasó de {previa.value} a {nueva.value}. "
+    if nueva is None:
+        mensaje = (
+            f"Antes de volver a analizar, la prioridad sugerida era {previa.value}. "
+            "Ahora no hay una sugerencia: elegila."
+        )
+    else:
+        mensaje = (
+            "Al volver a analizar la llamada, "
+            f"la prioridad sugerida pasó de {previa.value} a {nueva.value}. "
             "Confirmala."
-        ),
-    )
+        )
+    aviso = Aviso(codigo="prioridad_cambiada", mensaje=mensaje)
     return sugerencia.model_copy(update={"avisos": [*sugerencia.avisos, aviso]})
 
 
@@ -108,6 +113,8 @@ def analizar(turnos: list[Turno]) -> Sugerencia:
     """
     if (conocida := dataset.buscar(turnos)) is None:
         return analizar_base(turnos)
+    relato = dataset.primer_tramo(turnos)
+    assert relato is not None  # Se reconoció la llamada por ese tramo.
     lugar = ubicacion.interpretar(turnos)
     protocolo = catalogo.cargar().protocolo(conocida.categoria, conocida.subtipo)
     assert protocolo is not None  # La llamada conocida siempre trae un subtipo del catálogo.
@@ -122,7 +129,7 @@ def analizar(turnos: list[Turno]) -> Sugerencia:
             "subtipo": Inferido[str](valor=conocida.subtipo, fuente="dataset"),
             "prioridad": Inferido[Prioridad](valor=conocida.prioridad, fuente="dataset"),
             "checklist": [
-                _respuesta(pregunta, conocida.respuestas.get(pregunta.id), turnos)
+                _respuesta(pregunta, conocida.respuestas.get(pregunta.id), relato)
                 for pregunta in protocolo.preguntas
             ],
         }
@@ -218,14 +225,12 @@ def _subtipo_sin_confirmar(protocolo: Protocolo, motivo: str) -> Aviso:
     return Aviso(codigo="modelo_no_disponible", mensaje=mensaje)
 
 
-def _respuesta(pregunta: Pregunta, fragmento: str | None, turnos: list[Turno]) -> _Respuesta:
-    """La pregunta, respondida si el fragmento anotado está en algo que dijo el llamante."""
+def _respuesta(pregunta: Pregunta, fragmento: str | None, relato: tuple[int, str]) -> _Respuesta:
+    """La pregunta, respondida si el fragmento anotado está en el relato reconocido."""
     item: _Respuesta = {"id": pregunta.id, "pregunta": pregunta.texto, "respondida": False}
-    if fragmento is None:
-        return item
-    for n, turno in enumerate(turnos):
-        if any(fragmento in tramo for tramo in tramos_del_llamante(turno)):
-            return {**item, "respondida": True, "cita": {"turno": n, "texto": fragmento}}
+    numero, tramo = relato
+    if fragmento is not None and fragmento in tramo:
+        return {**item, "respondida": True, "cita": {"turno": numero, "texto": fragmento}}
     return item
 
 
@@ -388,16 +393,19 @@ def _marcar(
         if not trae_cita and marca.respondida == item.respondida:
             resultado.append(item)
             continue
-        if marca.cita is not None and not _lo_dijo_el_llamante(marca.cita, turnos or []):
-            raise MarcaInvalida(
-                [item.id], f"La cita de «{item.pregunta}» no está en lo que dijo el llamante."
-            )
+        cita = item.cita if not trae_cita else None
+        if marca.cita is not None:
+            cita = interprete.copiar_cita_del_turno(marca.cita, turnos or [])
+            if cita is None:
+                raise MarcaInvalida(
+                    [item.id], f"La cita de «{item.pregunta}» no está en lo que dijo el llamante."
+                )
         resultado.append(
             ItemChecklist(
                 id=item.id,
                 pregunta=item.pregunta,
                 respondida=marca.respondida,
-                cita=(marca.cita if trae_cita else item.cita) if marca.respondida else None,
+                cita=cita if marca.respondida else None,
                 del_operador=True,
             )
         )

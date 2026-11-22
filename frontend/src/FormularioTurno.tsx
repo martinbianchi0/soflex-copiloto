@@ -14,7 +14,11 @@ export default function FormularioTurno({ bloqueado, sumando, error, alSumar, al
   const puedeSumar = !bloqueado && Boolean(texto.trim())
 
   return (
-    <form className="panel formulario-turno" onSubmit={(evento) => {
+    <form className="panel formulario-turno" onKeyDown={(evento) => {
+      if (evento.key !== 'Enter' || !(evento.ctrlKey || evento.metaKey)) return
+      evento.preventDefault()
+      if (puedeSumar) evento.currentTarget.requestSubmit()
+    }} onSubmit={(evento) => {
       evento.preventDefault()
       if (!puedeSumar) return
       // Una transcripción con marcas trae sus propios hablantes, igual que en el alta.
@@ -44,11 +48,6 @@ export default function FormularioTurno({ bloqueado, sumando, error, alSumar, al
             onChange={(evento) => {
               setTexto(evento.target.value)
               alEditar()
-            }}
-            onKeyDown={(evento) => {
-              if (evento.key !== 'Enter' || !(evento.ctrlKey || evento.metaKey)) return
-              evento.preventDefault()
-              if (puedeSumar) evento.currentTarget.form?.requestSubmit()
             }} />
           {error && <span id="error-turno" className="error-campo" role="alert">{error}</span>}
         </label>

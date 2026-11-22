@@ -304,7 +304,17 @@ def test_la_altura_del_mismo_tramo_se_conserva():
     assert not resultado.avisos
 
 
-@pytest.mark.parametrize("pregunta", ["¿A qué altura?", "¿La numeración?", "qué número"])
+@pytest.mark.parametrize(
+    "pregunta",
+    [
+        "¿A qué altura?",
+        "¿La numeración?",
+        "qué número",
+        "¿Cuál es el número de la calle?",
+        "¿qué numeración?",
+        "¿A qué altura de Av. Corrientes?",
+    ],
+)
 def test_lee_la_altura_si_el_operador_la_pide_en_el_turno_anterior(pregunta):
     turnos = [
         Turno(texto="Hay un choque en Corrientes.", hablante="llamante"),
@@ -337,6 +347,15 @@ def test_lee_la_altura_si_el_operador_la_pide_en_el_turno_anterior(pregunta):
         ("Av. Corrientes.", "¿A qué altura?", "8.º piso."),
         ("Av. Corrientes.", "¿A qué altura?", "Piso 8."),
         ("Av. Corrientes.", "¿A qué altura?", "8 personas."),
+        ("Av. Corrientes.", "¿A qué altura? ¿Qué edad tiene?", "82"),
+        ("Av. Corrientes.", "¿A qué altura? Dígame también la edad.", "82"),
+        ("Av. Corrientes.", "¿A qué altura y qué edad tiene?", "82"),
+        ("Av. Corrientes.", "¿A qué altura de Rivadavia?", "6300"),
+        ("Av. Corrientes.", "¿A qué altura?", "8, es el piso"),
+        ("Av. Corrientes.", "¿A qué altura?", "19 y cuarto"),
+        ("Av. Corrientes.", "¿A qué altura?", "19, y cuarto"),
+        ("Av. Corrientes.", "¿A qué altura?", "2 ambulancias"),
+        ("Av. Corrientes.", "¿A qué altura?", "11 2345 6789"),
     ],
 )
 def test_no_lee_una_altura_si_la_respuesta_o_la_calle_no_son_claras(calle, pregunta, respuesta):
@@ -356,6 +375,47 @@ def test_no_lee_el_numero_si_se_intercalo_otro_turno():
         Turno(texto="Al 1540.", hablante="llamante"),
     ]
     assert interpretar(turnos).ubicacion.altura.origen == "falta"
+
+
+def test_dos_respuestas_distintas_dejan_la_calle_sin_altura_y_con_aviso():
+    turnos = [
+        Turno(texto="Hay un choque en Corrientes.", hablante="llamante"),
+        Turno(texto="¿A qué altura?", hablante="operador"),
+        Turno(texto="Al 1540.", hablante="llamante"),
+        Turno(texto="¿Qué numeración?", hablante="operador"),
+        Turno(texto="Al 1630.", hablante="llamante"),
+    ]
+
+    resultado = interpretar(turnos)
+
+    assert resultado.ubicacion.calle.valor == "Av. Corrientes"
+    assert resultado.ubicacion.altura.origen == "falta"
+    assert resultado.ubicacion.esquinas == []
+    assert "direccion_no_cierra" in _codigos(resultado)
+
+
+def test_una_direccion_explicita_posterior_tambien_se_contrasta_con_la_preguntada():
+    turnos = [
+        Turno(texto="Hay un choque en Corrientes.", hablante="llamante"),
+        Turno(texto="¿A qué altura?", hablante="operador"),
+        Turno(texto="Al 1540.", hablante="llamante"),
+        Turno(texto="Yo vivo en Av. Rivadavia 6300.", hablante="llamante"),
+    ]
+
+    resultado = interpretar(turnos)
+
+    assert resultado.ubicacion.calle.valor == "Av. Corrientes"
+    assert resultado.ubicacion.altura.cita == Cita(turno=2, texto="1540")
+    assert resultado.ubicacion.esquinas == []
+    assert [(aviso.codigo, aviso.mensaje) for aviso in resultado.avisos] == [
+        (
+            "direccion_no_cierra",
+            (
+                "Se mencionaron Av. Corrientes 1540 y Av. Rivadavia 6300. "
+                "Confirmá con el llamante cuál es la dirección."
+            ),
+        )
+    ]
 
 
 @pytest.mark.parametrize("primera", ["Av. Corrientes 1540.", "Av. Corrientes."])

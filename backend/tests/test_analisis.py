@@ -770,7 +770,9 @@ def test_si_al_sumar_un_turno_cambia_la_prioridad_sugerida_se_avisa(abrir_servic
     # Mientras el modelo no respondió todavía no hay con qué comparar.
     assert "prioridad_cambiada" not in [aviso.codigo for aviso in a_medias.avisos]
     (aviso,) = [aviso for aviso in despues.avisos if aviso.codigo == "prioridad_cambiada"]
-    assert aviso.mensaje == "Con lo que se sumó, la prioridad sugerida pasó de P2 a P3. Confirmala."
+    assert aviso.mensaje == (
+        "Al volver a analizar la llamada, la prioridad sugerida pasó de P2 a P3. Confirmala."
+    )
     # Es para quien revisa la sugerencia: no viaja a la carta.
     assert "prioridad_cambiada" not in [aviso.codigo for aviso in carta.avisos]
 
@@ -780,3 +782,23 @@ def test_si_al_sumar_un_turno_la_prioridad_sugerida_no_cambia_no_se_avisa(abrir_
 
     assert antes.prioridad.valor == despues.prioridad.valor == "P2"
     assert "prioridad_cambiada" not in [aviso.codigo for aviso in despues.avisos]
+
+
+def test_si_el_reanalisis_se_queda_sin_prioridad_sugerida_se_avisa(abrir_servicio):
+    clasificacion = json.dumps({**RESPUESTA, "prioridad": "P1"})
+    modelo = ModeloGuionado(clasificacion, SIN_RESPUESTAS, ModeloNoDisponible("sin respuesta"))
+    with abrir_servicio(modelo) as servicio:
+        llamada = servicio.iniciar([Turno(texto="Hay un choque en Corrientes 1540.")])
+        antes = servicio.completar_analisis(llamada.llamada_id).sugerencia
+        a_medias = servicio.sumar_turno(llamada.llamada_id, Turno(texto="Ya llegó la policía."))
+        despues = servicio.completar_analisis(llamada.llamada_id).sugerencia
+
+    assert antes.prioridad.valor == "P1"
+    assert "prioridad_cambiada" not in [aviso.codigo for aviso in antes.avisos]
+    assert "prioridad_cambiada" not in [aviso.codigo for aviso in a_medias.sugerencia.avisos]
+    assert despues.prioridad == Falta()
+    (aviso,) = [aviso for aviso in despues.avisos if aviso.codigo == "prioridad_cambiada"]
+    assert aviso.mensaje == (
+        "Antes de volver a analizar, la prioridad sugerida era P1. "
+        "Ahora no hay una sugerencia: elegila."
+    )

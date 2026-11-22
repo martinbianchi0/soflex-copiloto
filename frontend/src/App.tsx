@@ -43,6 +43,12 @@ function anunciarResultado(llamada: Llamada, anunciarTodosLosAvisos = false) {
   return ['Sugerencia lista.', anunciarAvisos(avisos)].filter(Boolean).join(' ')
 }
 
+function anunciarReanalisis(avisos: Aviso[]) {
+  const cambio = avisos.find(({ codigo }) => codigo === 'prioridad_cambiada')
+  const otrosAvisos = avisos.filter(({ codigo }) => codigo !== 'prioridad_cambiada')
+  return ['Sugerencia actualizada.', cambio?.mensaje, anunciarAvisos(otrosAvisos)].filter(Boolean).join(' ')
+}
+
 function App() {
   const [modo, setModo] = useState<string | null>()
   const [catalogo, setCatalogo] = useState<Catalogo | null>()
@@ -133,7 +139,6 @@ function App() {
 
   const recibirLlamada = useCallback(async (recibida: Llamada, senal: AbortSignal, origen: 'consulta' | 'alta' | 'turno' = 'consulta') => {
     if (senal.aborted) return
-    const actualizado = 'Sugerencia actualizada.'
     const sumado = 'Se sumó un turno.'
     const trasSumar = origen === 'turno' || reanalizando.current
     setLlamada(recibida)
@@ -146,12 +151,12 @@ function App() {
       setHuboAnalisis(true)
       reanalizando.current = false
       if (trasSumar && definitiva.estado === 'esperando_operador') {
-        setAnuncio([actualizado, anunciarAvisos(definitiva.sugerencia.avisos)].filter(Boolean).join(' '))
+        setAnuncio(anunciarReanalisis(definitiva.sugerencia.avisos))
       } else {
         setAnuncio(anunciarResultado(definitiva, true))
       }
     } else if (origen === 'turno' && recibida.estado === 'esperando_operador') {
-      setAnuncio([sumado, actualizado, anunciarAvisos(recibida.sugerencia.avisos)].filter(Boolean).join(' '))
+      setAnuncio(`${sumado} ${anunciarReanalisis(recibida.sugerencia.avisos)}`)
     } else if (origen === 'alta') {
       setAnuncio(anunciarAvisos(recibida.sugerencia?.avisos ?? []) || 'Sugerencia lista.')
     } else {

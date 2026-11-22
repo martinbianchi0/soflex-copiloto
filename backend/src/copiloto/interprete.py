@@ -1,6 +1,7 @@
 """Los pedidos al modelo y la lectura de lo que propone."""
 
 import json
+import re
 import unicodedata
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
@@ -208,6 +209,35 @@ def _leer_revision(texto: str) -> list[object] | None:
     if not isinstance(respuestas, list):
         raise RespuestaIlegible("Las respuestas del protocolo deben venir en una lista.")
     return respuestas
+
+
+def copiar_cita_del_turno(cita: Cita, turnos: list[Turno]) -> Cita | None:
+    """Copia la cita entera del llamante, en el turno exacto que señaló el operador."""
+    if not 0 <= cita.turno < len(turnos):
+        return None
+    tramos = tramos_del_llamante(turnos[cita.turno])
+    inicio = r"(?<![^\W_])" if cita.texto[0].isalnum() else ""
+    fin = r"(?![^\W_])" if cita.texto[-1].isalnum() else ""
+    literal = re.compile(inicio + re.escape(cita.texto) + fin)
+    buscado = texto_plano(cita.texto)
+    primera = None
+    for tramo in tramos:
+        plano = f" {texto_plano(tramo)} "
+        posicion = plano.find(f" {buscado} ")
+        if posicion == -1:
+            continue
+        if any(
+            fin == "" or m.end() == len(tramo) or unicodedata.category(tramo[m.end()]) != "Mn"
+            for m in literal.finditer(tramo)
+        ):
+            return cita
+        if primera is None:
+            copiada = _copiar_cita(
+                cita.turno, tramo, plano.count(" ", 0, posicion), buscado.split()
+            )
+            if copiada is not None and texto_plano(copiada.texto) == buscado:
+                primera = copiada
+    return primera
 
 
 def verificar_cita(propuesta: object, turnos: list[Turno]) -> Cita | None:

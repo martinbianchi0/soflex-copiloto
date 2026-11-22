@@ -340,6 +340,31 @@ def test_si_el_operador_cambia_el_subtipo_puede_marcar_una_pregunta_del_nuevo(su
     assert carta["checklist"] == esperado
 
 
+def test_la_cita_de_una_marca_se_copia_del_turno_indicado(sugerencia_completa):
+    turnos = [
+        Turno(texto="No hay gas.", hablante="llamante"),
+        Turno(texto="Operador: No hay gas. Llamante: No, hay gas.", hablante=None),
+    ]
+    ajustes = Ajustes.model_validate(
+        {
+            "prioridad": "P1",
+            "checklist": [
+                {
+                    "id": "SFX-001-Q2",
+                    "respondida": True,
+                    "cita": {"turno": 1, "texto": "No hay gas"},
+                }
+            ],
+        }
+    )
+
+    carta = flujo.derivar(
+        "abc", Sugerencia.model_validate(sugerencia_completa), ajustes, AHORA, turnos=turnos
+    )
+
+    assert carta.checklist[1].cita == Cita(turno=1, texto="No, hay gas")
+
+
 @pytest.mark.parametrize(
     ("tipo", "pregunta"),
     [
@@ -669,6 +694,21 @@ def test_lo_que_se_dice_despues_del_relato_no_cambia_la_ficha_y_la_sugerencia_lo
     assert [aviso.codigo for aviso in sola.avisos] == []
     assert [aviso.codigo for aviso in con_mas.avisos] == ["ficha_sin_actualizar"]
     assert con_mas.model_dump(exclude={"avisos"}) == sola.model_dump(exclude={"avisos"})
+
+
+def test_una_respuesta_anotada_repetida_despues_no_cambia_el_checklist_de_la_ficha():
+    fragmento = "adentro quedó el cocinero"
+    relato = [
+        Turno(hablante="operador", texto=f"¿Dijo que {fragmento}?"),
+        Turno(hablante="llamante", texto=TEXTO.replace(fragmento, "adentro  quedó el cocinero")),
+    ]
+    ampliada = [*relato, Turno(hablante="llamante", texto=fragmento)]
+
+    sola, con_mas = flujo.analizar(relato), flujo.analizar(ampliada)
+
+    assert sola.subtipo == con_mas.subtipo
+    assert [aviso.codigo for aviso in con_mas.avisos] == ["ficha_sin_actualizar"]
+    assert con_mas.checklist == sola.checklist
 
 
 def test_el_aviso_de_la_ficha_no_viaja_a_la_carta():
