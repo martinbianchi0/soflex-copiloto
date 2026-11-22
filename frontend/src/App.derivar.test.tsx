@@ -37,6 +37,16 @@ function abrirLlamada(llamada = llamadaDelDataset) {
   return servicio
 }
 
+const citaPosible = { turno: 1, texto: 'la campana de la cocina' }
+
+function conPosibleRespuesta() {
+  // Variante: lo que propone el modelo llega pendiente y con su cita. El modo `mock` no lo produce.
+  const llamada = structuredClone(llamadaDelDataset)
+  if (!llamada.sugerencia) throw new Error('La llamada guardada no trae sugerencia')
+  llamada.sugerencia.checklist[1].cita = citaPosible
+  return llamada
+}
+
 function dejarDerivacionPendiente(servicio: ReturnType<typeof simularServicio>) {
   servicio.responder(derivacion, () => contestacionPendiente().promesa)
 }
@@ -138,8 +148,7 @@ describe('Derivar', () => {
     }])
   })
 
-  // El panel manda una marca aunque la pregunta vuelva a quedar pendiente como al principio.
-  test.fails('Una pregunta que vuelve a su marca original no se manda como ajuste', async () => {
+  test('Una pregunta que vuelve a su marca original no se manda como ajuste', async () => {
     const servicio = abrirLlamada()
     dejarDerivacionPendiente(servicio)
     const operador = userEvent.setup()
@@ -149,6 +158,33 @@ describe('Derivar', () => {
     await operador.click(pregunta)
     await operador.click(botonDerivar())
 
+    expect(servicio.pedidosA(derivacion).map(({ cuerpo }) => cuerpo)).toEqual([{ ajustes: {} }])
+  })
+
+  test('Confirmar una posible respuesta la manda con la cita que el operador tuvo a la vista', async () => {
+    const servicio = abrirLlamada(conPosibleRespuesta())
+    dejarDerivacionPendiente(servicio)
+    const operador = userEvent.setup()
+
+    await operador.click(await screen.findByRole('checkbox', { name: preguntaGas.texto, checked: false }))
+    await operador.click(botonDerivar())
+
+    expect(servicio.pedidosA(derivacion).map(({ cuerpo }) => cuerpo)).toEqual([{
+      ajustes: { checklist: [{ id: preguntaGas.id, respondida: true, cita: citaPosible }] },
+    }])
+  })
+
+  test('Una posible respuesta confirmada y vuelta a destildar sigue siendo una posible respuesta', async () => {
+    const servicio = abrirLlamada(conPosibleRespuesta())
+    dejarDerivacionPendiente(servicio)
+    const operador = userEvent.setup()
+
+    const pregunta = await screen.findByRole('checkbox', { name: preguntaGas.texto, checked: false })
+    await operador.click(pregunta)
+    await operador.click(pregunta)
+    await operador.click(botonDerivar())
+
+    expect(screen.getByText(/Posible respuesta/)).toBeTruthy()
     expect(servicio.pedidosA(derivacion).map(({ cuerpo }) => cuerpo)).toEqual([{ ajustes: {} }])
   })
 
