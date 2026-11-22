@@ -370,7 +370,12 @@ function App() {
       {estadoReproduccion && (
         <div className="panel estado-reproduccion">
           <p aria-hidden="true">{estadoReproduccion}</p>
-          {reproduciendo && <button type="button" className="secundario" onClick={detenerReproduccion}>Detener</button>}
+          {reproduciendo && (
+            <button type="button" className="secundario" onClick={() => {
+              detenerReproduccion()
+              setAnuncio('Reproducción detenida.')
+            }}>Detener</button>
+          )}
         </div>
       )}
       <FormularioTurno key={identificador} bloqueado={bloqueado || analizando} edicionBloqueada={edicionBloqueada}
@@ -454,7 +459,7 @@ function App() {
                 setAnuncio('')
               }} />
           </label>
-          {ejemploSeleccionado && ejemploSeleccionado.turnos.length > 2 && (
+          {ejemploSeleccionado && separarIntercambios(ejemploSeleccionado.turnos).length > 1 && (
             <label className="reproducir-ejemplo">
               <input type="checkbox" checked={reproducirEjemplo} disabled={analisisBloqueado}
                 onChange={(evento) => setReproducirEjemplo(evento.target.checked)} />{' '}
