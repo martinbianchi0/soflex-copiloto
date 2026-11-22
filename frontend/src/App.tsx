@@ -1,32 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { consultarCatalogo, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi } from './api'
-import type { Ajustes, Catalogo, DetalleValidacion, Llamada } from './api'
+import { consultarCatalogo, consultarEjemplos, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi } from './api'
+import type { Ajustes, Catalogo, DetalleValidacion, Ejemplo, Llamada } from './api'
 import CartaLlamada from './CartaLlamada'
 import FormularioSugerencia from './FormularioSugerencia'
+import Transcripcion from './Transcripcion'
+import { campoSugerencia, nombrarCampo } from './validacion'
 
 const errorConexion = 'No se pudo conectar con el servicio.'
-const nombresCampos: Record<string, string> = {
-  ajustes: 'Ajustes',
-  ubicacion: 'Ubicación',
-  calle: 'Calle',
-  altura: 'Altura',
-  esquinas: 'Esquinas',
-  tipo_hecho: 'Tipo de hecho',
-  categoria: 'Tipo de hecho',
-  subtipo: 'Subtipo',
-  prioridad: 'Prioridad',
-  turnos: 'Turnos',
-  texto: 'Texto de la transcripción',
-  llamada_id: 'Identificador de la llamada',
-}
-
-function nombrarCampo(loc: DetalleValidacion['loc']) {
-  const ruta = loc[0] === 'body' ? loc.slice(1) : loc
-  const campo = ruta.findLast((parte) => typeof parte === 'string')
-  if (campo && Object.hasOwn(nombresCampos, campo)) return nombresCampos[campo]
-  return ruta.join('.') || 'Solicitud'
-}
+const gruposEjemplos = [
+  { origen: 'dataset', etiqueta: 'Llamadas del dataset' },
+  { origen: 'nueva', etiqueta: 'Llamadas nuevas' },
+] as const
 
 function leerIdentificador() {
   return new URLSearchParams(window.location.search).get('llamada') || null
@@ -42,19 +27,24 @@ function cambiarUrl(identificador: string | null) {
 function App() {
   const [modo, setModo] = useState<string | null>()
   const [catalogo, setCatalogo] = useState<Catalogo | null>()
+  const [ejemplos, setEjemplos] = useState<Ejemplo[]>([])
+  const [ejemploElegido, setEjemploElegido] = useState('')
   const [identificador, setIdentificador] = useState(leerIdentificador)
   const [llamada, setLlamada] = useState<Llamada | null>(null)
   const [transcripcion, setTranscripcion] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState<string | DetalleValidacion[] | null>(null)
   const [aviso, setAviso] = useState('')
+  const [anuncio, setAnuncio] = useState('')
   const solicitud = useRef<AbortController | null>(null)
   const regionAvisos = useRef<HTMLDivElement>(null)
   const bloqueado = ocupado || modo === undefined
   const analisisBloqueado = bloqueado || !catalogo
-  const erroresSubtipo = Array.isArray(error)
-    ? error.flatMap(({ loc }, indice) => loc.at(-1) === 'subtipo' ? [`error-campo-${indice}`] : []).join(' ')
-    : ''
+  const muestraFormulario = llamada?.estado === 'esperando_operador' && Boolean(catalogo)
+  const erroresGenerales = Array.isArray(error)
+    ? error.filter((detalle) => !muestraFormulario || !campoSugerencia(detalle))
+    : []
+  const mostrarErrorArriba = typeof error === 'string' || erroresGenerales.length > 0
 
   const cargarCatalogo = useCallback((senal: AbortSignal) => {
     consultarCatalogo(senal).then(
@@ -70,6 +60,10 @@ function App() {
       () => { if (!control.signal.aborted) setModo(null) },
     )
     cargarCatalogo(control.signal)
+    consultarEjemplos(control.signal).then(
+      (respuesta) => { if (!control.signal.aborted) setEjemplos(respuesta) },
+      () => {},
+    )
     return () => control.abort()
   }, [cargarCatalogo])
 
@@ -85,6 +79,7 @@ function App() {
     setOcupado(true)
     setError(null)
     setAviso('')
+    setAnuncio('')
     try {
       await operacion(control.signal)
     } catch (fallo) {
@@ -115,15 +110,21 @@ function App() {
       setIdentificador(actual)
       setLlamada(null)
       setTranscripcion('')
+      setEjemploElegido('')
       if (actual) {
         void solicitar(async (senal) => {
           const recuperada = await consultarLlamada(actual, senal)
-          if (!senal.aborted) setLlamada(recuperada)
+          if (senal.aborted) return
+          setLlamada(recuperada)
+          if (recuperada.estado === 'esperando_operador') setAnuncio('Sugerencia lista.')
+          if (recuperada.estado === 'derivada') setAnuncio('Carta de Llamada disponible.')
+          if (recuperada.estado === 'en_proceso') setAnuncio('Llamada en proceso.')
         })
       } else {
         setOcupado(false)
         setError(null)
         setAviso('')
+        setAnuncio('')
       }
     }
 
@@ -137,10 +138,18 @@ function App() {
   }, [solicitar])
 
   useEffect(() => {
-    if (error || aviso || modo === null || catalogo === null) {
+    if (mostrarErrorArriba || aviso || modo === null || catalogo === null) {
       regionAvisos.current?.scrollIntoView({ block: 'nearest' })
     }
-  }, [error, aviso, modo, catalogo])
+  }, [mostrarErrorArriba, aviso, modo, catalogo])
+
+  function elegirEjemplo(id: string) {
+    const ejemplo = ejemplos.find((opcion) => opcion.id === id)
+    setEjemploElegido(id)
+    if (!ejemplo) return
+    setTranscripcion(ejemplo.texto)
+    setAnuncio(`Ejemplo cargado. ${ejemplo.titulo}`)
+  }
 
   function analizar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
@@ -152,12 +161,15 @@ function App() {
       setIdentificador(creada.llamada_id)
       setLlamada(creada)
       setTranscripcion('')
+      setEjemploElegido('')
       // Los avisos aparecen junto con el formulario: se anuncian acá para quien no ve la pantalla.
       const porConfirmar = creada.sugerencia?.avisos.length ?? 0
       if (porConfirmar > 0) {
-        setAviso(porConfirmar === 1
+        setAnuncio(porConfirmar === 1
           ? 'La sugerencia tiene un aviso para revisar antes de derivar.'
           : `La sugerencia tiene ${porConfirmar} avisos para revisar antes de derivar.`)
+      } else {
+        setAnuncio('Sugerencia lista.')
       }
     })
   }
@@ -168,7 +180,11 @@ function App() {
     void solicitar(async (senal) => {
       try {
         const derivada = await derivarLlamada(id, ajustes, senal)
-        if (!senal.aborted) setLlamada(derivada)
+        if (senal.aborted) return
+        setLlamada(derivada)
+        setAnuncio(derivada.carta?.avisos?.length
+          ? 'Carta derivada. Hay avisos sin confirmar.'
+          : 'Carta derivada.')
       } catch (fallo) {
         if (senal.aborted) return
         if (!(fallo instanceof ErrorApi) || fallo.estado !== 409) throw fallo
@@ -186,18 +202,23 @@ function App() {
     setIdentificador(null)
     setLlamada(null)
     setTranscripcion('')
+    setEjemploElegido('')
     setError(null)
     setAviso('')
+    setAnuncio('Nueva llamada.')
   }
 
   return (
-    <main>
+    <main className={llamada?.estado === 'esperando_operador' ? 'vista-operador' : undefined}>
       <header className="encabezado">
         <h1>Copiloto para Operadores de Sala</h1>
         <span className="modo">Modo: {modo === undefined ? 'consultando…' : modo ?? 'no disponible'}</span>
       </header>
 
       <div className="avisos" ref={regionAvisos} aria-live="polite" aria-atomic="true">
+        <span className="solo-lectores">{ocupado
+          ? (llamada?.estado === 'esperando_operador' ? 'Derivando carta…' : identificador ? 'Consultando llamada…' : 'Analizando llamada…')
+          : anuncio}</span>
         {aviso && <p className="aviso">{aviso}</p>}
         {modo === null && error !== errorConexion && <p className="error">{errorConexion}</p>}
         {catalogo === undefined && <p id="estado-catalogo" className="aviso">Cargando el catálogo de protocolos…</p>}
@@ -209,23 +230,42 @@ function App() {
         )}
         {Array.isArray(error) ? (
           <div className="error">
-            <p>Revisá los datos:</p>
-            <ul>
-              {error.map(({ loc, msg }, indice) => (
-                <li key={indice} id={`error-campo-${indice}`}>{nombrarCampo(loc)}: {msg}</li>
-              ))}
-            </ul>
+            <p>{erroresGenerales.length ? 'Revisá los datos.' : 'Revisá los campos marcados.'}</p>
+            {erroresGenerales.length > 0 && (
+              <ul>
+                {erroresGenerales.map(({ loc, msg }, indice) => <li key={indice}>{nombrarCampo(loc)}: {msg}</li>)}
+              </ul>
+            )}
           </div>
         ) : error && <p className="error">{error}</p>}
       </div>
 
       {!identificador && (
         <form className="panel" onSubmit={analizar}>
+          {ejemplos.length > 0 && (
+            <label className="cargar-ejemplo">
+              Cargar un ejemplo
+              <select value={ejemploElegido} disabled={ocupado} onChange={(evento) => elegirEjemplo(evento.target.value)}>
+                <option value="">Elegí una llamada…</option>
+                {gruposEjemplos.map(({ origen, etiqueta }) => (
+                  <optgroup key={origen} label={etiqueta}>
+                    {ejemplos.filter((ejemplo) => ejemplo.origen === origen).map(({ id, titulo }) => (
+                      <option key={id} value={id}>{origen === 'dataset' ? `${id} · ${titulo}` : titulo}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+          )}
           <label className="titulo-campo">
             Transcripción de la llamada
             <textarea rows={7} value={transcripcion} disabled={analisisBloqueado} required
               aria-describedby={catalogo ? undefined : 'estado-catalogo'}
-              onChange={(evento) => setTranscripcion(evento.target.value)} />
+              onChange={(evento) => {
+                setTranscripcion(evento.target.value)
+                setEjemploElegido('')
+                setAnuncio('')
+              }} />
           </label>
           <div className="acciones">
             <button type="submit" disabled={analisisBloqueado || !transcripcion.trim()}>
@@ -236,30 +276,20 @@ function App() {
       )}
 
       {llamada?.estado === 'esperando_operador' && (
-        <>
-          <section className="panel">
-            <h2>Transcripción de la llamada</h2>
-            {llamada.turnos.map(({ texto, hablante }, indice) => (
-              <p key={indice} className={hablante === 'llamante' ? 'turno turno-llamante' : 'turno'}>
-                <small className="numero-turno">Turno {indice + 1}</small>
-                {hablante && <strong>{hablante === 'operador' ? 'Operador' : 'Llamante'}: </strong>}
-                {texto}
-              </p>
-            ))}
-          </section>
-          {catalogo ? (
-            <FormularioSugerencia key={llamada.llamada_id} sugerencia={llamada.sugerencia} catalogo={catalogo}
-              bloqueado={bloqueado} ocupado={ocupado} alDerivar={derivar} erroresSubtipo={erroresSubtipo}
-              alValidar={setError} alEmpezar={nuevaLlamada} />
-          ) : (
-            // Sin catálogo no hay formulario, pero el operador no queda encerrado en esta llamada.
+        catalogo ? (
+          <FormularioSugerencia key={llamada.llamada_id} turnos={llamada.turnos} sugerencia={llamada.sugerencia} catalogo={catalogo}
+            bloqueado={bloqueado} ocupado={ocupado} alDerivar={derivar} errores={Array.isArray(error) ? error : []}
+            alCambiarProtocolo={setAnuncio} alValidar={setError} alEmpezar={nuevaLlamada} />
+        ) : (
+          <div className="panel-operador">
+            <Transcripcion turnos={llamada.turnos} />
             <div className="panel acciones">
               <button type="button" className="secundario" disabled={bloqueado} onClick={nuevaLlamada}>
                 Nueva llamada
               </button>
             </div>
-          )}
-        </>
+          </div>
+        )
       )}
 
       {identificador && llamada?.estado !== 'esperando_operador' && (

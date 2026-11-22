@@ -65,6 +65,20 @@ h2, legend, .titulo-campo {
 .turno-llamante { border-inline-start-color: #1c4d77; background: #e9eef3; }
 .numero-turno { display: block; color: #4a5560; font-size: 0.8125rem; }
 
+.turno mark {
+  background: #ffedaa;
+  color: #182735;
+  border-radius: 0.125rem;
+}
+
+.turno .cita-activa {
+  background: #ffce57;
+  box-shadow: 0 0 0 1px #765008;
+  text-decoration: underline;
+  text-underline-offset: 0.125em;
+  box-decoration-break: clone;
+}
+
 fieldset {
   display: grid;
   gap: 0.75rem;
@@ -105,7 +119,7 @@ label {
 
 input, select, textarea, button { font: inherit; }
 
-input, select, textarea {
+input:not([type="checkbox"]), select, textarea {
   display: block;
   inline-size: 100%;
   min-block-size: 2.5rem;
@@ -120,9 +134,19 @@ input, select, textarea {
 }
 
 textarea { min-block-size: 7rem; resize: vertical; }
-input:disabled, select:disabled, textarea:disabled { background: #edf1f5; color: #46596c; }
+input:not([type="checkbox"]):disabled, select:disabled, textarea:disabled { background: #edf1f5; color: #46596c; }
+.cargar-ejemplo { margin-block-end: 0.875rem; }
 
 :focus-visible { outline: 3px solid #005ab5; outline-offset: 2px; }
+
+.solo-lectores {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
 .acciones {
   display: flex;
@@ -151,6 +175,9 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
 
 .error { border-color: #b65546; color: #761e14; background: #fff4f1; }
 .error ul { margin: 0.25rem 0 0; padding-inline-start: 1.25rem; }
+.error-campo { color: #761e14; margin-block-start: 0.25rem; font-size: 0.875rem; }
+.campo [aria-invalid="true"], .detalles-sugerencia[aria-invalid="true"] { border-color: #b65546; }
+.esquinas > .error-campo { grid-column: 1 / -1; margin-block-start: 0; }
 .aviso { border-color: #6f8295; background: #e9eef3; }
 
 .avisos-sugerencia {
@@ -177,6 +204,24 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
 .datos-carta dt { font-weight: 600; }
 .datos-carta .origen { display: block; }
 
+.control-prioridad { display: flex; align-items: center; gap: 0.5rem; margin-block-start: 0.25rem; }
+.control-prioridad select { flex: 1; min-inline-size: 0; margin-block-start: 0; }
+
+.prioridad {
+  display: inline-block;
+  padding: 0.1875rem 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.prioridad-p1 { color: #7c161d; background: #ffe4e6; }
+.prioridad-p2 { color: #7e330d; background: #ffe9d5; }
+.prioridad-p3 { color: #614600; background: #fff1b8; }
+.prioridad-p4 { color: #394653; background: #e9eef3; }
+.panel > .avisos-sugerencia { margin-block-start: 0.5rem; }
+
 .detalles-sugerencia, .criterio-prioridad {
   margin-block-start: 0.75rem;
   border-block-start: 1px solid #aebbc8;
@@ -189,18 +234,42 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
 .criterio-prioridad h3 { margin: 0.75rem 0 0; font-size: 1rem; }
 .detalles-sugerencia ul, .criterio-prioridad ul { margin: 0.25rem 0 0; padding-inline-start: 1.25rem; }
 .detalles-sugerencia li + li, .criterio-prioridad li + li { margin-block-start: 0.25rem; }
-.detalles-sugerencia .instrucciones {
-  border-inline-start: 0.25rem solid #1c4d77;
-  font-size: 1.0625rem;
-  white-space: pre-wrap;
+
+.instrucciones {
+  margin-block-start: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid #6f8295;
+  border-inline-start: 0.3125rem solid #1c4d77;
+  border-radius: 0.25rem;
+  background: #edf4fb;
+  font-size: 1.1875rem;
 }
+
+.instrucciones h3 { margin: 0; font-size: 1.125rem; }
+.instrucciones ul { margin: 0.375rem 0 0; padding-inline-start: 1.25rem; }
+.instrucciones li { white-space: pre-wrap; }
+.instrucciones li + li { margin-block-start: 0.375rem; }
+
+.checklist { gap: 0; margin-block-start: 0.25rem; }
+.pregunta { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.5rem; padding: 0.5rem 0.25rem; }
+.pregunta + .pregunta { border-block-start: 1px solid #d5dfe8; }
+.pregunta label { cursor: pointer; }
+.pregunta input { inline-size: 1.5rem; block-size: 1.5rem; margin: 0; accent-color: #1c4d77; cursor: pointer; }
 
 @media (min-width: 36rem) {
   .direccion { grid-template-columns: minmax(0, 1fr) 9rem; }
-  .hecho {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1.7fr);
-    row-gap: 0;
-  }
+  .hecho { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); row-gap: 0; }
   .hecho > .campo { display: grid; grid-row: span 2; grid-template-rows: subgrid; }
   .esquinas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1100px) {
+  main.vista-operador { max-inline-size: 84rem; }
+  .panel-operador { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); align-items: start; gap: 1rem; }
+  .panel-operador > .transcripcion {
+    position: sticky;
+    inset-block-start: 1rem;
+    max-block-size: calc(100dvh - 2rem);
+    overflow-y: auto;
+  }
 }

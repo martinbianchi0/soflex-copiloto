@@ -88,8 +88,11 @@ Qué se eligió, por qué y qué se dejó afuera.
 - **El panel se sirve en `/` y la API es una aplicación aparte montada en `/api`.** Todo lo que empieza con `/api` lo contesta la API, también sus errores: un 404 o un 405 de la API nunca devuelve la página del panel.
 - **El identificador de la llamada vive en la URL (`?llamada=…`).** Recargar la página o reiniciar el servicio no pierde una llamada a medias: el panel la vuelve a pedir.
 - **El panel manda sólo lo que el operador cambió.** Lo demás queda como lo sugirió el sistema.
-- **La transcripción se muestra por turnos, con quién habla, y lo del llamante resaltado:** es la evidencia que respalda cada cita.
-- **Los avisos del análisis van arriba de la sugerencia y no bloquean la derivación.** Piden confirmar algo con el llamante; decidir sigue siendo del operador.
+- **La transcripción se muestra por turnos, con quién habla, y con cada cita resaltada dentro del texto.** Es la evidencia que respalda cada dato: al enfocar un campo o una pregunta, su cita se destaca en la transcripción.
+- **Los avisos del análisis van arriba de la sugerencia y no bloquean la derivación.** Piden confirmar algo con el llamante; decidir sigue siendo del operador. Los que quedan sin resolver se ven también en la carta.
+- **El origen que se ve junto a un campo sigue lo que hace el operador.** Al cambiar un valor, la etiqueta pasa a "del operador" y su cita se oculta; si vuelve al valor sugerido, vuelven la etiqueta y la cita.
+- **El checklist se marca con casillas, y cada una dice quién la marcó:** la cita del sistema, o "marcada por vos" y "desmarcada por vos".
+- **Las instrucciones de pre-arribo van arriba del checklist, con letra más grande:** son lo que el operador lee en voz alta.
 - **Sin librería de componentes ni de rutas.** Son tres vistas; el formulario usa los controles del navegador con sus etiquetas, y los avisos se anuncian en una región `aria-live`.
 
 ## Empaquetado
