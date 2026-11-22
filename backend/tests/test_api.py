@@ -49,6 +49,7 @@ def test_iniciar_una_llamada_devuelve_la_sugerencia_y_queda_esperando(cliente):
         "checklist": [],
         "instrucciones": [],
         "datos_dictados": [],
+        "direccion_alternativa": None,
     }
     assert llamada["carta"] is None
 
@@ -109,7 +110,7 @@ def test_la_api_devuelve_cada_dato_con_su_origen_y_su_cita(
         creada = cliente.post("/api/llamadas", json=LLAMADA).json()
         derivada = derivar(cliente, creada["llamada_id"], {"prioridad": "P1"}).json()
 
-    assert creada["sugerencia"] == sugerencia_completa
+    assert creada["sugerencia"] == {**sugerencia_completa, "direccion_alternativa": None}
     carta = derivada["carta"]
     assert carta.pop("derivada_en").endswith("Z")
     assert carta == {
@@ -753,7 +754,7 @@ def test_los_ejemplos_se_cargan_al_arrancar(configuracion, monkeypatch):
         assert cargas
 
 
-def test_la_api_entrega_los_treinta_ejemplos_del_dataset_y_los_seis_nuevos(cliente):
+def test_la_api_entrega_los_treinta_ejemplos_del_dataset_y_los_siete_nuevos(cliente):
     respuesta = cliente.get("/api/ejemplos")
 
     assert respuesta.status_code == 200
@@ -762,7 +763,7 @@ def test_la_api_entrega_los_treinta_ejemplos_del_dataset_y_los_seis_nuevos(clien
         ejemplo["id"]: {campo: valor for campo, valor in ejemplo.items() if campo != "turnos"}
         for ejemplo in publicados
     }
-    assert len(publicados) == len(por_id) == 36
+    assert len(publicados) == len(por_id) == 37
     assert por_id == {
         **{
             subtipo: {
@@ -823,6 +824,7 @@ def test_cada_ejemplo_nuevo_se_da_de_alta_sin_subtipo(cliente, ejemplo_id):
         ("nueva-4", []),
         ("nueva-5", []),
         ("nueva-6", []),
+        ("nueva-7", ["direccion_no_cierra"]),
     ],
 )
 def test_cada_ejemplo_nuevo_da_los_avisos_que_se_esperan_de_el(cliente, ejemplo_id, avisos):

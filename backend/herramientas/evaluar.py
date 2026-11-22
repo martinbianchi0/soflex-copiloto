@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from copiloto import dataset
+from copiloto import dataset, segunda_lectura
 from copiloto.config import Configuracion
 from copiloto.esquemas import Turno, valor_de
 from copiloto.llamadas import Llamadas
@@ -107,6 +107,12 @@ def medir(caso: dict[str, Any], servicio: Llamadas, contador: Contador | None) -
             "citas_del_protocolo": {
                 item.id: item.cita.texto for item in sugerencia.checklist if item.cita
             },
+            # La otra dirección que ofrece el modelo cuando las reglas avisan.
+            "direccion_alternativa": (
+                sugerencia.direccion_alternativa.model_dump()
+                if sugerencia.direccion_alternativa
+                else None
+            ),
         },
         "avisos": [aviso.codigo for aviso in sugerencia.avisos],
         "mensajes": [
@@ -220,6 +226,12 @@ def resumir(resultados: list[dict[str, Any]], con_modelo: bool) -> list[str]:
         lineas.append(
             f"- Pedidos al modelo por llamada: {statistics.mean(pedidos):.1f} en promedio, "
             f"{max(pedidos)} como máximo."
+        )
+        con_aviso = [r for r in resultados if segunda_lectura.DISPARAN & set(r["avisos"])]
+        ofrecidas = sum(r["propuesto"]["direccion_alternativa"] is not None for r in con_aviso)
+        lineas.append(
+            f"- Segunda lectura de la dirección: se pidió en {len(con_aviso)} llamadas "
+            f"y ofreció otra dirección en {ofrecidas}."
         )
     tiempos = [r["segundos"] for r in resultados]
     alta_ms = statistics.median(r["segundos_alta"] for r in resultados) * 1000

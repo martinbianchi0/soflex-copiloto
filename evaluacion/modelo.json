@@ -1,7 +1,7 @@
 {
   "proveedor": "ollama",
   "modelo": "qwen3.5:4b-q4_K_M",
-  "fecha": "2026-11-22T07:56:09+00:00",
+  "fecha": "2026-11-22T21:12:03+00:00",
   "resultados": [
     {
       "id": "SFX-001",
@@ -27,13 +27,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-001-Q1": "quedó el cocinero"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.128,
-      "segundos": 6.708
+      "segundos_alta": 0.242,
+      "segundos": 14.564
     },
     {
       "id": "SFX-002",
@@ -57,16 +58,17 @@
         ],
         "citas_del_protocolo": {
           "SFX-002-Q2": "hay un auto estacionado pegado que se le está derritiendo la óptica"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [
         "direccion_no_cierra",
         "direccion_no_cierra"
       ],
       "mensajes": [],
-      "pedidos": 2,
-      "segundos_alta": 0.005,
-      "segundos": 5.767
+      "pedidos": 3,
+      "segundos_alta": 0.006,
+      "segundos": 18.156
     },
     {
       "id": "SFX-003",
@@ -88,13 +90,14 @@
         "prioridad": "P1",
         "cita_prioridad": "una mujer embarazada y un nene chiquito",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.012,
-      "segundos": 4.46
+      "segundos_alta": 0.01,
+      "segundos": 10.783
     },
     {
       "id": "SFX-004",
@@ -114,13 +117,14 @@
         "prioridad": "P2",
         "cita_prioridad": "quema grande de pastos secos y basura que avanza hacia el sector de juegos infantiles",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.005,
-      "segundos": 3.34
+      "segundos_alta": 0.004,
+      "segundos": 6.978
     },
     {
       "id": "SFX-005",
@@ -142,13 +146,14 @@
         "prioridad": "P1",
         "cita_prioridad": "tiene casco puesto pero no se mueve y le duele mucho la pierna que parece fracturada",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.004,
-      "segundos": 6.303
+      "segundos_alta": 0.006,
+      "segundos": 13.351
     },
     {
       "id": "SFX-006",
@@ -168,15 +173,16 @@
         "prioridad": "P2",
         "cita_prioridad": "La gente está saliendo mareada de los autos",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "falta_altura"
       ],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.012,
-      "segundos": 5.928
+      "segundos_alta": 0.006,
+      "segundos": 12.867
     },
     {
       "id": "SFX-007",
@@ -196,16 +202,17 @@
         "prioridad": "P2",
         "cita_prioridad": "quedó encajado de punta",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "cruce_sin_confirmar",
         "falta_altura"
       ],
       "mensajes": [],
-      "pedidos": 2,
+      "pedidos": 3,
       "segundos_alta": 0.008,
-      "segundos": 5.836
+      "segundos": 17.296
     },
     {
       "id": "SFX-008",
@@ -229,15 +236,16 @@
         ],
         "citas_del_protocolo": {
           "SFX-008-Q1": "La señora recuperó la conciencia pero está blanca como un papel, transpira frío y dice que no siente las piernas"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [
         "sin_calle"
       ],
       "mensajes": [],
-      "pedidos": 2,
+      "pedidos": 3,
       "segundos_alta": 0.004,
-      "segundos": 5.887
+      "segundos": 17.684
     },
     {
       "id": "SFX-009",
@@ -261,13 +269,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-009-Q2": "tiene tiraje en las costillas y los labios morados"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.005,
-      "segundos": 5.462
+      "segundos_alta": 0.008,
+      "segundos": 12.586
     },
     {
       "id": "SFX-010",
@@ -287,13 +296,14 @@
         "prioridad": "P2",
         "cita_prioridad": "no se puede incorporar y llora de dolor",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.012,
-      "segundos": 4.778
+      "segundos_alta": 0.008,
+      "segundos": 10.682
     },
     {
       "id": "SFX-011",
@@ -313,15 +323,16 @@
         "prioridad": "P1",
         "cita_prioridad": "Cortó los cables de media tensión, aplastó el techo de dos camionetas estacionadas y la copa ocupa toda la calzada, nadie puede pasar",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "cruce_sin_confirmar"
       ],
       "mensajes": [],
-      "pedidos": 2,
-      "segundos_alta": 0.004,
-      "segundos": 3.777
+      "pedidos": 3,
+      "segundos_alta": 0.005,
+      "segundos": 15.486
     },
     {
       "id": "SFX-012",
@@ -345,13 +356,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-012-Q1": "Hay un soplido fuertísimo que sale de la zanja"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.004,
-      "segundos": 5.19
+      "segundos_alta": 0.006,
+      "segundos": 11.461
     },
     {
       "id": "SFX-013",
@@ -379,13 +391,14 @@
         "citas_del_protocolo": {
           "SFX-013-Q2": "En el carril del Metrobus se abrió un pozo",
           "SFX-013-Q3": "Un colectivo casi se va adentro de la fosa"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.005,
-      "segundos": 4.478
+      "segundos_alta": 0.007,
+      "segundos": 10.581
     },
     {
       "id": "SFX-014",
@@ -411,15 +424,16 @@
         ],
         "citas_del_protocolo": {
           "SFX-014-Q1": "Quedó colgada de un solo perno balanceándose sobre la vereda"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [
         "direccion_no_cierra"
       ],
       "mensajes": [],
-      "pedidos": 2,
-      "segundos_alta": 0.011,
-      "segundos": 5.354
+      "pedidos": 3,
+      "segundos_alta": 0.006,
+      "segundos": 16.704
     },
     {
       "id": "SFX-015",
@@ -445,13 +459,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-015-Q1": "Se están tirando sillas plásticas y botellas"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
       "segundos_alta": 0.005,
-      "segundos": 5.189
+      "segundos": 11.506
     },
     {
       "id": "SFX-016",
@@ -475,13 +490,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-016-Q2": "hay un perro dogo o pitbull sin bozal ni correa que atacó a otro perrito y los dueños se fueron. El perro está alterado gruñendo a cualquiera que entra al canil"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.003,
-      "segundos": 7.283
+      "segundos_alta": 0.005,
+      "segundos": 16.274
     },
     {
       "id": "SFX-017",
@@ -501,13 +517,14 @@
         "prioridad": "P1",
         "cita_prioridad": "empezó a salir chispas y humo negro con olor a plástico del tablero central de trifásica",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.003,
-      "segundos": 5.493
+      "segundos_alta": 0.007,
+      "segundos": 11.546
     },
     {
       "id": "SFX-018",
@@ -527,13 +544,14 @@
         "prioridad": "P2",
         "cita_prioridad": "El chico quedó debajo del estribo, está consciente pero no puede mover la pierna derecha",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.004,
-      "segundos": 3.62
+      "segundos_alta": 0.007,
+      "segundos": 7.087
     },
     {
       "id": "SFX-019",
@@ -559,13 +577,14 @@
         "citas_del_protocolo": {
           "SFX-019-Q2": "no puede tragar la saliva",
           "SFX-019-Q3": "Se le está cerrando la garganta"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.004,
-      "segundos": 5.196
+      "segundos_alta": 0.007,
+      "segundos": 11.536
     },
     {
       "id": "SFX-020",
@@ -593,15 +612,16 @@
         "citas_del_protocolo": {
           "SFX-020-Q1": "un cable grueso chispeando",
           "SFX-020-Q3": "asfalto mojado"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [
         "direccion_no_cierra"
       ],
       "mensajes": [],
-      "pedidos": 2,
-      "segundos_alta": 0.009,
-      "segundos": 6.539
+      "pedidos": 3,
+      "segundos_alta": 0.007,
+      "segundos": 18.843
     },
     {
       "id": "SFX-021",
@@ -621,13 +641,14 @@
         "prioridad": "P1",
         "cita_prioridad": "Los conductores están arriba de los techos esperando rescate",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.005,
-      "segundos": 5.231
+      "segundos_alta": 0.013,
+      "segundos": 11.007
     },
     {
       "id": "SFX-022",
@@ -651,16 +672,17 @@
         ],
         "citas_del_protocolo": {
           "SFX-022-Q1": "perdiendo gasoil a chorros hacia el cordón cuneta"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [
         "cruce_sin_confirmar",
         "falta_altura"
       ],
       "mensajes": [],
-      "pedidos": 2,
-      "segundos_alta": 0.013,
-      "segundos": 5.656
+      "pedidos": 3,
+      "segundos_alta": 0.009,
+      "segundos": 17.258
     },
     {
       "id": "SFX-023",
@@ -684,13 +706,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-023-Q1": "está sangrando bastante"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.005,
-      "segundos": 5.879
+      "segundos_alta": 0.006,
+      "segundos": 12.337
     },
     {
       "id": "SFX-024",
@@ -714,13 +737,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-024-Q1": "casi atropellan a dos maestras con chicos de escuela"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.005,
-      "segundos": 5.693
+      "segundos_alta": 0.008,
+      "segundos": 11.454
     },
     {
       "id": "SFX-025",
@@ -744,13 +768,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-025-Q2": "hay fuego en los estantes con más baterías"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.005,
-      "segundos": 6.093
+      "segundos_alta": 0.006,
+      "segundos": 11.691
     },
     {
       "id": "SFX-026",
@@ -770,13 +795,14 @@
         "prioridad": "P1",
         "cita_prioridad": "está convulsionando con sacudidas fuertes en brazos y piernas, tiene espuma en la boca y no responde",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.004,
-      "segundos": 5.915
+      "segundos_alta": 0.006,
+      "segundos": 11.579
     },
     {
       "id": "SFX-027",
@@ -796,13 +822,14 @@
         "prioridad": "P2",
         "cita_prioridad": "quedaron ladrillos colgando con riesgo de seguir cayendo",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
       "segundos_alta": 0.006,
-      "segundos": 5.844
+      "segundos": 11.078
     },
     {
       "id": "SFX-028",
@@ -826,13 +853,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-028-Q2": "está entrando agua a dos subsuelos de garaje"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.009,
-      "segundos": 5.982
+      "segundos_alta": 0.006,
+      "segundos": 11.253
     },
     {
       "id": "SFX-029",
@@ -852,15 +880,16 @@
         "prioridad": "P1",
         "cita_prioridad": "El conductor está atrapado por el cinturón de seguridad colgando boca abajo y no puede abrir la puerta",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "falta_altura"
       ],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.008,
-      "segundos": 6.219
+      "segundos_alta": 0.009,
+      "segundos": 11.149
     },
     {
       "id": "SFX-030",
@@ -880,13 +909,14 @@
         "prioridad": "P1",
         "cita_prioridad": "empezó a salir un humo gris denso y olor a aceite quemado por las rejillas de ventilación",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.005,
-      "segundos": 4.759
+      "segundos_alta": 0.006,
+      "segundos": 7.649
     },
     {
       "id": "T01",
@@ -906,13 +936,14 @@
         "prioridad": "P1",
         "cita_prioridad": "no responde y no respira",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.004,
-      "segundos": 4.157
+      "segundos_alta": 0.007,
+      "segundos": 6.328
     },
     {
       "id": "T02",
@@ -932,13 +963,14 @@
         "prioridad": "P2",
         "cita_prioridad": "se le volcó aceite hirviendo en el antebrazo y la mano, y se le hicieron ampollas grandes",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.009,
-      "segundos": 4.799
+      "segundos_alta": 0.006,
+      "segundos": 7.452
     },
     {
       "id": "T03",
@@ -958,13 +990,14 @@
         "prioridad": "P1",
         "cita_prioridad": "no responde y le sale mucha sangre de la cabeza",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.006,
-      "segundos": 4.004
+      "segundos_alta": 0.007,
+      "segundos": 6.724
     },
     {
       "id": "T04",
@@ -984,13 +1017,14 @@
         "prioridad": "P3",
         "cita_prioridad": "No hay heridos, los dos conductores bajaron y están bien",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.006,
-      "segundos": 4.472
+      "segundos_alta": 0.01,
+      "segundos": 6.818
     },
     {
       "id": "T05",
@@ -1014,13 +1048,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-001-Q1": "Hay vecinos de los pisos de arriba que no pueden bajar y piden ayuda desde los balcones"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.003,
-      "segundos": 7.943
+      "segundos_alta": 0.011,
+      "segundos": 12.387
     },
     {
       "id": "T06",
@@ -1040,13 +1075,14 @@
         "prioridad": "P2",
         "cita_prioridad": "Mi nene de 2 años se encerró en el baño, trabó el pasador y no podemos abrir la puerta",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.02,
-      "segundos": 4.706
+      "segundos_alta": 0.016,
+      "segundos": 7.315
     },
     {
       "id": "T07",
@@ -1070,13 +1106,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-014-Q1": "el viento soltó parte del andamio del frente. Quedaron tablones y caños colgando a la altura del cuarto piso, justo arriba de la vereda por donde pasa la gente"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.002,
-      "segundos": 9.489
+      "segundos_alta": 0.006,
+      "segundos": 13.865
     },
     {
       "id": "T08",
@@ -1097,13 +1134,14 @@
         "prioridad": "P2",
         "cita_prioridad": "No lastimó a nadie ni tocó ningún cable",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.007,
-      "segundos": 4.71
+      "segundos_alta": 0.008,
+      "segundos": 6.961
     },
     {
       "id": "T09",
@@ -1123,13 +1161,14 @@
         "prioridad": "P4",
         "cita_prioridad": "Hola, quería hacer un reclamo por el alumbrado. En Tinogasta al 3100 hay dos luminarias apagadas hace más de una semana y la cuadra queda muy oscura de noche. No pasó nada, pero quiero saber cuándo",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.006,
-      "segundos": 6.338
+      "segundos_alta": 0.01,
+      "segundos": 9.752
     },
     {
       "id": "T10",
@@ -1150,13 +1189,14 @@
         "prioridad": "P4",
         "cita_prioridad": "falta la tapa de una cámara en la vereda",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.003,
-      "segundos": 4.661
+      "segundos_alta": 0.007,
+      "segundos": 6.582
     },
     {
       "id": "T11",
@@ -1176,13 +1216,14 @@
         "prioridad": "P4",
         "cita_prioridad": "sólo quiero dejar el reclamo para que vayan a controlar",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 1,
-      "segundos_alta": 0.004,
-      "segundos": 3.09
+      "segundos_alta": 0.009,
+      "segundos": 4.431
     },
     {
       "id": "T12",
@@ -1202,15 +1243,16 @@
         "prioridad": "P2",
         "cita_prioridad": "Tiene el labio partido pero está consciente y camina bien",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "sin_calle"
       ],
       "mensajes": [],
-      "pedidos": 2,
-      "segundos_alta": 0.02,
-      "segundos": 5.155
+      "pedidos": 3,
+      "segundos_alta": 0.007,
+      "segundos": 11.089
     },
     {
       "id": "L01",
@@ -1230,13 +1272,14 @@
         "prioridad": "P1",
         "cita_prioridad": "Sale humo negro por debajo de la puerta y la señora que vive ahí, que es mayor, grita desde el balcón que no puede salir",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.016,
-      "segundos": 5.356
+      "segundos_alta": 0.007,
+      "segundos": 7.702
     },
     {
       "id": "L02",
@@ -1257,15 +1300,16 @@
         "prioridad": "P2",
         "cita_prioridad": "Un auto se fue contra una columna de alumbrado y quedó con toda la trompa hundida. El conductor está consciente, sentado en el cordón, con un corte en la frente que le sangra, y dice que le duele",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "calle_ambigua"
       ],
       "mensajes": [],
-      "pedidos": 2,
-      "segundos_alta": 0.006,
-      "segundos": 6.107
+      "pedidos": 3,
+      "segundos_alta": 0.012,
+      "segundos": 13.294
     },
     {
       "id": "L03",
@@ -1285,15 +1329,16 @@
         "prioridad": "P1",
         "cita_prioridad": "Mi bebé, mi bebé no respira",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "sin_calle"
       ],
       "mensajes": [],
-      "pedidos": 2,
+      "pedidos": 3,
       "segundos_alta": 0.007,
-      "segundos": 4.545
+      "segundos": 9.559
     },
     {
       "id": "L04",
@@ -1314,16 +1359,24 @@
         "prioridad": "P3",
         "cita_prioridad": "No hay nadie en los autos ni en la vereda",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": {
+          "calle": "Av. Nazca",
+          "altura": 3200,
+          "esquinas": [
+            "Pedro Lozano",
+            "Tinogasta"
+          ]
+        }
       },
       "avisos": [
         "direccion_no_cierra",
         "direccion_no_cierra"
       ],
       "mensajes": [],
-      "pedidos": 2,
-      "segundos_alta": 0.009,
-      "segundos": 4.48
+      "pedidos": 3,
+      "segundos_alta": 0.008,
+      "segundos": 13.631
     },
     {
       "id": "L05",
@@ -1343,13 +1396,14 @@
         "prioridad": "P2",
         "cita_prioridad": "5 están vomitando y con dolor de panza. Están todos despiertos y hablan, pero 2 están muy pálidos",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.009,
-      "segundos": 5.943
+      "segundos_alta": 0.01,
+      "segundos": 7.668
     },
     {
       "id": "L06",
@@ -1369,15 +1423,16 @@
         "prioridad": "P1",
         "cita_prioridad": "quedó con las piernas debajo del auto y no responde",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "cruce_sin_confirmar"
       ],
       "mensajes": [],
-      "pedidos": 2,
-      "segundos_alta": 0.003,
-      "segundos": 5.35
+      "pedidos": 3,
+      "segundos_alta": 0.012,
+      "segundos": 12.15
     },
     {
       "id": "L07",
@@ -1397,13 +1452,14 @@
         "prioridad": "P4",
         "cita_prioridad": "está apagada toda la luminaria de la cuadra hace una semana",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.003,
-      "segundos": 5.455
+      "segundos_alta": 0.006,
+      "segundos": 6.567
     },
     {
       "id": "L08",
@@ -1423,15 +1479,16 @@
         "prioridad": "P4",
         "cita_prioridad": "no es una emergencia",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "sin_calle"
       ],
       "mensajes": [],
-      "pedidos": 1,
-      "segundos_alta": 0.004,
-      "segundos": 3.112
+      "pedidos": 2,
+      "segundos_alta": 0.006,
+      "segundos": 8.862
     },
     {
       "id": "L09",
@@ -1452,13 +1509,14 @@
         "prioridad": "P2",
         "cita_prioridad": "se hundió parte del patio",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.006,
-      "segundos": 4.986
+      "segundos_alta": 0.009,
+      "segundos": 7.169
     },
     {
       "id": "L10",
@@ -1479,15 +1537,16 @@
         "prioridad": "P2",
         "cita_prioridad": "larga mucho humo",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "direccion_no_cierra"
       ],
       "mensajes": [],
-      "pedidos": 2,
-      "segundos_alta": 0.005,
-      "segundos": 4.598
+      "pedidos": 3,
+      "segundos_alta": 0.019,
+      "segundos": 11.956
     },
     {
       "id": "R01",
@@ -1507,13 +1566,14 @@
         "prioridad": "P1",
         "cita_prioridad": "un señor grande se desplomo este no reacciona no no responde y me parece que no respira o sea tiene los labios azules",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.005,
-      "segundos": 6.159
+      "segundos_alta": 0.007,
+      "segundos": 8.165
     },
     {
       "id": "R02",
@@ -1533,13 +1593,14 @@
         "prioridad": "P1",
         "cita_prioridad": "ella no no se mueve",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.016,
-      "segundos": 4.357
+      "segundos_alta": 0.01,
+      "segundos": 6.629
     },
     {
       "id": "R03",
@@ -1563,15 +1624,20 @@
         ],
         "citas_del_protocolo": {
           "SFX-001-Q1": "la vecina una señora mayor esta adentro no no baja o sea golpeamos la puerta y no contesta"
+        },
+        "direccion_alternativa": {
+          "calle": "Cochabamba",
+          "altura": 2270,
+          "esquinas": []
         }
       },
       "avisos": [
         "sin_calle"
       ],
       "mensajes": [],
-      "pedidos": 2,
-      "segundos_alta": 0.012,
-      "segundos": 11.144
+      "pedidos": 3,
+      "segundos_alta": 0.011,
+      "segundos": 20.637
     },
     {
       "id": "R04",
@@ -1595,13 +1661,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-027-Q3": "esta por caerse mas"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.01,
-      "segundos": 8.668
+      "segundos_alta": 0.009,
+      "segundos": 13.091
     },
     {
       "id": "R05",
@@ -1621,13 +1688,14 @@
         "prioridad": "P4",
         "cita_prioridad": "hace como dos semanas que estan apagadas las luces de la calle",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.006,
-      "segundos": 4.522
+      "segundos_alta": 0.009,
+      "segundos": 7.049
     },
     {
       "id": "R06",
@@ -1647,16 +1715,17 @@
         "prioridad": "P4",
         "cita_prioridad": "hola si llamo por ruidos molestos",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "direccion_no_cierra",
         "direccion_no_cierra"
       ],
       "mensajes": [],
-      "pedidos": 1,
-      "segundos_alta": 0.009,
-      "segundos": 3.148
+      "pedidos": 2,
+      "segundos_alta": 0.014,
+      "segundos": 9.592
     },
     {
       "id": "R07",
@@ -1677,13 +1746,14 @@
         "prioridad": "P2",
         "cita_prioridad": "hola eh mire en la esquina de moldes y sucre hay un tipo que esta rompiendo los vidrios de los autos estacionados con un fierro ya rompio dos este no hay nadie adentro de los autos y a la gente no le",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.011,
-      "segundos": 6.565
+      "segundos_alta": 0.008,
+      "segundos": 10.296
     },
     {
       "id": "R08",
@@ -1703,13 +1773,14 @@
         "prioridad": "P2",
         "cita_prioridad": "este sangraba bastante pero le apretamos con una remera y paro un poco esta consciente llora del dolor y no no puede apoyar",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.003,
-      "segundos": 5.258
+      "segundos_alta": 0.011,
+      "segundos": 7.659
     },
     {
       "id": "R09",
@@ -1729,13 +1800,14 @@
         "prioridad": "P2",
         "cita_prioridad": "no hay heridos bajamos todos y estamos bien",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
-      "segundos_alta": 0.004,
-      "segundos": 4.18
+      "segundos_alta": 0.008,
+      "segundos": 6.334
     },
     {
       "id": "R10",
@@ -1756,13 +1828,14 @@
         "prioridad": "P2",
         "cita_prioridad": "hay un auto estacionado que le sale humo del capo y se ven unas llamitas abajo",
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 2,
       "segundos_alta": 0.006,
-      "segundos": 4.624
+      "segundos": 7.035
     }
   ]
 }

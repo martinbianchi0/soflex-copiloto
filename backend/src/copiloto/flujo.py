@@ -5,7 +5,7 @@ from datetime import datetime
 from time import monotonic
 from typing import Any, Literal, NotRequired, TypedDict
 
-from copiloto import catalogo, dataset, dictados, interprete, tipo, ubicacion
+from copiloto import catalogo, dataset, dictados, interprete, segunda_lectura, tipo, ubicacion
 from copiloto.catalogo import Pregunta, Protocolo, SubtipoInvalido
 from copiloto.esquemas import (
     Ajustes,
@@ -230,6 +230,11 @@ def analizar_con_modelo(
         ),
         checklist=checklist_de(protocolo, respuestas),
         instrucciones=protocolo.instrucciones if protocolo else [],
+        direccion_alternativa=(
+            segunda_lectura.consultar(turnos, modelo, vence)
+            if segunda_lectura.corresponde(base.avisos)
+            else None
+        ),
     )
 
 

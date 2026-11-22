@@ -622,5 +622,21 @@
     "hablante": "llamante"
    }
   ]
+ },
+ {
+  "id": "nueva-7",
+  "titulo": "Auto con humo · el llamante se corrige al dar la dirección",
+  "origen": "nueva",
+  "texto": "Operador: 911, ¿dónde es la emergencia? Llamante: En Humboldt 1697. No, pará, me confundí: es Humboldt 1967, casi Nicaragua. Un auto estacionado larga humo del capó y tiene otros dos pegados.",
+  "turnos": [
+   {
+    "texto": "911, ¿dónde es la emergencia?",
+    "hablante": "operador"
+   },
+   {
+    "texto": "En Humboldt 1697. No, pará, me confundí: es Humboldt 1967, casi Nicaragua. Un auto estacionado larga humo del capó y tiene otros dos pegados.",
+    "hablante": "llamante"
+   }
+  ]
  }
 ]

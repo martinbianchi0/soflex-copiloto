@@ -106,7 +106,15 @@ def _detalle(
                     "sugerencia_modelo",
                     "No hubo sugerencia del modelo: quedó la de las reglas.",
                 )
-            return "sugerencia_modelo", f"Sugerencia del modelo, {_avisos(sugerencia)}."
+            mensaje = f"Sugerencia del modelo, {_avisos(sugerencia)}."
+            if (otra := sugerencia.direccion_alternativa) is not None:
+                direccion = otra.calle if otra.altura is None else f"{otra.calle} {otra.altura}"
+                if otra.esquinas:
+                    # Con altura, dos calles son las que limitan la cuadra; una sola, la esquina.
+                    entre = otra.altura is not None and len(otra.esquinas) == 2
+                    direccion += f", {'entre' if entre else 'esquina'} {' y '.join(otra.esquinas)}"
+                mensaje += f" Propuso otra dirección: {direccion}."
+            return "sugerencia_modelo", mensaje
         case "esperar_operador":
             if cambios is None:
                 return "ajustes_operador", "El operador confirmó. La carta todavía está pendiente."

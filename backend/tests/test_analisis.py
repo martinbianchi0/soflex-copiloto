@@ -11,10 +11,18 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 
-from copiloto import catalogo, dataset, flujo, grafo, main
+from copiloto import catalogo, dataset, flujo, grafo, main, segunda_lectura
 from copiloto import modelo as modelos
 from copiloto.config import Configuracion
-from copiloto.esquemas import Ajustes, Aviso, Cita, Falta, Turno
+from copiloto.esquemas import (
+    Ajustes,
+    Aviso,
+    Cita,
+    DireccionAlternativa,
+    Falta,
+    Turno,
+    UbicacionAjustada,
+)
 from copiloto.llamadas import LlamadaNoEsperaOperador, Llamadas
 from copiloto.modelo import ModeloNoDisponible
 from copiloto.turnos import separar_hablantes
@@ -509,6 +517,7 @@ def test_se_pueden_retomar_llamadas_guardadas_con_el_grafo_anterior(
         cambios = grafo.analizar(estado, con_modelo=pendiente)
         del cambios["falta_el_modelo"]
         del cambios["turnos_analizados"]
+        del cambios["sugerencia"]["direccion_alternativa"]
         return cambios
 
     def no_consultar(estado):
@@ -836,3 +845,134 @@ def test_si_el_reanalisis_se_queda_sin_prioridad_sugerida_se_avisa(abrir_servici
         "Antes de volver a analizar, la prioridad sugerida era P1. "
         "Ahora no hay una sugerencia: elegila."
     )
+
+
+TEXTO_CON_DOS_DIRECCIONES = (
+    "Operador: ¿Dónde es la emergencia? Llamante: En Gurruchaga 1236. "
+    "No, perdón, es en Araoz 1236 entre Masón y Cabrera. Se prendió fuego el toldo."
+)
+OTRA_DIRECCION = DireccionAlternativa(calle="Araoz", altura=1236, esquinas=["Jose A. Cabrera"])
+LECTURA_DE_DIRECCION = '{"calle": "Aráoz", "altura": "1236", "esquinas": ["Cabrera"]}'
+
+
+def test_la_segunda_lectura_va_despues_del_protocolo_y_queda_en_el_historial(abrir_servicio):
+    modelo = ModeloGuionado(CLASIFICACION, SIN_RESPUESTAS, LECTURA_DE_DIRECCION)
+    with abrir_servicio(modelo) as servicio:
+        inicial = servicio.iniciar([Turno(texto=TEXTO_CON_DOS_DIRECCIONES)])
+        assert inicial.estado == "analizando"
+        assert inicial.sugerencia.direccion_alternativa is None
+        assert not modelo.pedidos
+
+        final = servicio.completar_analisis(inicial.llamada_id)
+        assert final.sugerencia.ubicacion == inicial.sugerencia.ubicacion
+        assert final.sugerencia.avisos == inicial.sugerencia.avisos
+        assert final.sugerencia.direccion_alternativa == OTRA_DIRECCION
+        historial = servicio.consultar_historial(inicial.llamada_id)
+        assert historial.eventos[-1].tipo == "sugerencia_modelo"
+        assert "Propuso otra dirección: Araoz 1236, esquina Jose A. Cabrera." in (
+            historial.eventos[-1].detalle
+        )
+
+        ajustes = Ajustes(ubicacion=UbicacionAjustada(**OTRA_DIRECCION.model_dump()))
+        derivada = servicio.derivar(inicial.llamada_id, ajustes)
+        assert derivada.carta.ubicacion.calle.origen == "operador"
+        assert "direccion_alternativa" not in derivada.carta.model_dump()
+
+    clasificar, protocolo, direccion = modelo.pedidos
+    assert "Tipo de hecho propuesto:" in protocolo[0]
+    assert clasificar[2] == protocolo[2] == direccion[2]
+    assert direccion[0] == segunda_lectura.SISTEMA_CON_DATOS
+    assert TEXTO_CON_DOS_DIRECCIONES in direccion[1]
+    assert "¿Dónde es la emergencia?" not in clasificar[1]
+
+
+@pytest.mark.parametrize(
+    ("respuesta", "motivo"),
+    [
+        ("texto sin JSON", "respuesta ilegible"),
+        ('{"calle": "Araoz", "altura": 1236', "respuesta ilegible"),
+        (ModeloNoDisponible("sin conexión"), "sin conexión"),
+        ('{"calle": "Araoz", "altura": 1236, "esquinas": ["Callao"]}', "no cierra"),
+        ('{"calle": "Gurruchaga", "altura": 1236}', None),
+        ('{"calle": null, "altura": null, "esquinas": []}', None),
+    ],
+)
+def test_segunda_lectura_sin_propuesta_no_reintenta_ni_agrega_avisos(
+    abrir_servicio, caplog, respuesta, motivo
+):
+    caplog.set_level("INFO", logger=segunda_lectura.__name__)
+    modelo = ModeloGuionado(CLASIFICACION, SIN_RESPUESTAS, respuesta)
+    with abrir_servicio(modelo) as servicio:
+        inicial = servicio.iniciar([Turno(texto=TEXTO_CON_DOS_DIRECCIONES)])
+        final = servicio.completar_analisis(inicial.llamada_id)
+    assert final.sugerencia.direccion_alternativa is None
+    assert final.sugerencia.avisos == inicial.sugerencia.avisos
+    assert len(modelo.pedidos) == 3
+    if motivo is not None:
+        assert motivo in caplog.text
+
+
+def test_falta_altura_sola_no_dispara_la_segunda_lectura(abrir_servicio):
+    modelo = ModeloGuionado(CLASIFICACION, SIN_RESPUESTAS)
+    with abrir_servicio(modelo) as servicio:
+        inicial = servicio.iniciar([Turno(texto="Hay un incendio en Av. San Juan.")])
+        assert [aviso.codigo for aviso in inicial.sugerencia.avisos] == ["falta_altura"]
+        final = servicio.completar_analisis(inicial.llamada_id)
+    assert final.sugerencia.direccion_alternativa is None
+    assert len(modelo.pedidos) == 2
+
+
+def test_si_se_agota_el_tiempo_en_el_protocolo_no_se_pide_la_segunda_lectura(
+    abrir_servicio, monkeypatch, caplog
+):
+    instante = 100.0
+    guion = ModeloGuionado(CLASIFICACION, SIN_RESPUESTAS)
+
+    def modelo(sistema, usuario, vence):
+        nonlocal instante
+        texto = guion(sistema, usuario, vence)
+        if len(guion.pedidos) == 2:
+            instante = vence
+        return texto
+
+    monkeypatch.setattr(flujo, "monotonic", lambda: instante)
+    monkeypatch.setattr(modelos, "monotonic", lambda: instante)
+    with abrir_servicio(modelo) as servicio:
+        inicial = servicio.iniciar([Turno(texto=TEXTO_CON_DOS_DIRECCIONES)])
+        final = servicio.completar_analisis(inicial.llamada_id)
+    assert len(guion.pedidos) == 2
+    assert final.sugerencia.direccion_alternativa is None
+    assert final.sugerencia.avisos == inicial.sugerencia.avisos
+    assert "No hubo segunda lectura de la dirección: se agotó el tiempo de espera" in caplog.text
+
+
+def test_al_sumar_un_turno_se_vuelve_a_leer_la_direccion(abrir_servicio):
+    modelo = ModeloGuionado(
+        CLASIFICACION,
+        SIN_RESPUESTAS,
+        LECTURA_DE_DIRECCION,
+        CLASIFICACION,
+        SIN_RESPUESTAS,
+        '{"calle": null}',
+    )
+    with abrir_servicio(modelo) as servicio:
+        inicial = servicio.iniciar([Turno(texto=TEXTO_CON_DOS_DIRECCIONES)])
+        primera = servicio.completar_analisis(inicial.llamada_id)
+        assert primera.sugerencia.direccion_alternativa == OTRA_DIRECCION
+        turno = Turno(texto="Quedó claro, ya salieron todos.")
+        ampliada = servicio.sumar_turno(inicial.llamada_id, turno)
+        assert ampliada.sugerencia.direccion_alternativa is None
+        final = servicio.completar_analisis(inicial.llamada_id)
+    assert final.sugerencia.direccion_alternativa is None
+    assert f"{TEXTO_CON_DOS_DIRECCIONES} {turno.texto}\n" in modelo.pedidos[-1][1]
+
+
+@pytest.mark.parametrize("en_mock", [True, False])
+def test_segunda_lectura_ausente_en_mock_y_tras_rescatar_el_analisis(abrir_servicio, en_mock):
+    modelo = ModeloGuionado(ModeloNoDisponible("sin conexión"))
+    with abrir_servicio(None if en_mock else modelo) as servicio:
+        inicial = servicio.iniciar([Turno(texto=TEXTO_CON_DOS_DIRECCIONES)])
+        assert segunda_lectura.corresponde(inicial.sugerencia.avisos)
+        final = servicio.completar_analisis(inicial.llamada_id)
+    assert final.sugerencia.direccion_alternativa is None
+    assert len(modelo.pedidos) == (0 if en_mock else 1)

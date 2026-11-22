@@ -1,0 +1,2501 @@
+{
+  "proveedor": "ollama",
+  "modelo": "qwen3.5:4b-q4_K_M",
+  "fecha": "2026-11-22T21:00:44+00:00",
+  "resultados": [
+    {
+      "id": "D01",
+      "clase": "recuperable",
+      "dificultad": "autocorreccion",
+      "esperado": {
+        "calle_oficial": "VIDAL",
+        "altura": 2686,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "VIDAL",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Vidal",
+            "cita": {
+              "turno": 1,
+              "texto": "Vidal"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 2866,
+            "cita": {
+              "turno": 1,
+              "texto": "2866"
+            }
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "Se mencionaron Vidal 2866 y Vidal 2686. Confirmá con el llamante cuál es la dirección."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": {
+        "calle": "Vidal",
+        "altura": 2686,
+        "esquinas": [],
+        "calle_oficial": "VIDAL"
+      },
+      "resultado": "corrige",
+      "segundos": 15.726,
+      "segundos_alta": 0.224,
+      "segundos_segunda_lectura": 7.287
+    },
+    {
+      "id": "D02",
+      "clase": "recuperable",
+      "dificultad": "autocorreccion",
+      "esperado": {
+        "calle_oficial": "ARAOZ",
+        "altura": 1236,
+        "esquinas_oficiales": [
+          "MASON",
+          "CABRERA, JOSE A."
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "GURRUCHAGA",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Gurruchaga",
+            "cita": {
+              "turno": 1,
+              "texto": "gurruchaga"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 1236,
+            "cita": {
+              "turno": 1,
+              "texto": "1236"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Jose A. Cabrera",
+              "cita": {
+                "turno": 1,
+                "texto": "cabrera"
+              }
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "Se mencionaron Gurruchaga 1236 y Araoz 1236. Confirmá con el llamante cuál es la dirección."
+          },
+          {
+            "codigo": "cruce_sin_confirmar",
+            "mensaje": "Confirmá si «masón» cruza Gurruchaga."
+          },
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "La altura 1236 no coincide con Jose A. Cabrera. Leele la dirección de vuelta al llamante."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": {
+        "calle": "Araoz",
+        "altura": 1236,
+        "esquinas": [
+          "Jose A. Cabrera"
+        ],
+        "calle_oficial": "ARAOZ"
+      },
+      "resultado": "corrige",
+      "segundos": 17.075,
+      "segundos_alta": 0.009,
+      "segundos_segunda_lectura": 5.056
+    },
+    {
+      "id": "D03",
+      "clase": "recuperable",
+      "dificultad": "autocorreccion",
+      "esperado": {
+        "calle_oficial": "ZELADA",
+        "altura": 6184,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "ZELADA",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Zelada",
+            "cita": {
+              "turno": 1,
+              "texto": "Zelada"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 6148,
+            "cita": {
+              "turno": 1,
+              "texto": "6148"
+            }
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "Se mencionaron Zelada 6148 y Zelada 6184. Confirmá con el llamante cuál es la dirección."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": {
+        "calle": "Zelada",
+        "altura": 6184,
+        "esquinas": [],
+        "calle_oficial": "ZELADA"
+      },
+      "resultado": "corrige",
+      "segundos": 11.97,
+      "segundos_alta": 0.006,
+      "segundos_segunda_lectura": 5.081
+    },
+    {
+      "id": "D04",
+      "clase": "recuperable",
+      "dificultad": "autocorreccion",
+      "esperado": {
+        "calle_oficial": "REPUBLICA BOLIVARIANA DE VENEZUELA",
+        "altura": 3246,
+        "esquinas_oficiales": [
+          "24 DE NOVIEMBRE"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "MEXICO",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Mexico",
+            "cita": {
+              "turno": 1,
+              "texto": "méxico"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 3246,
+            "cita": {
+              "turno": 1,
+              "texto": "3246"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "24 de Noviembre",
+              "cita": {
+                "turno": 1,
+                "texto": "veinticuatro de noviembre"
+              }
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "Se mencionaron Mexico 3246 y Rep. Bolivariana de Venezuela 3246. Confirmá con el llamante cuál es la dirección."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": {
+        "calle": "Rep. Bolivariana de Venezuela",
+        "altura": 3246,
+        "esquinas": [
+          "24 de Noviembre"
+        ],
+        "calle_oficial": "REPUBLICA BOLIVARIANA DE VENEZUELA"
+      },
+      "resultado": "corrige",
+      "segundos": 15.344,
+      "segundos_alta": 0.006,
+      "segundos_segunda_lectura": 4.495
+    },
+    {
+      "id": "D05",
+      "clase": "recuperable",
+      "dificultad": "numero_en_palabras",
+      "esperado": {
+        "calle_oficial": "CHICLANA AV.",
+        "altura": 3348,
+        "esquinas_oficiales": [
+          "LINIERS VIRREY"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "CHICLANA AV.",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Av. Chiclana",
+            "cita": {
+              "turno": 1,
+              "texto": "avenida chiclana"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 33,
+            "cita": {
+              "turno": 1,
+              "texto": "treinta y tres"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Virrey Liniers",
+              "cita": {
+                "turno": 1,
+                "texto": "virrey"
+              }
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "La altura 33 no existe en Av. Chiclana. Leele la dirección de vuelta al llamante."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": null,
+      "resultado": "no_arregla",
+      "segundos": 11.387,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 4.437
+    },
+    {
+      "id": "D06",
+      "clase": "recuperable",
+      "dificultad": "numero_en_palabras",
+      "esperado": {
+        "calle_oficial": "GARCIA, MARTIN AV.",
+        "altura": 684,
+        "esquinas_oficiales": [
+          "AZARA"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "GARCIA, MARTIN AV.",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Av. Martin Garcia",
+            "cita": {
+              "turno": 1,
+              "texto": "Avenida Martín García"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 684,
+            "cita": {
+              "turno": 1,
+              "texto": "seiscientos ochenta y cuatro"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Azara",
+              "cita": {
+                "turno": 1,
+                "texto": "Azara"
+              }
+            },
+            {
+              "origen": "inferido",
+              "valor": "Gaspar M. de Jovellanos",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 6.831,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D07",
+      "clase": "recuperable",
+      "dificultad": "numero_en_palabras",
+      "esperado": {
+        "calle_oficial": "GOYENA, PEDRO AV.",
+        "altura": 1364,
+        "esquinas_oficiales": [
+          "PUAN"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "GOYENA, PEDRO AV.",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Av. Pedro Goyena",
+            "cita": {
+              "turno": 1,
+              "texto": "Pedro Goyena"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 13,
+            "cita": {
+              "turno": 1,
+              "texto": "trece"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Puan",
+              "cita": {
+                "turno": 1,
+                "texto": "Puán"
+              }
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "La altura 13 no coincide con Puan. Leele la dirección de vuelta al llamante."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": {
+        "calle": "Av. Pedro Goyena",
+        "altura": 1364,
+        "esquinas": [
+          "Puan"
+        ],
+        "calle_oficial": "GOYENA, PEDRO AV."
+      },
+      "resultado": "corrige",
+      "segundos": 13.156,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 7.361
+    },
+    {
+      "id": "D08",
+      "clase": "recuperable",
+      "dificultad": "numero_en_palabras",
+      "esperado": {
+        "calle_oficial": "ECHEVERRIA",
+        "altura": 4764,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "ECHEVERRIA",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Echeverria",
+            "cita": {
+              "turno": 1,
+              "texto": "echeverría"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 4764,
+            "cita": {
+              "turno": 1,
+              "texto": "cuatro mil setecientos sesenta y cuatro"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "inferido",
+              "valor": "Av. Alvarez Thomas",
+              "fuente": "callejero"
+            },
+            {
+              "origen": "inferido",
+              "valor": "Av. Combatientes de Malvinas",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 6.397,
+      "segundos_alta": 0.006,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D09",
+      "clase": "recuperable",
+      "dificultad": "mal_escrita",
+      "esperado": {
+        "calle_oficial": "PUMACAHUA",
+        "altura": 1264,
+        "esquinas_oficiales": [
+          "SANTANDER"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "PUMACAHUA",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Pumacahua",
+            "cita": {
+              "turno": 1,
+              "texto": "pumacaua"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 1264,
+            "cita": {
+              "turno": 1,
+              "texto": "1264"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Santander",
+              "cita": {
+                "turno": 1,
+                "texto": "santander"
+              }
+            },
+            {
+              "origen": "inferido",
+              "valor": "Av. Asamblea",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 6.308,
+      "segundos_alta": 0.004,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D10",
+      "clase": "recuperable",
+      "dificultad": "mal_escrita",
+      "esperado": {
+        "calle_oficial": "COSQUIN",
+        "altura": 2536,
+        "esquinas_oficiales": [
+          "DE LOS CORRALES AV."
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "COSQUIN",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Cosquin",
+            "cita": {
+              "turno": 1,
+              "texto": "coskin"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 2536,
+            "cita": {
+              "turno": 1,
+              "texto": "2536"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Corrales",
+              "cita": {
+                "turno": 1,
+                "texto": "avenida de los corrales"
+              }
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "La altura 2536 no coincide con Corrales. Leele la dirección de vuelta al llamante."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 11.496,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 4.564
+    },
+    {
+      "id": "D11",
+      "clase": "recuperable",
+      "dificultad": "mal_escrita",
+      "esperado": {
+        "calle_oficial": "USPALLATA",
+        "altura": 774,
+        "esquinas_oficiales": [
+          "TACUARI"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "USPALLATA",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Uspallata",
+            "cita": {
+              "turno": 1,
+              "texto": "uspayata"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 774,
+            "cita": {
+              "turno": 1,
+              "texto": "774"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Tacuari",
+              "cita": {
+                "turno": 1,
+                "texto": "tacuarí"
+              }
+            },
+            {
+              "origen": "inferido",
+              "valor": "Gaspar M. de Jovellanos",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 13.549,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D12",
+      "clase": "recuperable",
+      "dificultad": "mal_escrita",
+      "esperado": {
+        "calle_oficial": "ARGERICH",
+        "altura": 942,
+        "esquinas_oficiales": [
+          "PAEZ",
+          "NEUQUEN"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": null,
+        "ubicacion": {
+          "calle": {
+            "origen": "falta"
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "sin_calle",
+            "mensaje": "Pedí la dirección y confirmá la calle."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": {
+        "calle": "Argerich",
+        "altura": null,
+        "esquinas": [
+          "Paez",
+          "Neuquen"
+        ],
+        "calle_oficial": "ARGERICH"
+      },
+      "resultado": "equivocada",
+      "segundos": 14.259,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 6.206
+    },
+    {
+      "id": "D13",
+      "clase": "recuperable",
+      "dificultad": "dos_direcciones",
+      "esperado": {
+        "calle_oficial": "CONCORDIA",
+        "altura": 3648,
+        "esquinas_oficiales": [
+          "NAVARRO"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "HABANA",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Habana",
+            "cita": {
+              "turno": 1,
+              "texto": "Habana"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 3316,
+            "cita": {
+              "turno": 1,
+              "texto": "3316"
+            }
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "Se mencionaron Habana 3316 y Concordia 3648. Confirmá con el llamante cuál es la dirección."
+          },
+          {
+            "codigo": "cruce_sin_confirmar",
+            "mensaje": "Confirmá si «Navarro» cruza Habana."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": null,
+      "resultado": "no_arregla",
+      "segundos": 14.93,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 6.028
+    },
+    {
+      "id": "D14",
+      "clase": "recuperable",
+      "dificultad": "dos_direcciones",
+      "esperado": {
+        "calle_oficial": "OROÑO, NICASIO",
+        "altura": 1308,
+        "esquinas_oficiales": [
+          "GALICIA"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "ALVAREZ, DONATO, TTE. GRAL.",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Tte. Gral. Donato Alvarez",
+            "cita": {
+              "turno": 1,
+              "texto": "Donato Álvarez"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 1492,
+            "cita": {
+              "turno": 1,
+              "texto": "1492"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Galicia",
+              "cita": {
+                "turno": 1,
+                "texto": "Galicia"
+              }
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "Se mencionaron Tte. Gral. Donato Alvarez 1492 y Nicasio Oroño 1308. Confirmá con el llamante cuál es la dirección."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": {
+        "calle": "Nicasio Oroño",
+        "altura": 1308,
+        "esquinas": [
+          "Galicia"
+        ],
+        "calle_oficial": "OROÑO, NICASIO"
+      },
+      "resultado": "corrige",
+      "segundos": 11.513,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 5.465
+    },
+    {
+      "id": "D15",
+      "clase": "recuperable",
+      "dificultad": "dos_direcciones",
+      "esperado": {
+        "calle_oficial": "CATAMARCA",
+        "altura": 532,
+        "esquinas_oficiales": [
+          "REPUBLICA BOLIVARIANA DE VENEZUELA"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "MEXICO",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Mexico",
+            "cita": {
+              "turno": 1,
+              "texto": "méxico"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 3150,
+            "cita": {
+              "turno": 1,
+              "texto": "3150"
+            }
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "Se mencionaron Mexico 3150 y Catamarca 532. Confirmá con el llamante cuál es la dirección."
+          },
+          {
+            "codigo": "cruce_sin_confirmar",
+            "mensaje": "Confirmá si «venezuela» cruza Mexico."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": null,
+      "resultado": "no_arregla",
+      "segundos": 19.107,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 6.273
+    },
+    {
+      "id": "D16",
+      "clase": "recuperable",
+      "dificultad": "dos_direcciones",
+      "esperado": {
+        "calle_oficial": "COBO AV.",
+        "altura": 1228,
+        "esquinas_oficiales": [
+          "BARCO CENTENERA DEL"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "COBO AV.",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Av. Cobo",
+            "cita": {
+              "turno": 1,
+              "texto": "Avenida Cobo"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 1228,
+            "cita": {
+              "turno": 1,
+              "texto": "1228"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "del Barco Centenera",
+              "cita": {
+                "turno": 1,
+                "texto": "Del Barco"
+              }
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "Se mencionaron Av. Cobo 1228 y Avelino Diaz 1724. Confirmá con el llamante cuál es la dirección."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 13.104,
+      "segundos_alta": 0.007,
+      "segundos_segunda_lectura": 6.615
+    },
+    {
+      "id": "D17",
+      "clase": "recuperable",
+      "dificultad": "ambigua_resuelta",
+      "esperado": {
+        "calle_oficial": "OLAZABAL AV.",
+        "altura": 5174,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "OLAZABAL AV.",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Av. Olazabal",
+            "cita": {
+              "turno": 1,
+              "texto": "olazábal"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 5174,
+            "cita": {
+              "turno": 1,
+              "texto": "5174"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "inferido",
+              "valor": "Bauness",
+              "fuente": "callejero"
+            },
+            {
+              "origen": "inferido",
+              "valor": "Bucarelli",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 7.335,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D18",
+      "clase": "recuperable",
+      "dificultad": "ambigua_resuelta",
+      "esperado": {
+        "calle_oficial": "MITRE, EMILIO",
+        "altura": 1268,
+        "esquinas_oficiales": [
+          "ASAMBLEA AV."
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "MITRE, BARTOLOME",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Bartolome Mitre",
+            "cita": {
+              "turno": 1,
+              "texto": "Mitre"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 1268,
+            "cita": {
+              "turno": 1,
+              "texto": "1268"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "inferido",
+              "valor": "Libertad",
+              "fuente": "callejero"
+            },
+            {
+              "origen": "inferido",
+              "valor": "Talcahuano",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "cruce_sin_confirmar",
+            "mensaje": "Confirmá si «Asamblea» cruza Bartolome Mitre."
+          },
+          {
+            "codigo": "calle_ambigua",
+            "mensaje": "Confirmá si es Bartolome Mitre o Emilio Mitre."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": null,
+      "resultado": "no_arregla",
+      "segundos": 12.758,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 5.435
+    },
+    {
+      "id": "D19",
+      "clase": "recuperable",
+      "dificultad": "ambigua_resuelta",
+      "esperado": {
+        "calle_oficial": "ALSINA, ADOLFO",
+        "altura": 838,
+        "esquinas_oficiales": [
+          "TACUARI"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "ALSINA, ADOLFO",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Adolfo Alsina",
+            "cita": {
+              "turno": 1,
+              "texto": "Alsina"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 838,
+            "cita": {
+              "turno": 1,
+              "texto": "838"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Tacuari",
+              "cita": {
+                "turno": 1,
+                "texto": "Tacuarí"
+              }
+            },
+            {
+              "origen": "inferido",
+              "valor": "Piedras",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "calle_ambigua",
+            "mensaje": "Confirmá si es Adolfo Alsina o Av. Valentin Alsina."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 12.619,
+      "segundos_alta": 0.004,
+      "segundos_segunda_lectura": 6.253
+    },
+    {
+      "id": "D20",
+      "clase": "recuperable",
+      "dificultad": "ambigua_resuelta",
+      "esperado": {
+        "calle_oficial": "LARRAZABAL",
+        "altura": 1836,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "LARRAZABAL",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Larrazabal",
+            "cita": {
+              "turno": 1,
+              "texto": "Larrazábal"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 1836,
+            "cita": {
+              "turno": 1,
+              "texto": "1836"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "inferido",
+              "valor": "Av. Directorio",
+              "fuente": "callejero"
+            },
+            {
+              "origen": "inferido",
+              "valor": "Tandil",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 6.538,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D21",
+      "clase": "recuperable",
+      "dificultad": "otro_turno",
+      "esperado": {
+        "calle_oficial": "ASAMBLEA AV.",
+        "altura": 1436,
+        "esquinas_oficiales": [
+          "MIRO"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "ASAMBLEA AV.",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Av. Asamblea",
+            "cita": {
+              "turno": 1,
+              "texto": "Avenida Asamblea"
+            }
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Miro",
+              "cita": {
+                "turno": 3,
+                "texto": "Miró"
+              }
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": false,
+      "propuesta": null,
+      "resultado": "no_arregla",
+      "segundos": 12.655,
+      "segundos_alta": 0.007,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D22",
+      "clase": "recuperable",
+      "dificultad": "otro_turno",
+      "esperado": {
+        "calle_oficial": "IRIGOYEN, BERNARDO DE",
+        "altura": 1046,
+        "esquinas_oficiales": [
+          "HUMBERTO 1°"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": null,
+        "ubicacion": {
+          "calle": {
+            "origen": "falta"
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "sin_calle",
+            "mensaje": "Pedí la dirección y confirmá la calle."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": null,
+      "resultado": "no_arregla",
+      "segundos": 10.56,
+      "segundos_alta": 0.004,
+      "segundos_segunda_lectura": 4.428
+    },
+    {
+      "id": "D23",
+      "clase": "recuperable",
+      "dificultad": "otro_turno",
+      "esperado": {
+        "calle_oficial": "SUPERI",
+        "altura": 2728,
+        "esquinas_oficiales": [
+          "UGARTE, MANUEL"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": null,
+        "ubicacion": {
+          "calle": {
+            "origen": "falta"
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "sin_calle",
+            "mensaje": "Pedí la dirección y confirmá la calle."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": false,
+      "propuesta": {
+        "calle": "Superi",
+        "altura": 2728,
+        "esquinas": [],
+        "calle_oficial": "SUPERI"
+      },
+      "resultado": "corrige",
+      "segundos": 11.58,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 4.877
+    },
+    {
+      "id": "D24",
+      "clase": "recuperable",
+      "dificultad": "otro_turno",
+      "esperado": {
+        "calle_oficial": "PILAR",
+        "altura": 1858,
+        "esquinas_oficiales": [
+          "BRAGADO",
+          "TAPALQUE"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "PILAR",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Pilar",
+            "cita": {
+              "turno": 5,
+              "texto": "pilar"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 1858,
+            "cita": {
+              "turno": 5,
+              "texto": "1858"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Bragado",
+              "cita": {
+                "turno": 5,
+                "texto": "bragado"
+              }
+            },
+            {
+              "origen": "dicho",
+              "valor": "Tapalque",
+              "cita": {
+                "turno": 5,
+                "texto": "tapalqué"
+              }
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 6.55,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D25",
+      "clase": "leer_de_vuelta",
+      "dificultad": "altura_contradictoria",
+      "esperado": {
+        "calle_oficial": "SANTA FE AV.",
+        "altura": null,
+        "esquinas_oficiales": null,
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": "SANTA FE AV.",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Av. Santa Fe",
+            "cita": {
+              "turno": 1,
+              "texto": "Avenida Santa Fe"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 2846,
+            "cita": {
+              "turno": 1,
+              "texto": "2846"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Av. Callao",
+              "cita": {
+                "turno": 1,
+                "texto": "de Callao"
+              }
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "La altura 2846 no coincide con Av. Callao. Leele la dirección de vuelta al llamante."
+          },
+          {
+            "codigo": "cruce_sin_confirmar",
+            "mensaje": "Confirmá si «juntos por mensaje» cruza Av. Santa Fe."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 16.053,
+      "segundos_alta": 0.006,
+      "segundos_segunda_lectura": 4.619
+    },
+    {
+      "id": "D26",
+      "clase": "leer_de_vuelta",
+      "dificultad": "altura_contradictoria",
+      "esperado": {
+        "calle_oficial": "ZAVALETA",
+        "altura": null,
+        "esquinas_oficiales": null,
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": "ZAVALETA",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Zavaleta",
+            "cita": {
+              "turno": 1,
+              "texto": "zavaleta"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 472,
+            "cita": {
+              "turno": 1,
+              "texto": "472"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Av. Amancio Alcorta",
+              "cita": {
+                "turno": 1,
+                "texto": "amancio alcorta"
+              }
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "La altura 472 no coincide con Av. Amancio Alcorta. Leele la dirección de vuelta al llamante."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 11.737,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 4.627
+    },
+    {
+      "id": "D27",
+      "clase": "leer_de_vuelta",
+      "dificultad": "altura_contradictoria",
+      "esperado": {
+        "calle_oficial": "IBERA",
+        "altura": null,
+        "esquinas_oficiales": null,
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": "IBERA",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Ibera",
+            "cita": {
+              "turno": 1,
+              "texto": "Iberá"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 5482,
+            "cita": {
+              "turno": 1,
+              "texto": "5482"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Av. Cabildo",
+              "cita": {
+                "turno": 1,
+                "texto": "Cabildo"
+              }
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "La altura 5482 no coincide con Av. Cabildo. Leele la dirección de vuelta al llamante."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 11.393,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 5.028
+    },
+    {
+      "id": "D28",
+      "clase": "leer_de_vuelta",
+      "dificultad": "altura_contradictoria",
+      "esperado": {
+        "calle_oficial": "SANTO TOME",
+        "altura": null,
+        "esquinas_oficiales": null,
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": "SANTO TOME",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Santo Tome",
+            "cita": {
+              "turno": 1,
+              "texto": "Santo Tomé"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 3886,
+            "cita": {
+              "turno": 1,
+              "texto": "3886"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Av. Lope de Vega",
+              "cita": {
+                "turno": 1,
+                "texto": "Avenida Lope de Vega"
+              }
+            }
+          ]
+        },
+        "avisos": [
+          {
+            "codigo": "direccion_no_cierra",
+            "mensaje": "La altura 3886 no coincide con Av. Lope de Vega. Leele la dirección de vuelta al llamante."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 12.812,
+      "segundos_alta": 0.006,
+      "segundos_segunda_lectura": 4.97
+    },
+    {
+      "id": "D29",
+      "clase": "leer_de_vuelta",
+      "dificultad": "nombre_ambiguo",
+      "esperado": {
+        "calle_oficial": null,
+        "altura": null,
+        "esquinas_oficiales": null,
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": null,
+        "ubicacion": {
+          "calle": {
+            "origen": "falta"
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "sin_calle",
+            "mensaje": "Pedí la dirección y confirmá la calle."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 9.034,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 4.549
+    },
+    {
+      "id": "D30",
+      "clase": "leer_de_vuelta",
+      "dificultad": "nombre_ambiguo",
+      "esperado": {
+        "calle_oficial": null,
+        "altura": null,
+        "esquinas_oficiales": null,
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": null,
+        "ubicacion": {
+          "calle": {
+            "origen": "falta"
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "sin_calle",
+            "mensaje": "Pedí la dirección y confirmá la calle."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 10.21,
+      "segundos_alta": 0.004,
+      "segundos_segunda_lectura": 4.956
+    },
+    {
+      "id": "D31",
+      "clase": "leer_de_vuelta",
+      "dificultad": "nombre_ambiguo",
+      "esperado": {
+        "calle_oficial": null,
+        "altura": null,
+        "esquinas_oficiales": null,
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": null,
+        "ubicacion": {
+          "calle": {
+            "origen": "falta"
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "sin_calle",
+            "mensaje": "Pedí la dirección y confirmá la calle."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 10.424,
+      "segundos_alta": 0.003,
+      "segundos_segunda_lectura": 3.909
+    },
+    {
+      "id": "D32",
+      "clase": "leer_de_vuelta",
+      "dificultad": "nombre_ambiguo",
+      "esperado": {
+        "calle_oficial": null,
+        "altura": null,
+        "esquinas_oficiales": null,
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": null,
+        "ubicacion": {
+          "calle": {
+            "origen": "falta"
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "sin_calle",
+            "mensaje": "Pedí la dirección y confirmá la calle."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 10.758,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 4.065
+    },
+    {
+      "id": "D33",
+      "clase": "control",
+      "dificultad": "altura_y_entrecalle",
+      "esperado": {
+        "calle_oficial": "OLAVARRIA",
+        "altura": 432,
+        "esquinas_oficiales": [
+          "RODRIGUEZ, MARTIN"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "OLAVARRIA",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Olavarria",
+            "cita": {
+              "turno": 1,
+              "texto": "Olavarría"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 432,
+            "cita": {
+              "turno": 1,
+              "texto": "432"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Martin Rodriguez",
+              "cita": {
+                "turno": 1,
+                "texto": "Martín Rodríguez"
+              }
+            },
+            {
+              "origen": "inferido",
+              "valor": "Av. Alte. Brown",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 4.744,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D34",
+      "clase": "control",
+      "dificultad": "altura_y_entrecalle",
+      "esperado": {
+        "calle_oficial": "PEDRAZA, MANUELA",
+        "altura": 4368,
+        "esquinas_oficiales": [
+          "HOLMBERG"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "PEDRAZA, MANUELA",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Manuela Pedraza",
+            "cita": {
+              "turno": 1,
+              "texto": "Manuela Pedraza"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 4368,
+            "cita": {
+              "turno": 1,
+              "texto": "4368"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Holmberg",
+              "cita": {
+                "turno": 1,
+                "texto": "Holmberg"
+              }
+            },
+            {
+              "origen": "inferido",
+              "valor": "Av. Parque Roberto Goyeneche",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 6.52,
+      "segundos_alta": 0.004,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D35",
+      "clase": "control",
+      "dificultad": "altura_y_entrecalle",
+      "esperado": {
+        "calle_oficial": "MONTIEL",
+        "altura": 1516,
+        "esquinas_oficiales": [
+          "ERCILLA"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "MONTIEL",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Montiel",
+            "cita": {
+              "turno": 1,
+              "texto": "Montiel"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 1516,
+            "cita": {
+              "turno": 1,
+              "texto": "1516"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Ercilla",
+              "cita": {
+                "turno": 1,
+                "texto": "Ercilla"
+              }
+            },
+            {
+              "origen": "inferido",
+              "valor": "Av. Emilio Castro",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 6.514,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D36",
+      "clase": "control",
+      "dificultad": "altura_y_entrecalle",
+      "esperado": {
+        "calle_oficial": "AMENABAR",
+        "altura": 1838,
+        "esquinas_oficiales": [
+          "LA PAMPA"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "AMENABAR",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Amenabar",
+            "cita": {
+              "turno": 1,
+              "texto": "Amenábar"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 1838,
+            "cita": {
+              "turno": 1,
+              "texto": "1838"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "la Pampa",
+              "cita": {
+                "turno": 1,
+                "texto": "La Pampa"
+              }
+            },
+            {
+              "origen": "inferido",
+              "valor": "Mcal. Antonio Jose de Sucre",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 6.516,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D37",
+      "clase": "control",
+      "dificultad": "cruce",
+      "esperado": {
+        "calle_oficial": "MOREAU DE JUSTO, ALICIA AV.",
+        "altura": null,
+        "esquinas_oficiales": [
+          "GUEMES, MACACHA"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "MOREAU DE JUSTO, ALICIA AV.",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Av. Alicia Moreau de Justo",
+            "cita": {
+              "turno": 1,
+              "texto": "Avenida Alicia Moreau de Justo"
+            }
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Macacha Guemes",
+              "cita": {
+                "turno": 1,
+                "texto": "Macacha Güemes"
+              }
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 6.613,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D38",
+      "clase": "control",
+      "dificultad": "cruce",
+      "esperado": {
+        "calle_oficial": "MURGUIONDO",
+        "altura": null,
+        "esquinas_oficiales": [
+          "RIESTRA AV."
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "MURGUIONDO",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Murguiondo",
+            "cita": {
+              "turno": 1,
+              "texto": "murguiondo"
+            }
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Av. Riestra",
+              "cita": {
+                "turno": 1,
+                "texto": "avenida riestra"
+              }
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 13.508,
+      "segundos_alta": 0.007,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D39",
+      "clase": "control",
+      "dificultad": "cruce",
+      "esperado": {
+        "calle_oficial": "GORDILLO, TIMOTEO",
+        "altura": null,
+        "esquinas_oficiales": [
+          "BOSCH, VENTURA"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "GORDILLO, TIMOTEO",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Timoteo Gordillo",
+            "cita": {
+              "turno": 1,
+              "texto": "Timoteo Gordillo"
+            }
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Ventura Bosch",
+              "cita": {
+                "turno": 1,
+                "texto": "Ventura Bosch"
+              }
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 6.726,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D40",
+      "clase": "control",
+      "dificultad": "cruce",
+      "esperado": {
+        "calle_oficial": "CONDE",
+        "altura": null,
+        "esquinas_oficiales": [
+          "LORETO, VIRREY"
+        ],
+        "propuesta_correcta": "direccion"
+      },
+      "reglas": {
+        "calle_oficial": "CONDE",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Conde",
+            "cita": {
+              "turno": 1,
+              "texto": "Conde"
+            }
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": [
+            {
+              "origen": "dicho",
+              "valor": "Virrey Loreto",
+              "cita": {
+                "turno": 1,
+                "texto": "Virrey Loreto"
+              }
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 8.529,
+      "segundos_alta": 0.006,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D41",
+      "clase": "sin_direccion",
+      "dificultad": "referencia",
+      "esperado": {
+        "calle_oficial": null,
+        "altura": null,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": null,
+        "ubicacion": {
+          "calle": {
+            "origen": "falta"
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "sin_calle",
+            "mensaje": "Pedí la dirección y confirmá la calle."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 11.688,
+      "segundos_alta": 0.006,
+      "segundos_segunda_lectura": 4.262
+    },
+    {
+      "id": "D42",
+      "clase": "sin_direccion",
+      "dificultad": "referencia",
+      "esperado": {
+        "calle_oficial": null,
+        "altura": null,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": null,
+        "ubicacion": {
+          "calle": {
+            "origen": "falta"
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "sin_calle",
+            "mensaje": "Pedí la dirección y confirmá la calle."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 10.367,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 4.083
+    },
+    {
+      "id": "D43",
+      "clase": "sin_direccion",
+      "dificultad": "referencia",
+      "esperado": {
+        "calle_oficial": null,
+        "altura": null,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": null,
+        "ubicacion": {
+          "calle": {
+            "origen": "falta"
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "sin_calle",
+            "mensaje": "Pedí la dirección y confirmá la calle."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 10.985,
+      "segundos_alta": 0.004,
+      "segundos_segunda_lectura": 4.36
+    },
+    {
+      "id": "D44",
+      "clase": "sin_direccion",
+      "dificultad": "fuera_de_caba",
+      "esperado": {
+        "calle_oficial": null,
+        "altura": null,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": "MAIPU AV.",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Av. Maipu",
+            "cita": {
+              "turno": 1,
+              "texto": "Avenida Maipú"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 1258,
+            "cita": {
+              "turno": 1,
+              "texto": "1258"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "inferido",
+              "valor": "Arenales",
+              "fuente": "callejero"
+            },
+            {
+              "origen": "inferido",
+              "valor": "Crucero Gral. Belgrano",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 6.628,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D45",
+      "clase": "sin_direccion",
+      "dificultad": "fuera_de_caba",
+      "esperado": {
+        "calle_oficial": null,
+        "altura": null,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": "YRIGOYEN, HIPOLITO AV.",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Av. Hipolito Yrigoyen",
+            "cita": {
+              "turno": 1,
+              "texto": "avenida Hipólito Yrigoyen"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 4264,
+            "cita": {
+              "turno": 1,
+              "texto": "4264"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "inferido",
+              "valor": "Jose Marmol",
+              "fuente": "callejero"
+            },
+            {
+              "origen": "inferido",
+              "valor": "Muñiz",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 7.045,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D46",
+      "clase": "sin_direccion",
+      "dificultad": "fuera_de_caba",
+      "esperado": {
+        "calle_oficial": null,
+        "altura": null,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": "MITRE, BARTOLOME",
+        "ubicacion": {
+          "calle": {
+            "origen": "dicho",
+            "valor": "Bartolome Mitre",
+            "cita": {
+              "turno": 1,
+              "texto": "Avenida Bartolomé Mitre"
+            }
+          },
+          "altura": {
+            "origen": "dicho",
+            "valor": 1860,
+            "cita": {
+              "turno": 1,
+              "texto": "1860"
+            }
+          },
+          "esquinas": [
+            {
+              "origen": "inferido",
+              "valor": "Av. Callao",
+              "fuente": "callejero"
+            },
+            {
+              "origen": "inferido",
+              "valor": "Riobamba",
+              "fuente": "callejero"
+            }
+          ]
+        },
+        "avisos": []
+      },
+      "con_aviso": false,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 6.974,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": null
+    },
+    {
+      "id": "D47",
+      "clase": "sin_direccion",
+      "dificultad": "sin_ubicacion",
+      "esperado": {
+        "calle_oficial": null,
+        "altura": null,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": null,
+        "ubicacion": {
+          "calle": {
+            "origen": "falta"
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "sin_calle",
+            "mensaje": "Pedí la dirección y confirmá la calle."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 10.434,
+      "segundos_alta": 0.003,
+      "segundos_segunda_lectura": 3.873
+    },
+    {
+      "id": "D48",
+      "clase": "sin_direccion",
+      "dificultad": "sin_ubicacion",
+      "esperado": {
+        "calle_oficial": null,
+        "altura": null,
+        "esquinas_oficiales": [],
+        "propuesta_correcta": "ninguna"
+      },
+      "reglas": {
+        "calle_oficial": null,
+        "ubicacion": {
+          "calle": {
+            "origen": "falta"
+          },
+          "altura": {
+            "origen": "falta"
+          },
+          "esquinas": []
+        },
+        "avisos": [
+          {
+            "codigo": "sin_calle",
+            "mensaje": "Pedí la dirección y confirmá la calle."
+          }
+        ]
+      },
+      "con_aviso": true,
+      "reglas_bien": true,
+      "propuesta": null,
+      "resultado": "bien",
+      "segundos": 10.018,
+      "segundos_alta": 0.005,
+      "segundos_segunda_lectura": 3.798
+    }
+  ],
+  "resumen": {
+    "con_aviso": {
+      "llamadas": 29,
+      "reglas_bien": 16,
+      "resultados": {
+        "bien": 16,
+        "corrige": 7,
+        "no_arregla": 5,
+        "equivocada": 1,
+        "rompe": 0,
+        "inventa": 0
+      },
+      "equivocadas": 1,
+      "equivocadas_pct": 3.4,
+      "corrige_de_recuperables": "7/13",
+      "mediana": 11.688,
+      "p95": 17.075,
+      "maximo": 19.107
+    },
+    "todas": {
+      "llamadas": 48,
+      "reglas_bien": 34,
+      "resultados": {
+        "bien": 34,
+        "corrige": 7,
+        "no_arregla": 6,
+        "equivocada": 1,
+        "rompe": 0,
+        "inventa": 0
+      },
+      "equivocadas": 1,
+      "equivocadas_pct": 2.1,
+      "corrige_de_recuperables": "7/14",
+      "mediana": 10.8715,
+      "p95": 16.053,
+      "maximo": 19.107
+    }
+  },
+  "tiempo_de_la_segunda_lectura": {
+    "pedidos": 29,
+    "mediana": 4.877,
+    "p95": 7.287,
+    "maximo": 7.361
+  }
+}

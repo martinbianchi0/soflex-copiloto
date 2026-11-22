@@ -28,5 +28,10 @@
   "id": "nueva-6",
   "titulo": "Choque y fuga · el llamante dicta la patente y un teléfono",
   "texto": "Operador: 911, ¿cuál es su emergencia? Llamante: Me chocaron de atrás en Av. Córdoba y Gascón y el otro auto se escapó. Era un Gol gris, patente ZA 345 BD. Operador: ¿Hay heridos? Llamante: No, estoy bien, me duele un poco el cuello nada más. Si se corta, mi celular es 11 1000-0142."
+ },
+ {
+  "id": "nueva-7",
+  "titulo": "Auto con humo · el llamante se corrige al dar la dirección",
+  "texto": "Operador: 911, ¿dónde es la emergencia? Llamante: En Humboldt 1697. No, pará, me confundí: es Humboldt 1967, casi Nicaragua. Un auto estacionado larga humo del capó y tiene otros dos pegados."
  }
 ]

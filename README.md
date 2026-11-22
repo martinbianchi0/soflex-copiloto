@@ -2,7 +2,7 @@
 
 Prototipo que asiste al operador de una sala de emergencias: lee la transcripción de una llamada, propone ubicación, tipo de hecho y prioridad, y el operador revisa, ajusta y deriva la Carta de Llamada.
 
-**Estado:** funcionan los dos modos. En `mock`, sin red ni modelo, las reglas proponen la ubicación contrastada con el callejero de la Ciudad, con la cita de lo que dijo el llamante y avisos cuando la dirección no cierra; para un texto nuevo proponen además la categoría por palabras clave, y si la llamada es una de las 30 del dataset, su tipo, su subtipo, su prioridad y las preguntas del protocolo que el relato ya responde. Con un modelo local, la ubicación sigue saliendo de las reglas y el modelo propone el tipo de hecho, la prioridad con la cita que la justifica y posibles respuestas a las preguntas del protocolo, que el operador confirma. En los dos modos el operador revisa, marca el protocolo, suma lo que el llamante dice después (la sugerencia se actualiza sin pisar lo que ya corrigió) y deriva la carta. Si el llamante dicta una patente o un teléfono, también van a la carta, y si los dicta a medias el panel avisa para pedir que los repita. Si en la media hora anterior o posterior entró otra llamada del mismo lugar, el panel lo avisa. Debajo de la dirección hay un plano chico de la cuadra, dibujado con el callejero y sin red, que sigue lo que el operador corrige. La carta lleva lo que quedó sin confirmar con el llamante y el historial de la llamada: qué propuso el sistema, cuándo, y qué cambió el operador. El panel trae llamadas de ejemplo para cargar.
+**Estado:** funcionan los dos modos. En `mock`, sin red ni modelo, las reglas proponen la ubicación contrastada con el callejero de la Ciudad, con la cita de lo que dijo el llamante y avisos cuando la dirección no cierra; para un texto nuevo proponen además la categoría por palabras clave, y si la llamada es una de las 30 del dataset, su tipo, su subtipo, su prioridad y las preguntas del protocolo que el relato ya responde. Con un modelo local, la ubicación sigue saliendo de las reglas y el modelo propone el tipo de hecho, la prioridad con la cita que la justifica y posibles respuestas a las preguntas del protocolo, que el operador confirma; y cuando las reglas avisan que la dirección no cierra, el modelo la lee de nuevo y el panel ofrece la que propone si el callejero la confirma. En los dos modos el operador revisa, marca el protocolo, suma lo que el llamante dice después (la sugerencia se actualiza sin pisar lo que ya corrigió) y deriva la carta. Si el llamante dicta una patente o un teléfono, también van a la carta, y si los dicta a medias el panel avisa para pedir que los repita. Si en la media hora anterior o posterior entró otra llamada del mismo lugar, el panel lo avisa. Debajo de la dirección hay un plano chico de la cuadra, dibujado con el callejero y sin red, que sigue lo que el operador corrige. La carta lleva lo que quedó sin confirmar con el llamante y el historial de la llamada: qué propuso el sistema, cuándo, y qué cambió el operador. El panel trae llamadas de ejemplo para cargar.
 
 ## Cómo levantarlo
 
@@ -37,9 +37,11 @@ Ollama corre en la máquina y no en el contenedor, para usar la aceleración del
 
 La ubicación la siguen leyendo las reglas y aparece al instante; lo que propone el modelo llega unos segundos después. Si el modelo no responde, el panel lo avisa, con el motivo, y muestra la sugerencia de las reglas.
 
+Cuando las reglas avisan que la dirección no cierra, el modelo la lee de nuevo. Para probarlo: cargar el ejemplo *Auto con humo · el llamante se corrige al dar la dirección* y analizar. Las reglas se quedan con la primera altura que dijo el llamante y avisan que no cierra con la esquina; arriba de la sugerencia aparece "El modelo leyó otra dirección", con la altura corregida y el botón "Usar esta dirección". Usarla es una corrección del operador: la carta la lleva con ese origen.
+
 ## Cuánto acierta
 
-Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo camino que el panel. Dos corridas, que dieron las mismas propuestas en las 62 llamadas, en una Mac M5 con 16 GB y Ollama 0.40.16; los tiempos son los de la segunda. El detalle por llamada está en `evaluacion/`, y la lectura de estos números, en `DECISIONS.md`.
+Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo camino que el panel. Corridas repetidas dieron las mismas propuestas en las 62 llamadas (el pedido va con temperatura 0 y semilla fija), en una Mac M5 con 16 GB y Ollama 0.40.16. Los tiempos son los de la corrida guardada, hecha con el equipo a batería y en modo de bajo consumo; la anterior, con el equipo enchufado y antes de sumar la segunda lectura de la dirección, dio medianas de 4,8 y 5,7 segundos. El detalle por llamada está en `evaluacion/`, y la lectura de estos números, en `DECISIONS.md`.
 
 | | Reglas (`mock`), 32 nuevas | Modelo, 32 nuevas | Modelo, 30 del dataset |
 |---|---|---|---|
@@ -51,12 +53,31 @@ Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo
 | Subtipo correcto | — | — | 26 (4 sin subtipo, 0 equivocados) |
 | Subtipo propuesto sin que el catálogo tenga uno | — | 4 | — |
 | Preguntas del protocolo: posibles respuestas | — | — | señala 4 de las 7 anotadas, y otras 15 |
-| Tiempo por llamada (mediana y percentil 95) | menos de 0,1 s | 4,8 y 9,5 s | 5,7 y 6,7 s |
+| Tiempo por llamada (mediana y percentil 95) | menos de 0,1 s | 7,7 y 13,9 s | 11,6 y 18,2 s |
 
-Las 30 llamadas del dataset son las mismas con las que se escribieron el criterio de prioridad y el catálogo: sus números son un techo. Las otras 32 son sintéticas y no son del dataset: son pocas, y no reemplazan una medición con llamadas reales. En modo `mock`, las 30 del dataset se reconocen por su texto y traen su ficha, así que ahí no hay nada que medir. La ubicación sale siempre de las reglas: reconoce la calle en 27 de las 28 llamadas nuevas que nombran una (`backend/tests/test_medicion.py`).
+Las 30 llamadas del dataset son las mismas con las que se escribieron el criterio de prioridad y el catálogo: sus números son un techo. Las otras 32 son sintéticas y no son del dataset: son pocas, y no reemplazan una medición con llamadas reales. En modo `mock`, las 30 del dataset se reconocen por su texto y traen su ficha, así que ahí no hay nada que medir. La ubicación que se sugiere sale siempre de las reglas: reconoce la calle en 27 de las 28 llamadas nuevas que nombran una (`backend/tests/test_medicion.py`). En 16 de las 62 las reglas dan un aviso sobre la dirección y el análisis suma el pedido de la segunda lectura, que ofreció otra dirección en 2.
 
 ```bash
 cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida ../evaluacion/modelo.json
+```
+
+### La segunda lectura de la dirección
+
+`backend/herramientas/evaluar_direccion.py` pasa 48 llamadas sintéticas con direcciones difíciles (`backend/tests/datos/direcciones_dificiles.json`: el llamante se corrige, dice la altura en palabras, nombra dos direcciones, se contradice) por el mismo camino que el panel. En 29 las reglas dan un aviso de los que piden la segunda lectura (detalle en `evaluacion/direccion-modelo.json`):
+
+| | Modelo, 29 llamadas con aviso |
+|---|---|
+| No había otra dirección que proponer (las reglas ya tenían la dicha, o lo dicho no alcanza para dar una): el modelo no propuso ninguna | 16 de 16 |
+| Las reglas no la tenían: el modelo propuso la dirección dicha | 7 de 13 |
+| Las reglas no la tenían: el modelo propuso otra cosa | 1 de 13 (la calle y las esquinas dichas, sin la altura) |
+| Las reglas no la tenían: el modelo no propuso nada | 5 de 13 |
+| Tiempo que agrega el pedido (mediana y percentil 95) | 4,9 y 7,3 s |
+| Tiempo del análisis completo con aviso (mediana y percentil 95) | 11,7 y 17,1 s (sin aviso, 6,6 s de mediana) |
+
+Son pocas llamadas y sintéticas: con una corrección menos, la segunda lectura no habría alcanzado el mínimo que se fijó para sumarla (corregir la mitad). La lectura está en `DECISIONS.md`.
+
+```bash
+cd backend && uv run python herramientas/evaluar_direccion.py --proveedor ollama --salida ../evaluacion/direccion-modelo.json
 ```
 
 ### A medida que llega la llamada
@@ -86,7 +107,8 @@ cd backend && uv run python herramientas/evaluar_turnos.py --proveedor mock --sa
 
 - **Medir con llamadas reales.** Lo medido son 62 llamadas sintéticas, con un modelo y en una máquina. Faltan transcripciones de reconocimiento de voz, con ruido, interrupciones y varios turnos, y repetir la medición con otros modelos.
 - **Un piso para la prioridad.** El modelo dejó en P2 dos llamadas P1 del dataset. Señales de riesgo de vida detectadas por reglas podrían subir la propuesta sin depender del modelo; hay que validarlas con casos reales para no subir todo.
-- **Una segunda lectura de la dirección cuando las reglas avisan que no cierra.** Hoy el aviso le pide al operador que la lea de vuelta; el modelo podría proponer una corrección consultando el callejero, siempre para que la confirme el operador.
+- **Que la segunda lectura de la dirección no demore el resto.** Hoy es un pedido más, detrás de los otros, y el formulario espera a todos: con aviso, el análisis pasa de unos 7 segundos a unos 12. Podría llegar aparte, después de mostrar el tipo y la prioridad.
+- **Que el modelo consulte el callejero por su cuenta.** Hoy recibe los datos del callejero en el pedido. En una prueba exploratoria, de una corrida, dejarlo hacer hasta tres consultas corrigió más direcciones, pero tardó unos 16 segundos por llamada.
 - **Protocolos para lo que el catálogo no cubre**, definidos por quien tiene la autoridad para hacerlo.
 - **Patentes y teléfonos como llegan de un reconocimiento de voz:** deletreados o con los números en palabras. Hoy se leen escritos con letras y cifras.
 - **Entrada en vivo.** Hoy el operador escribe cada turno, o se reproduce un ejemplo; lo siguiente sería recibirlos a medida que se transcribe la llamada.
@@ -106,7 +128,8 @@ cd backend && uv run python herramientas/evaluar_turnos.py --proveedor mock --sa
 - `backend/src/copiloto/duplicados.py`: el aviso de otra llamada reciente del mismo lugar.
 - `backend/src/copiloto/mapa.py`: el plano de la cuadra para confirmar la dirección.
 - `backend/src/copiloto/interprete.py` y `modelo.py`: los pedidos al modelo local y la verificación de lo que devuelve.
-- `backend/herramientas/evaluar.py` y `evaluacion/`: la medición de lo que propone el servicio y su detalle por llamada.
+- `backend/src/copiloto/segunda_lectura.py`: la dirección que propone el modelo cuando las reglas avisan, comprobada contra el callejero.
+- `backend/herramientas/evaluar.py`, `evaluar_turnos.py`, `evaluar_direccion.py` y `evaluacion/`: las mediciones de lo que propone el servicio y su detalle por llamada.
 - `backend/herramientas/capturar_respuestas.py` y `frontend/src/pruebas/respuestas/`: respuestas reales del servicio, que usan los tests del panel.
 - `backend/src/copiloto/criterio.py`: el criterio de prioridad P1 a P4, que el panel muestra junto a la prioridad.
 - `DECISIONS.md`: qué se eligió y por qué.

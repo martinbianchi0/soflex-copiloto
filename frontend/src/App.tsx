@@ -95,6 +95,7 @@ function App() {
   const [error, setError] = useState<string | DetalleValidacion[] | null>(null)
   const [aviso, setAviso] = useState('')
   const [anuncio, setAnuncio] = useState('')
+  const [anuncioDireccion, setAnuncioDireccion] = useState('')
   const [sumando, setSumando] = useState<'turno' | 'intercambio' | null>(null)
   const [errorTurno, setErrorTurno] = useState('')
   const solicitud = useRef<AbortController | null>(null)
@@ -495,6 +496,7 @@ function App() {
             </p>
           )}
         </div>
+        <span className="solo-lectores" aria-atomic="true">{muestraFormulario && anuncioDireccion}</span>
         <span className="solo-lectores" aria-atomic="true">
           {duplicadosVisibles && (
             <span key={duplicadosVisibles.anuncio}>Hay otra llamada reciente del mismo lugar.</span>
@@ -561,7 +563,8 @@ function App() {
             derivacionBloqueada={bloqueado || analizando || !catalogo} edicionBloqueada={edicionBloqueada || !catalogo}
             ocupado={ocupado && !analizando && !sumando} nuevaLlamadaBloqueada={nuevaLlamadaBloqueada}
             alDerivar={derivar} errores={Array.isArray(error) ? error : []}
-            alCambiarProtocolo={setAnuncio} alValidar={setError} alEmpezar={nuevaLlamada} />
+            alCambiarProtocolo={setAnuncio} alAnunciarDireccion={setAnuncioDireccion}
+            alValidar={setError} alEmpezar={nuevaLlamada} />
         ) : (
           <div className="panel-operador">
             <div className="columna-transcripcion">

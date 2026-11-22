@@ -1,7 +1,7 @@
 {
   "proveedor": "mock",
   "modelo": null,
-  "fecha": "2026-11-22T19:49:32+00:00",
+  "fecha": "2026-11-22T20:51:29+00:00",
   "guiones": [
     {
       "id": "G01",
@@ -28,7 +28,7 @@
             "falta_altura"
           ],
           "pedidos": 0,
-          "segundos": 0.865,
+          "segundos": 0.24,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "espera",
@@ -57,7 +57,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.02,
+          "segundos": 0.007,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "espera",
@@ -86,7 +86,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.021,
+          "segundos": 0.006,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -117,7 +117,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.022,
+          "segundos": 0.007,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -149,7 +149,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.025,
+          "segundos": 0.007,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -184,7 +184,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.017,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -215,7 +215,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.02,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -247,7 +247,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.017,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "mal",
             "subtipo": "sin_subtipo",
@@ -280,7 +280,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.018,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -314,7 +314,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.011,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "espera",
@@ -342,7 +342,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.013,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -372,7 +372,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.012,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -407,7 +407,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.01,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "espera",
             "subtipo": "espera",
@@ -438,7 +438,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.017,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -470,7 +470,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.015,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -504,7 +504,7 @@
             "falta_altura"
           ],
           "pedidos": 0,
-          "segundos": 0.013,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -535,7 +535,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.02,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -567,7 +567,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.022,
+          "segundos": 0.006,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -602,7 +602,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.013,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "espera",
@@ -633,7 +633,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.016,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "mal",
             "subtipo": "sin_subtipo",
@@ -665,7 +665,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.018,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "mal",
             "subtipo": "sin_subtipo",
@@ -700,7 +700,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.014,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -731,7 +731,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.018,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -763,7 +763,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.024,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -796,7 +796,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.02,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -830,7 +830,7 @@
             "falta_altura"
           ],
           "pedidos": 0,
-          "segundos": 0.016,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "espera",
             "subtipo": "espera",
@@ -859,7 +859,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.022,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "espera",
@@ -890,7 +890,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.022,
+          "segundos": 0.006,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -922,7 +922,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.026,
+          "segundos": 0.007,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -958,7 +958,7 @@
             "falta_altura"
           ],
           "pedidos": 0,
-          "segundos": 0.015,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -989,7 +989,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.02,
+          "segundos": 0.006,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -1021,7 +1021,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.039,
+          "segundos": 0.007,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -1056,7 +1056,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.025,
+          "segundos": 0.006,
           "lectura": {
             "categoria": "espera",
             "subtipo": "espera",
@@ -1087,7 +1087,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.02,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -1119,7 +1119,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.026,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -1153,7 +1153,7 @@
             "falta_altura"
           ],
           "pedidos": 0,
-          "segundos": 0.021,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "espera",
@@ -1182,7 +1182,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.024,
+          "segundos": 0.006,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "espera",
@@ -1213,7 +1213,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.026,
+          "segundos": 0.006,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -1245,7 +1245,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.03,
+          "segundos": 0.006,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -1279,7 +1279,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.017,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -1309,7 +1309,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.019,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "mal",
             "subtipo": "sin_subtipo",
@@ -1340,7 +1340,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.024,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "mal",
             "subtipo": "sin_subtipo",
@@ -1372,7 +1372,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.018,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "mal",
             "subtipo": "sin_subtipo",
@@ -1406,7 +1406,7 @@
             "falta_altura"
           ],
           "pedidos": 0,
-          "segundos": 0.015,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -1435,7 +1435,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.019,
+          "segundos": 0.005,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -1466,7 +1466,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.02,
+          "segundos": 0.006,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -1503,7 +1503,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.015,
+          "segundos": 0.003,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -1534,7 +1534,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.019,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -1566,7 +1566,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.017,
+          "segundos": 0.004,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -1619,9 +1619,9 @@
           }
         },
         "segundos": {
-          "mediana": 0.015,
-          "p95": 0.865,
-          "maximo": 0.865
+          "mediana": 0.004,
+          "p95": 0.24,
+          "maximo": 0.24
         },
         "pedidos": {
           "mediana": 0.0,
@@ -1669,9 +1669,9 @@
           }
         },
         "segundos": {
-          "mediana": 0.0195,
-          "p95": 0.024,
-          "maximo": 0.024
+          "mediana": 0.005,
+          "p95": 0.007,
+          "maximo": 0.007
         },
         "pedidos": {
           "mediana": 0.0,
@@ -1719,9 +1719,9 @@
           }
         },
         "segundos": {
-          "mediana": 0.0215,
-          "p95": 0.039,
-          "maximo": 0.039
+          "mediana": 0.005,
+          "p95": 0.007,
+          "maximo": 0.007
         },
         "pedidos": {
           "mediana": 0.0,
@@ -1769,9 +1769,9 @@
           }
         },
         "segundos": {
-          "mediana": 0.022,
-          "p95": 0.03,
-          "maximo": 0.03
+          "mediana": 0.006,
+          "p95": 0.007,
+          "maximo": 0.007
         },
         "pedidos": {
           "mediana": 0,
@@ -1820,9 +1820,9 @@
         }
       },
       "segundos": {
-        "mediana": 0.019,
-        "p95": 0.03,
-        "maximo": 0.865
+        "mediana": 0.005,
+        "p95": 0.007,
+        "maximo": 0.24
       },
       "pedidos": {
         "mediana": 0,
