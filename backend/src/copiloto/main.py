@@ -20,6 +20,7 @@ from copiloto.llamadas import (
     LlamadaNoEsperaOperador,
     Llamadas,
 )
+from copiloto.modelo import de_ollama
 
 
 def crear_app(configuracion: Configuracion | None = None) -> FastAPI:
@@ -33,7 +34,10 @@ def crear_app(configuracion: Configuracion | None = None) -> FastAPI:
         callejero.cargar()
         dataset.cargar()
         ejemplos.cargar()
-        app.state.llamadas = Llamadas(configuracion.sqlite_path)
+        modelo = de_ollama(configuracion) if configuracion.llm_provider == "ollama" else None
+        app.state.llamadas = Llamadas(
+            configuracion.sqlite_path, modelo, configuracion.llm_timeout_s
+        )
         yield
         app.state.llamadas.cerrar()
 
@@ -98,8 +102,9 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
         )
 
     @api.get("/health")
-    def health() -> dict[str, str]:
-        return {"status": "ok", "llm_provider": configuracion.llm_provider}
+    def health() -> dict[str, str | None]:
+        modelo = configuracion.ollama_model if configuracion.llm_provider == "ollama" else None
+        return {"status": "ok", "llm_provider": configuracion.llm_provider, "modelo": modelo}
 
     @api.get("/ejemplos")
     def listar_ejemplos() -> list[Ejemplo]:
@@ -116,6 +121,10 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
     @api.get("/llamadas/{llamada_id}")
     def consultar_llamada(llamada_id: str) -> Llamada:
         return llamadas().consultar(llamada_id)
+
+    @api.post("/llamadas/{llamada_id}/analisis")
+    def completar_analisis(llamada_id: str) -> Llamada:
+        return llamadas().completar_analisis(llamada_id)
 
     @api.post("/llamadas/{llamada_id}/derivar")
     def derivar_llamada(llamada_id: str, derivacion: Derivacion) -> Llamada:

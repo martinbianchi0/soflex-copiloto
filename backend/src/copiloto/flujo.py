@@ -1,9 +1,11 @@
 """La lógica del flujo de una llamada, en funciones comunes. Acá no se importa el grafo."""
 
+import logging
 from datetime import datetime
+from time import monotonic
 from typing import Any, Literal, NotRequired, TypedDict
 
-from copiloto import catalogo, dataset, tipo, ubicacion
+from copiloto import catalogo, dataset, interprete, tipo, ubicacion
 from copiloto.catalogo import Pregunta, Protocolo, SubtipoInvalido
 from copiloto.esquemas import (
     Ajustes,
@@ -12,9 +14,12 @@ from copiloto.esquemas import (
     Categoria,
     Cita,
     Dato,
+    Falta,
     Ficha,
+    Inferido,
     ItemChecklist,
     MarcaChecklist,
+    Prioridad,
     Sugerencia,
     Turno,
     Ubicacion,
@@ -22,7 +27,10 @@ from copiloto.esquemas import (
     texto_plano,
     valor_de,
 )
+from copiloto.modelo import Modelo, ModeloNoDisponible
 from copiloto.turnos import tramos_del_llamante
+
+_registro = logging.getLogger(__name__)
 
 
 class _CitaPlana(TypedDict):
@@ -68,26 +76,113 @@ def analizar(turnos: list[Turno]) -> Sugerencia:
     respondidas salen de su ficha. Si es un texto nuevo, se propone sólo la categoría, por palabras
     clave, y el resto queda para el operador.
     """
-    lugar = ubicacion.interpretar(turnos)
-    propuesta: dict[str, object] = {
-        "ubicacion": lugar.ubicacion,
-        "prioridad": {"origen": "falta"},
-        "avisos": lugar.avisos,
-    }
     if (conocida := dataset.buscar(turnos)) is None:
-        categoria = tipo.por_palabras_clave(turnos)
-        propuesta["tipo_hecho"] = {"origen": "inferido", "valor": categoria, "fuente": "reglas"}
-        return Sugerencia.model_validate(propuesta)
+        return analizar_base(turnos)
+    lugar = ubicacion.interpretar(turnos)
     protocolo = catalogo.cargar().protocolo(conocida.categoria, conocida.subtipo)
     assert protocolo is not None  # La llamada conocida siempre trae un subtipo del catálogo.
-    for campo in ("categoria", "subtipo", "prioridad"):
-        dato = {"origen": "inferido", "valor": getattr(conocida, campo), "fuente": "dataset"}
-        propuesta["tipo_hecho" if campo == "categoria" else campo] = dato
-    propuesta["checklist"] = [
-        _respuesta(pregunta, conocida.respuestas.get(pregunta.id), turnos)
-        for pregunta in protocolo.preguntas
-    ]
-    return Sugerencia.model_validate(propuesta)
+    return Sugerencia.model_validate(
+        {
+            "ubicacion": lugar.ubicacion,
+            "avisos": lugar.avisos,
+            "tipo_hecho": Inferido[Categoria](valor=conocida.categoria, fuente="dataset"),
+            "subtipo": Inferido[str](valor=conocida.subtipo, fuente="dataset"),
+            "prioridad": Inferido[Prioridad](valor=conocida.prioridad, fuente="dataset"),
+            "checklist": [
+                _respuesta(pregunta, conocida.respuestas.get(pregunta.id), turnos)
+                for pregunta in protocolo.preguntas
+            ],
+        }
+    )
+
+
+def analizar_base(turnos: list[Turno]) -> Sugerencia:
+    """Arma la sugerencia del alta con el callejero y palabras clave."""
+    lugar = ubicacion.interpretar(turnos)
+    return Sugerencia(
+        ubicacion=lugar.ubicacion,
+        avisos=lugar.avisos,
+        tipo_hecho=Inferido[Categoria](valor=tipo.por_palabras_clave(turnos), fuente="reglas"),
+        prioridad=Falta(),
+    )
+
+
+def rescatar_analisis(turnos: list[Turno], motivo: str) -> Sugerencia:
+    rescate = analizar(turnos)
+    aviso = Aviso(
+        codigo="modelo_no_disponible",
+        mensaje=f"El modelo no respondió ({motivo}): esta sugerencia sale de las reglas.",
+    )
+    return rescate.model_copy(update={"avisos": [*rescate.avisos, aviso]})
+
+
+def _motivo_de_falla(error: ModeloNoDisponible | interprete.RespuestaIlegible) -> str:
+    motivo = (
+        error.motivo if isinstance(error, ModeloNoDisponible) else "su respuesta no se pudo leer"
+    )
+    _registro.warning("%s: %r", motivo, error.__cause__ or error)
+    return motivo
+
+
+def analizar_con_modelo(
+    turnos: list[Turno], base: Sugerencia, modelo: Modelo, espera_s: float
+) -> Sugerencia:
+    vence = monotonic() + espera_s
+    usuario = interprete.mensaje_del_llamante(turnos)
+    try:
+        propuesta = interprete.clasificar(modelo, usuario, vence)
+    except (ModeloNoDisponible, interprete.RespuestaIlegible) as error:
+        return rescatar_analisis(turnos, _motivo_de_falla(error))
+
+    avisos = list(base.avisos)
+    protocolo = None
+    if propuesta.subtipo is not None:
+        try:
+            if not isinstance(propuesta.subtipo, str):
+                raise SubtipoInvalido("El identificador del subtipo debe ser texto.")
+            protocolo = catalogo.cargar().protocolo(propuesta.categoria, propuesta.subtipo)
+        except SubtipoInvalido:
+            avisos.append(_SUBTIPO_DESCARTADO)
+
+    respuestas: list[ItemChecklist] = []
+    if protocolo is not None:
+        try:
+            respuestas, descartes = interprete.revisar_protocolo(
+                modelo, usuario, protocolo, turnos, vence
+            )
+            avisos.extend(descartes)
+        except interprete.SubtipoNoCorresponde:
+            # No es un aviso para el operador: el subtipo queda sin elegir, que es lo habitual
+            # cuando el catálogo no tiene uno para ese hecho.
+            _registro.info("El modelo descartó al revisarlo el subtipo %s.", protocolo.id)
+            protocolo = None
+        except (ModeloNoDisponible, interprete.RespuestaIlegible) as error:
+            # Un subtipo sin confirmar no se muestra: traería las preguntas y las instrucciones
+            # de un caso que puede no ser este.
+            avisos.append(_subtipo_sin_confirmar(protocolo, _motivo_de_falla(error)))
+            protocolo = None
+
+    return Sugerencia(
+        ubicacion=base.ubicacion,
+        avisos=avisos,
+        tipo_hecho=Inferido[Categoria](valor=propuesta.categoria, fuente="modelo"),
+        subtipo=Inferido[str](valor=protocolo.id, fuente="modelo") if protocolo else Falta(),
+        prioridad=Inferido[Prioridad](
+            valor=propuesta.prioridad,
+            fuente="modelo",
+            cita=interprete.verificar_cita(propuesta.cita, turnos),
+        ),
+        checklist=checklist_de(protocolo, respuestas),
+        instrucciones=protocolo.instrucciones if protocolo else [],
+    )
+
+
+def _subtipo_sin_confirmar(protocolo: Protocolo, motivo: str) -> Aviso:
+    mensaje = (
+        f"El modelo propuso el subtipo «{protocolo.nombre}» y no llegó a confirmarlo: {motivo}. "
+        "Elegí el subtipo si alguno corresponde."
+    )
+    return Aviso(codigo="modelo_no_disponible", mensaje=mensaje)
 
 
 def _respuesta(pregunta: Pregunta, fragmento: str | None, turnos: list[Turno]) -> _Respuesta:
@@ -113,20 +208,29 @@ def _lo_dijo_el_llamante(cita: Cita, turnos: list[Turno]) -> bool:
 
 
 _DESCARTE = "Se descartó {}: la cita que lo respaldaba no está en lo que dijo el llamante."
+_SUBTIPO_DESCARTADO = Aviso(
+    codigo="dato_descartado",
+    mensaje="Se descartó el subtipo: no está en el catálogo o es de otra categoría.",
+)
 
 
 def quitar_lo_que_nadie_dijo(sugerencia: Sugerencia, turnos: list[Turno]) -> Sugerencia:
-    """Un dato "dicho" vale por su cita. Si el llamante no dijo eso, el dato se descarta.
+    """Verifica que cada cita salga de lo que dijo el llamante.
 
-    Lo que dice el operador no es evidencia: una cita que sólo está en sus palabras no respalda nada.
-
-    No se corrige ni se adivina: queda como faltante para que lo complete el operador, y la
-    sugerencia lo avisa. Así un intérprete que cita mal no tira abajo la llamada ni afirma nada.
+    Un dato dicho o una respuesta sin respaldo quedan pendientes, con un aviso. De una inferencia
+    se conserva el valor y se quita la cita que no verificó.
     """
     descartes: list[str] = []
+    cambio = False
 
     def revisar(dato: _DatoPlano, nombre: str, reemplazo: _DatoPlano | None = None) -> _DatoPlano:
-        if dato["origen"] != "dicho" or _lo_dijo_el_llamante(Cita(**dato["cita"]), turnos):
+        nonlocal cambio
+        cita = dato.get("cita")
+        if cita is None or _lo_dijo_el_llamante(Cita(**cita), turnos):
+            return dato
+        if dato["origen"] == "inferido":
+            cambio = True
+            dato.pop("cita")
             return dato
         descartes.append(nombre)
         return reemplazo or {"origen": "falta"}
@@ -150,7 +254,7 @@ def quitar_lo_que_nadie_dijo(sugerencia: Sugerencia, turnos: list[Turno]) -> Sug
         if item["cita"] and not _lo_dijo_el_llamante(Cita(**item["cita"]), turnos):
             descartes.append("la respuesta a una pregunta del protocolo")
             item.update(respondida=False, cita=None)
-    if not descartes:
+    if not descartes and not cambio:
         return sugerencia
     plana["avisos"] += [
         {"codigo": "dato_descartado", "mensaje": _DESCARTE.format(que)} for que in descartes
@@ -190,7 +294,8 @@ def derivar(llamada_id: str, sugerencia: Sugerencia, ajustes: Ajustes, ahora: da
     sin_confirmar = [
         aviso
         for aviso in sugerencia.avisos
-        if aviso.codigo != "dato_descartado" and ubicacion == sugerencia.ubicacion.model_dump()
+        if aviso.codigo not in ("dato_descartado", "modelo_no_disponible")
+        and ubicacion == sugerencia.ubicacion.model_dump()
     ]
     if se_quitaron_esquinas:
         sin_confirmar.append(_ESQUINAS_DE_OTRA_DIRECCION)
@@ -262,8 +367,7 @@ def ajustar_al_catalogo(sugerencia: Sugerencia) -> Sugerencia:
         protocolo = catalogo.cargar().protocolo(categoria, subtipo.get("valor"))
     except SubtipoInvalido:
         protocolo, subtipo = None, {"origen": "falta"}
-        mensaje = "Se descartó el subtipo: no está en el catálogo o es de otra categoría."
-        avisos.append(Aviso(codigo="dato_descartado", mensaje=mensaje))
+        avisos.append(_SUBTIPO_DESCARTADO)
     return Sugerencia.model_validate(
         {
             **sugerencia.model_dump(),
