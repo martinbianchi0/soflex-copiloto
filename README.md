@@ -64,6 +64,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 
 - **Medir con llamadas reales.** Lo medido son 62 llamadas sintéticas, con un modelo y en una máquina. Faltan transcripciones de reconocimiento de voz, con ruido, interrupciones y varios turnos, y repetir la medición con otros modelos.
 - **Un piso para la prioridad.** El modelo dejó en P2 dos llamadas P1 del dataset. Señales de riesgo de vida detectadas por reglas podrían subir la propuesta sin depender del modelo; hay que validarlas con casos reales para no subir todo.
+- **Una segunda lectura de la dirección cuando las reglas avisan que no cierra.** Hoy el aviso le pide al operador que la lea de vuelta; el modelo podría proponer una corrección consultando el callejero, siempre para que la confirme el operador.
 - **Protocolos para lo que el catálogo no cubre**, definidos por quien tiene la autoridad para hacerlo.
 - **Entrada en vivo.** Hoy el operador escribe cada turno; lo siguiente sería recibirlos a medida que se transcribe la llamada.
 - **Aviso de llamadas sobre el mismo hecho:** misma esquina y pocos minutos de diferencia.

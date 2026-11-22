@@ -124,6 +124,8 @@ Los números están en el `README.md` y el detalle por llamada, en `evaluacion/`
 - **Al confirmar una posible respuesta, la marca viaja con la cita que el operador tuvo a la vista.** El servicio comprueba que esté en lo que dijo el llamante en ese turno y guarda el fragmento copiado de la transcripción, no el texto que mandó el panel.
 - **Si la prioridad sugerida cambia al volver a analizar, la sugerencia lo avisa,** y el panel lo anuncia con el mensaje completo. También avisa si antes había una prioridad sugerida y ahora no hay ninguna (por ejemplo, porque el modelo no respondió en la segunda vuelta). El operador puede haber leído ya la anterior. Por ejemplo, si el llamante agrega que el motociclista respira y contesta, el modelo puede bajarla de P1 a P2: el cambio puede ser razonable, pero no puede pasar sin verse.
 - **El foco no se mueve cuando termina el reanálisis.** El operador sigue escribiendo donde estaba; el cambio se anuncia en la región de avisos.
+- **Una llamada la atiende un solo puesto.** Si dos pestañas abren la misma llamada y una suma un turno, la otra puede derivar con un formulario que no vio la sugerencia nueva: los ajustes no dicen sobre qué versión de la sugerencia se hicieron. Para varios puestos habría que mandar esa versión con los ajustes y rechazar los que quedaron viejos.
+- **Un pedido que se reintenta porque se perdió su respuesta se repite.** Dar de alta o sumar un turno dos veces crea dos llamadas o dos turnos: no hay una clave que identifique el pedido.
 
 ## El historial de una llamada
 
