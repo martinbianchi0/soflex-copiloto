@@ -51,6 +51,27 @@ Las 30 llamadas del dataset son las mismas con las que se escribieron el criteri
 cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida ../evaluacion/modelo.json
 ```
 
+## Supuestos
+
+- **La llamada llega como texto**, en una lista de turnos con quién habla si se sabe. No hay audio ni reconocimiento de voz.
+- **Las llamadas son de la Ciudad de Buenos Aires.** Toda dirección se lee contra su callejero: una calle de otro lugar que se llama igual que una porteña se toma por la porteña. El operador tiene la cita al lado y la corrige.
+- **El operador no despacha.** Revisa, completa y deriva la Carta de Llamada; el despacho es de otro sistema.
+- **Todo lo que propone el sistema es una sugerencia.** La ubicación, el tipo, la prioridad y las preguntas respondidas los confirma el operador, y la carta dice de dónde salió cada dato.
+- **El catálogo de protocolos son los 30 subtipos del dataset provisto.** Un hecho que no está ahí queda con su categoría y sin protocolo. Su contenido no está validado por una autoridad médica ni operativa.
+- **Un puesto, un proceso.** No hay usuarios ni permisos, y la garantía de que una llamada se deriva una sola vez vale con un solo proceso del servicio.
+
+## Qué haría con más tiempo
+
+- **Medir con llamadas reales.** Lo medido son 62 llamadas sintéticas, con un modelo y en una máquina. Faltan transcripciones de reconocimiento de voz, con ruido, interrupciones y varios turnos, y repetir la medición con otros modelos.
+- **Un piso para la prioridad.** El modelo dejó en P2 dos llamadas P1 del dataset. Señales de riesgo de vida detectadas por reglas podrían subir la propuesta sin depender del modelo; hay que validarlas con casos reales para no subir todo.
+- **Protocolos para lo que el catálogo no cubre**, definidos por quien tiene la autoridad para hacerlo.
+- **Entrada en vivo.** Hoy el operador escribe cada turno; lo siguiente sería recibirlos a medida que se transcribe la llamada.
+- **Aviso de llamadas sobre el mismo hecho:** misma esquina y pocos minutos de diferencia.
+- **Coordenadas además de calle y altura**, y contraste con el servicio de direcciones de la Ciudad cuando hay red.
+- **Trazas de cada pedido al modelo** (qué se le mandó, qué devolvió, cuánto tardó), para revisar un caso sin volver a correrlo.
+- **Tests automáticos del panel.** El backend tiene los suyos; el panel no tiene.
+- **Probarlo con un lector de pantalla y en Linux.** Los anuncios y el foco están pensados para un lector de pantalla, pero no se probaron con uno, y el modo con modelo no se probó en Linux.
+
 ## Cómo está armado
 
 - `backend/`: la API (FastAPI) y el recorrido de la llamada (LangGraph, con el estado en SQLite).
