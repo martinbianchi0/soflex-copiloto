@@ -88,6 +88,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 - `backend/src/copiloto/ubicacion.py` y `callejero.py`: la lectura de la dirección y su contraste con el callejero.
 - `backend/src/copiloto/dictados.py`: la patente y el teléfono que dicta el llamante.
 - `backend/src/copiloto/duplicados.py`: el aviso de otra llamada reciente del mismo lugar.
+- `backend/src/copiloto/mapa.py`: el plano de la cuadra para confirmar la dirección.
 - `backend/src/copiloto/interprete.py` y `modelo.py`: los pedidos al modelo local y la verificación de lo que devuelve.
 - `backend/herramientas/evaluar.py` y `evaluacion/`: la medición de lo que propone el servicio y su detalle por llamada.
 - `backend/src/copiloto/criterio.py`: el criterio de prioridad P1 a P4, que el panel muestra junto a la prioridad.
@@ -96,6 +97,8 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 ## Datos de terceros
 
 `backend/src/copiloto/datos/callejero_caba.csv` es una versión reducida del [Callejero de la Ciudad de Buenos Aires](https://data.buenosaires.gob.ar/dataset/calles), publicado por el Gobierno de la Ciudad en BA Data con licencia [CC BY 2.5 AR](https://creativecommons.org/licenses/by/2.5/ar/). Se usó el archivo `callejero.csv` descargado el 20/11/2026. Se quitaron la geometría y las columnas que no se usan; se descartaron los tramos sin nombre oficial y los de tipos que no sirven para dar una dirección; y a cada tramo se le agregó un número de nodo por extremo, agrupando los extremos que quedan a unos 3 m. La reducción se regenera con `backend/herramientas/reducir_callejero.py`. `callejero_nodos.csv`, en la misma carpeta, sale del mismo archivo y de la misma corrida (opción `--nodos`): de la geometría conserva sólo la longitud y la latitud de cada nodo, la del primer extremo de su grupo, con seis decimales.
+
+`backend/tests/datos/puntos_de_referencia.json` trae 13 direcciones con la coordenada que devolvió el normalizador de direcciones de [USIG](https://usig.buenosaires.gob.ar/apis/) (Gobierno de la Ciudad), consultado el 22/11/2026. Se usan sólo en un test, para comprobar el punto del plano; el test no consulta el servicio.
 
 ## Desarrollo
 

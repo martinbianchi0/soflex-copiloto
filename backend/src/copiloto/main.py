@@ -3,16 +3,25 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from copiloto import callejero, catalogo, dataset, ejemplos
+from copiloto import callejero, catalogo, dataset, ejemplos, mapa
 from copiloto.catalogo import Catalogo, SubtipoInvalido
 from copiloto.config import Configuracion
 from copiloto.ejemplos import Ejemplo
-from copiloto.esquemas import Derivacion, Duplicados, Historial, Llamada, NuevaLlamada, NuevoTurno
+from copiloto.esquemas import (
+    Derivacion,
+    Duplicados,
+    Historial,
+    Llamada,
+    NuevaLlamada,
+    NuevoTurno,
+    PedidoDePlano,
+    Plano,
+)
 from copiloto.flujo import DictadoInvalido, FaltanDatos, MarcaInvalida
 from copiloto.llamadas import (
     LlamadaIlegible,
@@ -121,6 +130,13 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
     @api.get("/catalogo")
     def consultar_catalogo() -> Catalogo:
         return catalogo.cargar()
+
+    @api.post("/mapa")
+    def consultar_mapa(pedido: PedidoDePlano) -> Plano:
+        plano = mapa.plano(pedido.calle, pedido.altura, pedido.esquinas)
+        if plano is None:
+            raise HTTPException(404, "No se pudo ubicar la dirección en el callejero.")
+        return plano
 
     @api.post("/llamadas", status_code=201)
     def iniciar_llamada(nueva: NuevaLlamada) -> Llamada:

@@ -1,0 +1,83 @@
+{
+ "fuente": "Normalizador de direcciones de USIG (Gobierno de la Ciudad de Buenos Aires), consultado el 22/11/2026.",
+ "puntos": [
+  {
+   "calle": "Av. Corrientes",
+   "altura": 1540,
+   "lon": -58.388642,
+   "lat": -34.604241
+  },
+  {
+   "calle": "Av. Gaona",
+   "altura": 2920,
+   "lon": -58.466978,
+   "lat": -34.616939
+  },
+  {
+   "calle": "Av. Rivadavia",
+   "altura": 6300,
+   "lon": -58.455217,
+   "lat": -34.626178
+  },
+  {
+   "calle": "Billinghurst",
+   "altura": 1845,
+   "lon": -58.409133,
+   "lat": -34.58918
+  },
+  {
+   "calle": "Honduras",
+   "altura": 4850,
+   "lon": -58.428749,
+   "lat": -34.589727
+  },
+  {
+   "calle": "Av. Cabildo",
+   "altura": 3750,
+   "lon": -58.468508,
+   "lat": -34.54877
+  },
+  {
+   "calle": "Av. San Juan",
+   "altura": 2800,
+   "lon": -58.403355,
+   "lat": -34.624006
+  },
+  {
+   "calle": "Av. Juan B. Justo",
+   "altura": 4200,
+   "lon": -58.460345,
+   "lat": -34.605909
+  },
+  {
+   "calle": "Av. Warnes",
+   "altura": 650,
+   "lon": -58.445482,
+   "lat": -34.601171
+  },
+  {
+   "calle": "Av. Scalabrini Ortiz",
+   "altura": 850,
+   "lon": -58.432945,
+   "lat": -34.596038
+  },
+  {
+   "calle": "Av. Directorio",
+   "altura": 2140,
+   "lon": -58.4571,
+   "lat": -34.632447
+  },
+  {
+   "calle": "Av. Pueyrredon",
+   "altura": 1200,
+   "lon": -58.403204,
+   "lat": -34.596634
+  },
+  {
+   "calle": "Av. Montes de Oca",
+   "altura": 1100,
+   "lon": -58.374155,
+   "lat": -34.640464
+  }
+ ]
+}
