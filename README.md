@@ -37,6 +37,8 @@ Ollama corre en la máquina y no en el contenedor, para usar la aceleración del
 
 La ubicación la siguen leyendo las reglas y aparece al instante; lo que propone el modelo llega unos segundos después. Si el modelo no responde, el panel lo avisa, con el motivo, y muestra la sugerencia de las reglas.
 
+Cuando las reglas avisan que la dirección no cierra, el modelo la lee de nuevo. Para probarlo: cargar el ejemplo *Auto con humo · el llamante se corrige al dar la dirección* y analizar. Las reglas se quedan con la primera altura que dijo el llamante y avisan que no cierra con la esquina; arriba de la sugerencia aparece "El modelo leyó otra dirección", con la altura corregida y el botón "Usar esta dirección". Usarla es una corrección del operador: la carta la lleva con ese origen.
+
 ## Cuánto acierta
 
 Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo camino que el panel. Corridas repetidas dieron las mismas propuestas en las 62 llamadas (el pedido va con temperatura 0 y semilla fija), en una Mac M5 con 16 GB y Ollama 0.40.16. Los tiempos son los de la corrida guardada, hecha con el equipo a batería y en modo de bajo consumo; la anterior, con el equipo enchufado y antes de sumar la segunda lectura de la dirección, dio medianas de 4,8 y 5,7 segundos. El detalle por llamada está en `evaluacion/`, y la lectura de estos números, en `DECISIONS.md`.
