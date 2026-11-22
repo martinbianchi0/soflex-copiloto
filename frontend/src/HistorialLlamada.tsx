@@ -42,8 +42,8 @@ function Cambios({ cambios, checklist }: Pick<Historial, 'cambios'> & Pick<Carta
         <tr><th scope="col">Campo</th><th scope="col">Sugerido</th><th scope="col">Final</th></tr>
       </thead>
       <tbody>
-        {cambios.map(({ campo, sugerido, final }) => (
-          <tr key={campo}>
+        {cambios.map(({ campo, sugerido, final }, indice) => (
+          <tr key={`${campo}-${indice}`}>
             <th scope="row">{nombreCampo(campo, checklist)}</th>
             <td><ValorHistorial valor={sugerido} campo={campo} /></td>
             <td><ValorHistorial valor={final} campo={campo} /></td>

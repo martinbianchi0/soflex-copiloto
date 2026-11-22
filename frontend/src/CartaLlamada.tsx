@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { citaDato, nombresTiposHecho, textoOrigen, valorDato } from './api'
 import type { Carta, Catalogo, Dato, Pregunta } from './api'
 import { GrupoAvisos } from './AvisosSugerencia'
+import DatosDictados from './DatosDictados'
 import HistorialLlamada from './HistorialLlamada'
 import Instrucciones from './Instrucciones'
 import PrioridadEtiqueta from './PrioridadEtiqueta'
@@ -62,6 +63,7 @@ export default function CartaLlamada({ carta, catalogo }: { carta: Carta; catalo
         <dt>Derivación</dt>
         <dd><time dateTime={carta.derivada_en}>{new Date(carta.derivada_en).toLocaleString('es-AR', { hourCycle: 'h23' })}</time></dd>
       </dl>
+      <DatosDictados datos={carta.datos_dictados} />
       <Instrucciones instrucciones={carta.instrucciones} titulo="Instrucciones de pre-arribo del protocolo" />
       {carta.checklist.length > 0 && (
         <section className="detalles-sugerencia">

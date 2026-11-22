@@ -290,6 +290,7 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
 .pregunta.posible .cita { font-style: italic; }
 .tiempo-derivacion { margin: 0.5rem 0 0; font-size: 0.875rem; }
 .ayuda-checklist { margin: 0.25rem 0 0; font-size: 0.875rem; color: #44576a; }
+.detalles-sugerencia .dictados-editables { padding: 0; list-style: none; }
 .pregunta input { inline-size: 1.5rem; block-size: 1.5rem; margin: 0; accent-color: #1c4d77; cursor: pointer; }
 
 @media (min-width: 36rem) {
