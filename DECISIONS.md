@@ -137,7 +137,7 @@ Los números están en el `README.md` y el detalle por llamada, en `evaluacion/`
 - **Los avisos del análisis van arriba de la sugerencia y no bloquean la derivación.** Piden confirmar algo con el llamante; decidir sigue siendo del operador. Los que quedan sin resolver se ven también en la carta.
 - **El origen que se ve junto a un campo sigue lo que hace el operador.** Al cambiar un valor, la etiqueta pasa a "del operador" y su cita se oculta; si vuelve al valor sugerido, vuelven la etiqueta y la cita.
 - **El checklist se marca con casillas, y cada una dice quién la marcó:** la cita del sistema, o "marcada por vos" y "desmarcada por vos". Una posible respuesta se ve sin tildar, con su cita, y al marcarla pasa a "confirmada por vos".
-- **Las instrucciones de pre-arribo van arriba del checklist, con letra más grande:** son lo que el operador lee en voz alta.
+- **Las instrucciones de pre-arribo van arriba del checklist, con letra más grande:** son lo que el operador lee en voz alta, y el título lo dice. En la carta, que lee el despachador, van como instrucciones del protocolo.
 - **Enter dentro de un campo no deriva; Ctrl+Enter deriva desde cualquier lugar.** Una carta derivada no se puede deshacer: el envío implícito del formulario al apretar Enter en un campo de texto está apagado.
 - **Si el operador cambia la calle o la altura, el panel avisa junto a cada entrecalle del callejero** que era de la dirección sugerida y que se vuelve a comprobar al derivar.
 - **Sin librería de componentes ni de rutas.** Son tres vistas; el formulario usa los controles del navegador con sus etiquetas, y los avisos se anuncian en una región `aria-live`.
