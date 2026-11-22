@@ -166,7 +166,7 @@ def rescatar_analisis(turnos: list[Turno], motivo: str) -> Sugerencia:
     rescate = analizar(turnos)
     aviso = Aviso(
         codigo="modelo_no_disponible",
-        mensaje=f"El modelo no respondió ({motivo}): esta sugerencia sale de las reglas.",
+        mensaje=f"No hay sugerencia del modelo ({motivo}): esta sale de las reglas.",
     )
     return rescate.model_copy(update={"avisos": [*rescate.avisos, aviso]})
 

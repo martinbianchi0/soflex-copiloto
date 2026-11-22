@@ -16,7 +16,7 @@ const conGrupoPropio: Aviso['codigo'][] = ['dato_descartado', 'modelo_no_disponi
 export default function AvisosSugerencia({ avisos }: { avisos: Aviso[] }) {
   return (
     <>
-      <GrupoAvisos titulo="El modelo no respondió"
+      <GrupoAvisos titulo="Sin sugerencia del modelo"
         avisos={avisos.filter(({ codigo }) => codigo === 'modelo_no_disponible')} />
       <GrupoAvisos titulo="Al sumar lo que se dijo después"
         avisos={avisos.filter(({ codigo }) => codigo === 'prioridad_cambiada' || codigo === 'ficha_sin_actualizar')} />
