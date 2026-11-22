@@ -2,7 +2,7 @@
 
 Prototipo que asiste al operador de una sala de emergencias: lee la transcripción de una llamada, propone ubicación, tipo de hecho y prioridad, y el operador revisa, ajusta y deriva la Carta de Llamada.
 
-**Estado:** funciona el modo `mock`, que interpreta la llamada con reglas, sin red ni modelo. Propone la ubicación contrastada con el callejero de la Ciudad, con la cita de lo que dijo el llamante y avisos cuando la dirección no cierra. Si la llamada es una de las 30 del dataset, propone además el tipo, el subtipo, la prioridad y las preguntas del protocolo que el relato ya responde. Para un texto nuevo propone la categoría por palabras clave y el resto lo completa el operador. El operador marca las preguntas del protocolo, y la carta lleva lo que quedó sin confirmar con el llamante. El panel trae llamadas de ejemplo para cargar.
+**Estado:** funcionan los dos modos. En `mock`, sin red ni modelo, las reglas proponen la ubicación contrastada con el callejero de la Ciudad, con la cita de lo que dijo el llamante y avisos cuando la dirección no cierra; para un texto nuevo proponen además la categoría por palabras clave, y si la llamada es una de las 30 del dataset, su tipo, su subtipo, su prioridad y las preguntas del protocolo que el relato ya responde. Con un modelo local, la ubicación sigue saliendo de las reglas y el modelo propone el tipo de hecho, la prioridad con la cita que la justifica y las preguntas ya respondidas. En los dos modos el operador revisa, marca el protocolo y deriva la carta, que lleva lo que quedó sin confirmar con el llamante. El panel trae llamadas de ejemplo para cargar.
 
 ## Cómo levantarlo
 
@@ -29,12 +29,36 @@ Ollama corre en la máquina y no en el contenedor, para usar la aceleración del
 
 La ubicación la siguen leyendo las reglas y aparece al instante; lo que propone el modelo llega unos segundos después. Si el modelo no responde, el panel lo avisa, con el motivo, y muestra la sugerencia de las reglas.
 
+## Cuánto acierta
+
+Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo camino que el panel. Una corrida, en una Mac M5 con 16 GB y Ollama 0.40.16. El detalle por llamada está en `evaluacion/`, y la lectura de estos números, en `DECISIONS.md`.
+
+| | Reglas (`mock`), 32 nuevas | Modelo, 32 nuevas | Modelo, 30 del dataset |
+|---|---|---|---|
+| Categoría correcta | 23 (8 sin determinar, 1 mal) | 30 | 29 |
+| Prioridad igual a la esperada | no propone | 26 (31 admisibles) | 21 |
+| Prioridad menos urgente que lo admisible | — | 0 | 2 |
+| Prioridad más urgente que lo admisible | — | 1 | 7 |
+| Llamadas P1 detectadas | — | 9 de 9 | 12 de 14 |
+| Subtipo correcto | — | — | 26 (4 sin subtipo, 0 equivocados) |
+| Subtipo propuesto sin que el catálogo tenga uno | — | 4 | — |
+| Preguntas del protocolo ya respondidas | — | — | detecta 4 de las 7 anotadas; marca otras 15 |
+| Tiempo por llamada (mediana y percentil 95) | menos de 0,1 s | 5,2 y 10,0 s | 7,2 y 11,5 s |
+
+Las 30 llamadas del dataset son las mismas con las que se escribieron el criterio de prioridad y el catálogo: sus números son un techo. Las otras 32 son sintéticas y no son del dataset: son pocas, y no reemplazan una medición con llamadas reales. En modo `mock`, las 30 del dataset se reconocen por su texto y traen su ficha, así que ahí no hay nada que medir. La ubicación sale siempre de las reglas: reconoce la calle en 27 de las 28 llamadas nuevas que nombran una (`backend/tests/test_medicion.py`).
+
+```bash
+cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida ../evaluacion/modelo.json
+```
+
 ## Cómo está armado
 
 - `backend/`: la API (FastAPI) y el recorrido de la llamada (LangGraph, con el estado en SQLite).
 - `frontend/`: el panel (React, Vite y TypeScript). Se compila y lo sirve el mismo backend.
 - `backend/src/copiloto/datos/`: el dataset provisto, con 30 llamadas sintéticas. De ahí sale el catálogo de protocolos: preguntas e instrucciones de pre-arribo por subtipo de hecho. Su contenido no está validado por una autoridad médica ni operativa.
 - `backend/src/copiloto/ubicacion.py` y `callejero.py`: la lectura de la dirección y su contraste con el callejero.
+- `backend/src/copiloto/interprete.py` y `modelo.py`: los pedidos al modelo local y la verificación de lo que devuelve.
+- `backend/herramientas/evaluar.py` y `evaluacion/`: la medición de lo que propone el servicio y su detalle por llamada.
 - `backend/src/copiloto/criterio.py`: el criterio de prioridad P1 a P4, que el panel muestra junto a la prioridad.
 - `DECISIONS.md`: qué se eligió y por qué.
 
