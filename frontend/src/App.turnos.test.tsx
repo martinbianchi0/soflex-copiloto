@@ -148,8 +148,20 @@ describe('Sumar lo que se dijo después', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
-  // Cuando llega el turno, el panel devuelve el foco al texto del turno aunque se haya movido.
-  test.fails('Al llegar la sugerencia actualizada se conserva el foco donde lo dejó el operador', async () => {
+  test('Después de sumar un turno con el botón, el foco vuelve al texto para seguir sumando', async () => {
+    const servicio = abrirLlamada()
+    servicio.responder(sumaDeTurno, llamadaPorTurnosConAltura)
+    const operador = userEvent.setup()
+
+    await screen.findByRole('group', { name: 'Sugerencia' })
+    await operador.type(textoDelTurno(), intercambio)
+    await operador.click(screen.getByRole('button', { name: 'Sumar a la llamada' }))
+
+    await screen.findByText('Se sumó un turno. Sugerencia actualizada.')
+    expect(document.activeElement).toBe(textoDelTurno())
+  })
+
+  test('Al llegar la sugerencia actualizada se conserva el foco donde lo dejó el operador', async () => {
     const servicio = abrirLlamada()
     const pendiente = contestacionPendiente()
     servicio.responder(sumaDeTurno, () => pendiente.promesa)
