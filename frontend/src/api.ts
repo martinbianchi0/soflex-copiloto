@@ -17,12 +17,16 @@ export type Cita = { turno: number; texto: string }
 
 export type Dato<Valor> =
   | { origen: 'dicho'; valor: Valor; cita: Cita }
-  | { origen: 'inferido'; valor: Valor; fuente: 'callejero' | 'reglas' | 'modelo' | 'dataset' }
+  | { origen: 'inferido'; valor: Valor; fuente: 'callejero' | 'reglas' | 'modelo' | 'dataset'; cita?: Cita | null }
   | { origen: 'operador'; valor: Valor | null }
   | { origen: 'falta' }
 
 export function valorDato<Valor>(dato: Dato<Valor>): Valor | null {
   return dato.origen === 'falta' ? null : dato.valor
+}
+
+export function citaDato(dato: Dato<unknown>) {
+  return dato.origen === 'dicho' || dato.origen === 'inferido' ? dato.cita : undefined
 }
 
 export function textoOrigen(dato: Dato<unknown>): string {
@@ -62,7 +66,7 @@ export type Criterio = { niveles: Nivel[]; reglas: string[] }
 export type Catalogo = { protocolos: Protocolo[]; criterio: Criterio }
 
 export type Aviso = {
-  codigo: 'sin_calle' | 'falta_altura' | 'calle_ambigua' | 'direccion_no_cierra' | 'cruce_sin_confirmar' | 'dato_descartado'
+  codigo: 'sin_calle' | 'falta_altura' | 'calle_ambigua' | 'direccion_no_cierra' | 'cruce_sin_confirmar' | 'dato_descartado' | 'modelo_no_disponible'
   mensaje: string
 }
 
@@ -97,11 +101,12 @@ export type Llamada = {
   turnos: Turno[]
 } & (
   | { estado: 'en_proceso'; sugerencia: Sugerencia | null; carta: null }
+  | { estado: 'analizando'; sugerencia: Sugerencia; carta: null }
   | { estado: 'esperando_operador'; sugerencia: Sugerencia; carta: null }
   | { estado: 'derivada'; sugerencia: Sugerencia; carta: Carta }
 )
 
-export type Salud = { status: string; llm_provider: string }
+export type Salud = { status: string; llm_provider: string; modelo: string | null }
 export type DetalleValidacion = { loc: (string | number)[]; msg: string }
 
 export class ErrorApi extends Error {
@@ -115,13 +120,8 @@ export class ErrorApi extends Error {
   }
 }
 
-async function pedir<Respuesta>(ruta: string, senal: AbortSignal, datos?: object): Promise<Respuesta> {
-  const respuesta = await fetch(`/api${ruta}`, datos ? {
-    signal: senal,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(datos),
-  } : { signal: senal })
+async function pedir<Respuesta>(ruta: string, senal: AbortSignal, opciones?: RequestInit): Promise<Respuesta> {
+  const respuesta = await fetch(`/api${ruta}`, { ...opciones, signal: senal })
 
   if (!respuesta.ok) {
     const cuerpo = await respuesta.json().catch(() => null) as { detail?: ErrorApi['detalle'] } | null
@@ -129,6 +129,14 @@ async function pedir<Respuesta>(ruta: string, senal: AbortSignal, datos?: object
   }
 
   return respuesta.json()
+}
+
+function enviar<Respuesta>(ruta: string, senal: AbortSignal, datos: object) {
+  return pedir<Respuesta>(ruta, senal, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datos),
+  })
 }
 
 export function consultarSalud(senal: AbortSignal) {
@@ -144,13 +152,17 @@ export function consultarEjemplos(senal: AbortSignal) {
 }
 
 export function crearLlamada(texto: string, senal: AbortSignal) {
-  return pedir<Llamada>('/llamadas', senal, { turnos: [{ texto }] })
+  return enviar<Llamada>('/llamadas', senal, { turnos: [{ texto }] })
 }
 
 export function consultarLlamada(identificador: string, senal: AbortSignal) {
   return pedir<Llamada>(`/llamadas/${encodeURIComponent(identificador)}`, senal)
 }
 
+export function analizarLlamada(identificador: string, senal: AbortSignal) {
+  return pedir<Llamada>(`/llamadas/${encodeURIComponent(identificador)}/analisis`, senal, { method: 'POST' })
+}
+
 export function derivarLlamada(identificador: string, ajustes: Ajustes, senal: AbortSignal) {
-  return pedir<Llamada>(`/llamadas/${encodeURIComponent(identificador)}/derivar`, senal, { ajustes })
+  return enviar<Llamada>(`/llamadas/${encodeURIComponent(identificador)}/derivar`, senal, { ajustes })
 }

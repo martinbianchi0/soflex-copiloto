@@ -1,19 +1,20 @@
 import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
-import { nombresTiposHecho, textoOrigen, valorDato } from './api'
+import { citaDato, nombresTiposHecho, textoOrigen, valorDato } from './api'
 import type { Carta, Catalogo, Dato, Pregunta } from './api'
 import { GrupoAvisos } from './AvisosSugerencia'
 import Instrucciones from './Instrucciones'
 import PrioridadEtiqueta from './PrioridadEtiqueta'
 
 function DatoCarta({ etiqueta, dato, texto }: { etiqueta: string; dato: Dato<string | number>; texto?: ReactNode }) {
+  const cita = citaDato(dato)
   return (
     <>
       <dt>{etiqueta}</dt>
       <dd>
         {texto ?? valorDato(dato) ?? 'Sin dato'}
         <small className="origen">
-          {textoOrigen(dato)}{dato.origen === 'dicho' && <> «{dato.cita.texto}»</>}
+          {textoOrigen(dato)}{cita && <> «{cita.texto}»</>}
         </small>
       </dd>
     </>

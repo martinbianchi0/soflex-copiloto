@@ -14,8 +14,10 @@ export function GrupoAvisos({ titulo, avisos }: { titulo: string; avisos: Aviso[
 export default function AvisosSugerencia({ avisos }: { avisos: Aviso[] }) {
   return (
     <>
+      <GrupoAvisos titulo="El modelo no respondió"
+        avisos={avisos.filter(({ codigo }) => codigo === 'modelo_no_disponible')} />
       <GrupoAvisos titulo="Para confirmar con el llamante"
-        avisos={avisos.filter(({ codigo }) => codigo !== 'dato_descartado')} />
+        avisos={avisos.filter(({ codigo }) => codigo !== 'dato_descartado' && codigo !== 'modelo_no_disponible')} />
       <GrupoAvisos titulo="Datos descartados por el sistema"
         avisos={avisos.filter(({ codigo }) => codigo === 'dato_descartado')} />
     </>
