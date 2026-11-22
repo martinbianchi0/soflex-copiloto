@@ -147,6 +147,15 @@ export default function FormularioSugerencia({
   const erroresEsquinas = erroresDe('esquinas')
   const errorEsquinas = erroresEsquinas.length ? 'error-esquinas' : undefined
 
+  // Cuando la sugerencia queda editable, el foco va al primer dato que falta para derivar. Si no
+  // falta ninguno, queda en la transcripción, que es lo primero que se revisa.
+  const primerFaltante = useRef(!calle ? 'calle' : !categoria || categoria === 'NO_DETERMINADA' ? 'tipo_hecho' : !prioridad ? 'prioridad' : null)
+  useEffect(() => {
+    if (bloqueado || !primerFaltante.current) return
+    document.getElementById(primerFaltante.current)?.focus()
+    primerFaltante.current = null
+  }, [bloqueado])
+
   useEffect(() => {
     if (!bloqueado && errores.length > 0) {
       formulario.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()

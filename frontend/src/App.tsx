@@ -293,7 +293,12 @@ function App() {
       </div>
 
       {!identificador && (
-        <form className="panel" onSubmit={analizar}>
+        <form className="panel" onSubmit={analizar} onKeyDown={(evento) => {
+          // Enter en la transcripción es un salto de línea: se analiza con Ctrl+Enter.
+          if (evento.key !== 'Enter' || !(evento.ctrlKey || evento.metaKey)) return
+          evento.preventDefault()
+          if (!analisisBloqueado && transcripcion.trim()) evento.currentTarget.requestSubmit()
+        }}>
           {ejemplos.length > 0 && (
             <label className="cargar-ejemplo">
               Cargar un ejemplo
@@ -320,9 +325,10 @@ function App() {
               }} />
           </label>
           <div className="acciones">
-            <button type="submit" disabled={analisisBloqueado || !transcripcion.trim()}>
+            <button type="submit" disabled={analisisBloqueado || !transcripcion.trim()} aria-keyshortcuts="Control+Enter Meta+Enter">
               {ocupado ? 'Analizando…' : 'Analizar llamada'}
             </button>
+            <small className="atajo"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></small>
           </div>
         </form>
       )}
