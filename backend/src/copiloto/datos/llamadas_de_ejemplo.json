@@ -1,0 +1,22 @@
+[
+ {
+  "id": "nueva-1",
+  "titulo": "Choque con moto · la calle dicha como suena y la altura en palabras",
+  "texto": "Operador: 911, ¿dónde es la emergencia? Llamante: En Escalabrini Ortiz al mil doscientos, casi Córdoba. Chocaron un colectivo y una moto, el de la moto quedó tirado en el asfalto y no se mueve."
+ },
+ {
+  "id": "nueva-2",
+  "titulo": "Árbol caído · un nombre que corresponde a dos calles, sin altura",
+  "texto": "Operador: Guardia de Auxilio, buenas noches. Llamante: Hola, se cayó un árbol enorme arriba de los cables en la calle Mitre, no sé a qué altura, cerca de la plaza. Quedó toda la cuadra a oscuras."
+ },
+ {
+  "id": "nueva-3",
+  "titulo": "Auto incendiado · la altura y la esquina no pueden ser el mismo lugar",
+  "texto": "Operador: 911 emergencias. Llamante: Se está incendiando un auto estacionado en Rivadavia al 5000, esquina Callao. Sale mucho humo negro y hay gente mirando muy cerca."
+ },
+ {
+  "id": "nueva-4",
+  "titulo": "Luminaria apagada · un reclamo, en varios turnos",
+  "texto": "Operador: 147 Ciudad, buenas tardes. Llamante: Hola, quería avisar que hace una semana que no anda la luminaria de mi cuadra, en Yerbal al 2300. Operador: ¿Hay cables sueltos o chispas? Llamante: No, nada de eso, está apagada nomás."
+ }
+]

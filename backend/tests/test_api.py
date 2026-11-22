@@ -1,8 +1,10 @@
+import json
+
 import pytest
-from conftest import FILAS_DATASET, REFERENCIA, TEXTO, TURNOS, TURNOS_SIN_DATOS
+from conftest import DATOS_EMPAQUETADOS, FILAS_DATASET, REFERENCIA, TEXTO, TURNOS, TURNOS_SIN_DATOS
 from fastapi.testclient import TestClient
 
-from copiloto import flujo
+from copiloto import ejemplos, flujo
 from copiloto.esquemas import Sugerencia
 from copiloto.llamadas import _hilo
 from copiloto.main import crear_app
@@ -11,6 +13,12 @@ LLAMADA = {"turnos": TURNOS}
 UBICACION = {"calle": "Av. Corrientes", "altura": 1540, "esquinas": ["Montevideo", "Paraná"]}
 INCENDIO = {"categoria": "INCENDIO_RESCATE", "subtipo": None}
 COMPLETOS = {"prioridad": "P2", "tipo_hecho": INCENDIO, "ubicacion": UBICACION}
+EJEMPLOS_NUEVOS = {
+    ejemplo["id"]: ejemplo
+    for ejemplo in json.loads(
+        DATOS_EMPAQUETADOS.joinpath("llamadas_de_ejemplo.json").read_text(encoding="utf-8")
+    )
+}
 
 
 def iniciar(cliente, turnos=TURNOS) -> str:
@@ -542,3 +550,68 @@ def test_lo_que_dice_el_operador_no_cuenta_aunque_la_transcripcion_no_se_pueda_p
     assert len(llamada["turnos"]) == 1
     assert llamada["sugerencia"]["ubicacion"]["calle"] == {"origen": "falta"}
     assert llamada["sugerencia"]["tipo_hecho"]["valor"] == "NO_DETERMINADA"
+
+
+# ---------- Los ejemplos ----------
+
+
+def test_los_ejemplos_se_cargan_al_arrancar(configuracion, monkeypatch):
+    cargas = []
+    cargar = ejemplos.cargar
+
+    def registrar_carga():
+        publicados = cargar()
+        cargas.append(publicados)
+        return publicados
+
+    monkeypatch.setattr(ejemplos, "cargar", registrar_carga)
+
+    with TestClient(crear_app(configuracion)):
+        assert cargas
+
+
+def test_la_api_entrega_los_treinta_ejemplos_del_dataset_y_los_cuatro_nuevos(cliente):
+    respuesta = cliente.get("/api/ejemplos")
+
+    assert respuesta.status_code == 200
+    publicados = respuesta.json()
+    por_id = {ejemplo["id"]: ejemplo for ejemplo in publicados}
+    assert len(publicados) == len(por_id) == 34
+    assert por_id == {
+        **{
+            subtipo: {
+                "id": subtipo,
+                "titulo": fila["subcategoria"],
+                "origen": "dataset",
+                "texto": fila["transcripcion_cruda"],
+            }
+            for subtipo, fila in FILAS_DATASET.items()
+        },
+        **{
+            ejemplo_id: {**ejemplo, "origen": "nueva"}
+            for ejemplo_id, ejemplo in EJEMPLOS_NUEVOS.items()
+        },
+    }
+
+
+def iniciar_ejemplo(cliente, ejemplo_id):
+    respuesta = cliente.get("/api/ejemplos")
+    assert respuesta.status_code == 200
+    ejemplo = next(ejemplo for ejemplo in respuesta.json() if ejemplo["id"] == ejemplo_id)
+    alta = cliente.post("/api/llamadas", json={"turnos": [{"texto": ejemplo["texto"]}]})
+    assert alta.status_code == 201
+    return alta.json()["sugerencia"]
+
+
+@pytest.mark.parametrize("subtipo", FILAS_DATASET)
+def test_cada_ejemplo_del_dataset_se_da_de_alta_con_su_subtipo(cliente, subtipo):
+    sugerencia = iniciar_ejemplo(cliente, subtipo)
+
+    assert sugerencia["subtipo"] == {"origen": "inferido", "valor": subtipo, "fuente": "dataset"}
+
+
+@pytest.mark.parametrize("ejemplo_id", EJEMPLOS_NUEVOS)
+def test_cada_ejemplo_nuevo_se_da_de_alta_sin_subtipo(cliente, ejemplo_id):
+    sugerencia = iniciar_ejemplo(cliente, ejemplo_id)
+
+    assert sugerencia["subtipo"] == {"origen": "falta"}

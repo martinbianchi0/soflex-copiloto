@@ -8,9 +8,10 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from copiloto import callejero, catalogo, dataset
+from copiloto import callejero, catalogo, dataset, ejemplos
 from copiloto.catalogo import Catalogo, SubtipoInvalido
 from copiloto.config import Configuracion
+from copiloto.ejemplos import Ejemplo
 from copiloto.esquemas import Derivacion, Llamada, NuevaLlamada
 from copiloto.flujo import FaltanDatos, MarcaInvalida
 from copiloto.llamadas import (
@@ -31,6 +32,7 @@ def crear_app(configuracion: Configuracion | None = None) -> FastAPI:
         catalogo.cargar()
         callejero.cargar()
         dataset.cargar()
+        ejemplos.cargar()
         app.state.llamadas = Llamadas(configuracion.sqlite_path)
         yield
         app.state.llamadas.cerrar()
@@ -98,6 +100,10 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
     @api.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok", "llm_provider": configuracion.llm_provider}
+
+    @api.get("/ejemplos")
+    def listar_ejemplos() -> list[Ejemplo]:
+        return ejemplos.cargar()
 
     @api.get("/catalogo")
     def consultar_catalogo() -> Catalogo:

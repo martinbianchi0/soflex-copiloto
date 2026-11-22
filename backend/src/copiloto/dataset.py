@@ -34,12 +34,26 @@ def _relato(turnos: list[Turno]) -> str | None:
 
 
 @cache
-def _conocidas() -> dict[str, LlamadaConocida]:
-    datos = resources.files("copiloto").joinpath("datos")
-    archivo = datos.joinpath(catalogo.ARCHIVO)
+def _filas() -> list[dict[str, str]]:
+    archivo = resources.files("copiloto").joinpath("datos", catalogo.ARCHIVO)
     # La firma tipada de Traversable.open omite newline, que el recurso admite en modo texto.
     with archivo.open("r", encoding="utf-8-sig", newline="") as abierto:  # type: ignore[call-overload]
-        filas = list(csv.DictReader(io.StringIO(abierto.read(), newline="")))
+        return list(csv.DictReader(io.StringIO(abierto.read(), newline="")))
+
+
+def transcripciones() -> list[tuple[catalogo.Protocolo, str]]:
+    """Cada llamada del dataset: su protocolo y su transcripción tal como viene."""
+    protocolos = catalogo.cargar().protocolos
+    return [
+        (protocolo, fila["transcripcion_cruda"])
+        for fila, protocolo in zip(_filas(), protocolos, strict=True)
+    ]
+
+
+@cache
+def _conocidas() -> dict[str, LlamadaConocida]:
+    datos = resources.files("copiloto").joinpath("datos")
+    filas = _filas()
     anotadas: dict[str, str] = json.loads(datos.joinpath(RESPUESTAS).read_text(encoding="utf-8"))
     conocidas: dict[str, LlamadaConocida] = {}
     for fila, protocolo in zip(filas, catalogo.cargar().protocolos, strict=True):
