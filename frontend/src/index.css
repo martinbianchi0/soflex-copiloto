@@ -85,6 +85,18 @@ label {
 
 .opcional { color: #46596c; font-size: 0.8125rem; font-weight: 400; }
 
+.campo { min-inline-size: 0; }
+
+.etiqueta-campo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.5rem;
+}
+
+.origen, .cita { color: #46596c; font-size: 0.8125rem; }
+.cita { display: block; margin-block-start: 0.25rem; }
+
 input, select, textarea, button { font: inherit; }
 
 input, select, textarea {
@@ -144,13 +156,18 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
 }
 
 .datos-carta dt { font-weight: 600; }
+.datos-carta .origen { display: block; }
 
-.ajustes {
+.detalles-sugerencia {
+  margin-block-start: 0.75rem;
   border-block-start: 1px solid #aebbc8;
   padding-block-start: 0.75rem;
-  color: #354b5f;
   font-size: 0.9375rem;
 }
+
+.detalles-sugerencia h3 { margin: 0; font-size: 1rem; }
+.detalles-sugerencia ul { margin: 0.25rem 0 0; padding-inline-start: 1.25rem; }
+.detalles-sugerencia li + li { margin-block-start: 0.25rem; }
 
 @media (min-width: 36rem) {
   .direccion, .hecho { grid-template-columns: minmax(0, 1fr) 9rem; }

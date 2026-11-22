@@ -6,6 +6,25 @@ import CartaLlamada from './CartaLlamada'
 import FormularioSugerencia from './FormularioSugerencia'
 
 const errorConexion = 'No se pudo conectar con el servicio.'
+const nombresCampos: Record<string, string> = {
+  ajustes: 'Ajustes',
+  ubicacion: 'Ubicación',
+  calle: 'Calle',
+  altura: 'Altura',
+  esquinas: 'Esquinas',
+  tipo_hecho: 'Tipo de hecho',
+  prioridad: 'Prioridad',
+  turnos: 'Turnos',
+  texto: 'Texto de la transcripción',
+  llamada_id: 'Identificador de la llamada',
+}
+
+function nombrarCampo(loc: DetalleValidacion['loc']) {
+  const ruta = loc[0] === 'body' ? loc.slice(1) : loc
+  const campo = ruta.findLast((parte) => typeof parte === 'string')
+  if (campo && Object.hasOwn(nombresCampos, campo)) return nombresCampos[campo]
+  return ruta.join('.') || 'Solicitud'
+}
 
 function leerIdentificador() {
   return new URLSearchParams(window.location.search).get('llamada') || null
@@ -54,6 +73,9 @@ function App() {
         setError('No existe esa llamada.')
       } else if (fallo instanceof ErrorApi && fallo.estado === 422 && Array.isArray(fallo.detalle)) {
         setError(fallo.detalle)
+      } else if (fallo instanceof ErrorApi) {
+        // El servicio contestó: se muestra lo que dijo, no un problema de conexión.
+        setError(typeof fallo.detalle === 'string' ? fallo.detalle : `El servicio respondió con un error (${fallo.estado}).`)
       } else {
         setError(errorConexion)
       }
@@ -154,7 +176,7 @@ function App() {
             <p>Revisá los datos:</p>
             <ul>
               {error.map(({ loc, msg }, indice) => (
-                <li key={indice}>{(loc[0] === 'body' ? loc.slice(1) : loc).join('.') || 'Solicitud'}: {msg}</li>
+                <li key={indice}>{nombrarCampo(loc)}: {msg}</li>
               ))}
             </ul>
           </div>

@@ -7,11 +7,15 @@ llamada que quedó esperando al operador se puede derivar aunque el servicio se 
 import sqlite3
 import threading
 import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.types import Command
+from pydantic import ValidationError
 
+from copiloto import flujo
+from copiloto.esquemas import Ajustes, Llamada, Turno
 from copiloto.grafo import construir
 
 
@@ -21,6 +25,10 @@ class LlamadaInexistente(LookupError):
 
 class LlamadaNoEsperaOperador(RuntimeError):
     """La llamada no está esperando al operador: ya se derivó."""
+
+
+class LlamadaIlegible(RuntimeError):
+    """Lo guardado no cumple las reglas de esta versión del servicio."""
 
 
 def _hilo(llamada_id: str) -> dict:
@@ -40,45 +48,53 @@ class Llamadas:
     def cerrar(self) -> None:
         self._conexion.close()
 
-    def iniciar(self, turnos: list[dict]) -> dict:
+    def iniciar(self, turnos: list[Turno]) -> Llamada:
         """Analiza la llamada y la deja esperando al operador."""
         llamada_id = uuid.uuid4().hex
-        self._avanzar({"llamada_id": llamada_id, "turnos": turnos}, llamada_id)
+        planos = [turno.model_dump(mode="json") for turno in turnos]
+        self._avanzar({"llamada_id": llamada_id, "turnos": planos}, llamada_id)
         return self._leer(llamada_id)
 
-    def consultar(self, llamada_id: str) -> dict:
+    def consultar(self, llamada_id: str) -> Llamada:
         llamada = self._leer(llamada_id)
-        if llamada["estado"] == "en_proceso":
+        if llamada.estado == "en_proceso":
             with self._derivando:
                 llamada = self._terminar_lo_que_quedo_a_medias(llamada_id)
         return llamada
 
-    def derivar(self, llamada_id: str, ajustes: dict) -> dict:
+    def derivar(self, llamada_id: str, ajustes: Ajustes) -> Llamada:
         """Retoma la llamada con lo que cambió el operador y arma la Carta de Llamada."""
         with self._derivando:
-            if self._terminar_lo_que_quedo_a_medias(llamada_id)["estado"] != "esperando_operador":
+            llamada = self._terminar_lo_que_quedo_a_medias(llamada_id)
+            if llamada.estado != "esperando_operador":
                 raise LlamadaNoEsperaOperador(llamada_id)
+            # Se arma la carta antes de retomar el grafo: si falta un dato obligatorio, falla acá
+            # y la llamada sigue esperando. Lo que el grafo ya aceptó no se puede volver a pedir.
+            # Se comprueba con los mismos datos planos que después recibe el nodo.
+            planos = ajustes.model_dump(mode="json", exclude_unset=True)
+            ahora = datetime.now(UTC)
+            flujo.derivar(llamada_id, llamada.sugerencia, Ajustes.model_validate(planos), ahora)
             # Los ajustes van envueltos: LangGraph lee un diccionario vacío suelto como "no se
             # contesta ninguna pausa", y una derivación sin cambios dejaría la llamada esperando.
-            self._avanzar(Command(resume={"ajustes": ajustes}), llamada_id)
+            self._avanzar(Command(resume={"ajustes": planos}), llamada_id)
             return self._leer(llamada_id)
 
     def _avanzar(self, entrada: dict | Command | None, llamada_id: str) -> None:
         # `sync`: cada nodo queda guardado en disco antes de que empiece el siguiente.
         self._grafo.invoke(entrada, _hilo(llamada_id), durability="sync")
 
-    def _terminar_lo_que_quedo_a_medias(self, llamada_id: str) -> dict:
+    def _terminar_lo_que_quedo_a_medias(self, llamada_id: str) -> Llamada:
         """Si el servicio se cortó después de que el operador confirmó, arma la carta ahora.
 
         Los ajustes ya estaban guardados, así que se retoma desde ahí sin volver a pedirlos.
         """
         llamada = self._leer(llamada_id)
-        if llamada["estado"] == "en_proceso":
+        if llamada.estado == "en_proceso":
             self._avanzar(None, llamada_id)
             llamada = self._leer(llamada_id)
         return llamada
 
-    def _leer(self, llamada_id: str) -> dict:
+    def _leer(self, llamada_id: str) -> Llamada:
         foto = self._grafo.get_state(_hilo(llamada_id))
         if not foto.values:
             raise LlamadaInexistente(llamada_id)
@@ -91,10 +107,16 @@ class Llamadas:
             estado = "esperando_operador"
         else:
             estado = "en_proceso"
-        return {
-            "llamada_id": llamada_id,
-            "estado": estado,
-            "turnos": foto.values["turnos"],
-            "sugerencia": foto.values.get("sugerencia"),
-            "carta": carta,
-        }
+        # Lo guardado se valida al leerlo: de acá no sale una llamada que rompa sus propias reglas.
+        try:
+            return Llamada.model_validate(
+                {
+                    "llamada_id": llamada_id,
+                    "estado": estado,
+                    "turnos": foto.values["turnos"],
+                    "sugerencia": foto.values.get("sugerencia"),
+                    "carta": carta,
+                }
+            )
+        except ValidationError as error:
+            raise LlamadaIlegible(llamada_id) from error
