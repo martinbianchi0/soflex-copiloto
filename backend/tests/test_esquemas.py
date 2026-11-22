@@ -239,6 +239,15 @@ def test_la_cita_de_una_respuesta_del_checklist_tambien_se_verifica(sugerencia_c
         Llamada.model_validate(llamada(sugerencia_completa))
 
 
+def test_la_cita_de_un_dato_dictado_tambien_se_verifica(sugerencia_completa):
+    sugerencia_completa["datos_dictados"] = [
+        {"tipo": "patente", "valor": "AB 123 CD", "cita": {"turno": 0, "texto": "AB 123 CD"}}
+    ]
+
+    with pytest.raises(ValidationError, match="La cita no aparece"):
+        Llamada.model_validate(llamada(sugerencia_completa))
+
+
 def test_las_citas_de_la_carta_tambien_se_verifican(sugerencia_completa):
     carta = {
         **sugerencia_completa,

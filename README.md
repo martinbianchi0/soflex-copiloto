@@ -68,6 +68,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 - **Un piso para la prioridad.** El modelo dejó en P2 dos llamadas P1 del dataset. Señales de riesgo de vida detectadas por reglas podrían subir la propuesta sin depender del modelo; hay que validarlas con casos reales para no subir todo.
 - **Una segunda lectura de la dirección cuando las reglas avisan que no cierra.** Hoy el aviso le pide al operador que la lea de vuelta; el modelo podría proponer una corrección consultando el callejero, siempre para que la confirme el operador.
 - **Protocolos para lo que el catálogo no cubre**, definidos por quien tiene la autoridad para hacerlo.
+- **Patentes y teléfonos como llegan de un reconocimiento de voz:** deletreados o con los números en palabras. Hoy se leen escritos con letras y cifras.
 - **Entrada en vivo.** Hoy el operador escribe cada turno, o se reproduce un ejemplo; lo siguiente sería recibirlos a medida que se transcribe la llamada.
 - **Aviso de llamadas sobre el mismo hecho:** misma esquina y pocos minutos de diferencia.
 - **Coordenadas además de calle y altura**, y contraste con el servicio de direcciones de la Ciudad cuando hay red.
@@ -81,6 +82,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 - `frontend/`: el panel (React, Vite y TypeScript). Se compila y lo sirve el mismo backend.
 - `backend/src/copiloto/datos/`: el dataset provisto, con 30 llamadas sintéticas. De ahí sale el catálogo de protocolos: preguntas e instrucciones de pre-arribo por subtipo de hecho. Su contenido no está validado por una autoridad médica ni operativa.
 - `backend/src/copiloto/ubicacion.py` y `callejero.py`: la lectura de la dirección y su contraste con el callejero.
+- `backend/src/copiloto/dictados.py`: la patente y el teléfono que dicta el llamante.
 - `backend/src/copiloto/interprete.py` y `modelo.py`: los pedidos al modelo local y la verificación de lo que devuelve.
 - `backend/herramientas/evaluar.py` y `evaluacion/`: la medición de lo que propone el servicio y su detalle por llamada.
 - `backend/src/copiloto/criterio.py`: el criterio de prioridad P1 a P4, que el panel muestra junto a la prioridad.

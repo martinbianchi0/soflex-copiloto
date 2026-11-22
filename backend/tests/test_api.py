@@ -48,6 +48,7 @@ def test_iniciar_una_llamada_devuelve_la_sugerencia_y_queda_esperando(cliente):
         "prioridad": {"origen": "falta"},
         "checklist": [],
         "instrucciones": [],
+        "datos_dictados": [],
     }
     assert llamada["carta"] is None
 
@@ -95,6 +96,7 @@ def test_derivar_devuelve_la_carta_con_lo_que_completo_el_operador(cliente):
         "prioridad": {"origen": "operador", "valor": "P2"},
         "checklist": sugerencia["checklist"],
         "instrucciones": sugerencia["instrucciones"],
+        "datos_dictados": [],
         "avisos": [],
     }
 
@@ -751,7 +753,7 @@ def test_los_ejemplos_se_cargan_al_arrancar(configuracion, monkeypatch):
         assert cargas
 
 
-def test_la_api_entrega_los_treinta_ejemplos_del_dataset_y_los_cinco_nuevos(cliente):
+def test_la_api_entrega_los_treinta_ejemplos_del_dataset_y_los_seis_nuevos(cliente):
     respuesta = cliente.get("/api/ejemplos")
 
     assert respuesta.status_code == 200
@@ -760,7 +762,7 @@ def test_la_api_entrega_los_treinta_ejemplos_del_dataset_y_los_cinco_nuevos(clie
         ejemplo["id"]: {campo: valor for campo, valor in ejemplo.items() if campo != "turnos"}
         for ejemplo in publicados
     }
-    assert len(publicados) == len(por_id) == 35
+    assert len(publicados) == len(por_id) == 36
     assert por_id == {
         **{
             subtipo: {
@@ -821,3 +823,93 @@ def test_el_ejemplo_del_choque_con_moto_toma_la_altura_de_la_respuesta(cliente):
         "valor": 2100,
         "cita": {"turno": 3, "texto": "2100"},
     }
+
+
+def test_el_ejemplo_del_choque_con_fuga_toma_el_cruce_y_los_dictados(cliente):
+    sugerencia = iniciar_ejemplo(cliente, "nueva-6")
+
+    ubicacion = sugerencia["ubicacion"]
+    assert ubicacion["calle"]["valor"] == "Av. Cordoba"
+    assert ubicacion["altura"] == {"origen": "falta"}
+    assert [esquina["valor"] for esquina in ubicacion["esquinas"]] == ["Gascon"]
+    assert sugerencia["datos_dictados"] == [
+        {"tipo": "patente", "valor": "ZA 345 BD", "cita": {"turno": 1, "texto": "ZA 345 BD"}},
+        {"tipo": "telefono", "valor": "1110000142", "cita": {"turno": 3, "texto": "11 1000-0142"}},
+    ]
+
+
+def test_al_sumar_un_turno_y_derivar_se_puede_quitar_el_telefono(cliente):
+    llamada_id = iniciar(cliente, [{"texto": "Chocaron en Córdoba y Gascón. Patente ZA 345 BD."}])
+    ampliada = cliente.post(
+        f"/api/llamadas/{llamada_id}/turnos",
+        json={"turno": {"texto": "Mi celular es 11 1000-0142. Patente AB 12 CD."}},
+    )
+    assert ampliada.status_code == 200
+    sugerencia = ampliada.json()["sugerencia"]
+    patente, telefono = sugerencia["datos_dictados"]
+    assert [patente["valor"], telefono["valor"]] == ["ZA 345 BD", "1110000142"]
+    assert telefono["cita"]["turno"] == 1
+    assert "dictado_incompleto" in {aviso["codigo"] for aviso in sugerencia["avisos"]}
+
+    respuesta = derivar(
+        cliente,
+        llamada_id,
+        {"prioridad": "P2", "dictados_quitados": [{"tipo": "telefono", "valor": "1110000142"}]},
+    )
+    assert respuesta.status_code == 200
+    carta = respuesta.json()["carta"]
+    assert carta["datos_dictados"] == [patente]
+    assert "dictado_incompleto" not in {aviso["codigo"] for aviso in carta["avisos"]}
+
+    historial = cliente.get(f"/api/llamadas/{llamada_id}/historial").json()
+    cambio = next(
+        cambio for cambio in historial["cambios"] if cambio["campo"] == "dictado_telefono"
+    )
+    assert cambio["sugerido"] == {
+        "origen": "dicho",
+        "valor": telefono["valor"],
+        "cita": telefono["cita"],
+    }
+    assert cambio["final"] == {"origen": "operador", "valor": None}
+
+
+def test_quitar_un_dictado_que_no_esta_en_la_sugerencia_devuelve_422(cliente):
+    llamada_id = iniciar(cliente)
+    respuesta = derivar(
+        cliente,
+        llamada_id,
+        {**COMPLETOS, "dictados_quitados": [{"tipo": "telefono", "valor": "1110000142"}]},
+    )
+
+    assert respuesta.status_code == 422
+    assert respuesta.json()["detail"][0]["loc"] == ["ajustes", "dictados_quitados"]
+    assert cliente.get(f"/api/llamadas/{llamada_id}").json()["estado"] == "esperando_operador"
+
+
+def test_se_lee_una_llamada_guardada_sin_datos_dictados(cliente):
+    llamada_id = iniciar(cliente)
+    respuesta = derivar(cliente, llamada_id, COMPLETOS)
+    assert respuesta.status_code == 200
+    guardada = respuesta.json()
+    sugerencia_vieja = {
+        campo: valor for campo, valor in guardada["sugerencia"].items() if campo != "datos_dictados"
+    }
+    carta_vieja = {
+        campo: valor for campo, valor in guardada["carta"].items() if campo != "datos_dictados"
+    }
+    grafo = cliente.app.state.llamadas._grafo
+    grafo.update_state(
+        _hilo(llamada_id),
+        {"sugerencia": sugerencia_vieja, "carta": carta_vieja},
+        as_node="derivar",
+    )
+
+    consulta = cliente.get(f"/api/llamadas/{llamada_id}")
+
+    assert consulta.status_code == 200
+    assert consulta.json() == guardada
+    assert (
+        consulta.json()["sugerencia"]["datos_dictados"]
+        == consulta.json()["carta"]["datos_dictados"]
+        == []
+    )

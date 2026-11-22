@@ -56,6 +56,7 @@ TextoDeTurno = Annotated[
 ]
 MAXIMO_DE_LA_LLAMADA = 50_000
 MAXIMO_DE_TURNOS = 500
+MAXIMO_DE_DICTADOS = 10
 # Tiene que ser un entero de verdad: ni "1540" ni 1540.0.
 Altura = Annotated[int, Field(ge=1, le=99_999, strict=True)]
 
@@ -226,6 +227,18 @@ class Instruccion(Esquema):
     texto: TextoLargo
 
 
+type TipoDictado = Literal["patente", "telefono"]
+
+
+class DictadoQuitado(Esquema):
+    tipo: TipoDictado
+    valor: Texto
+
+
+class DatoDictado(DictadoQuitado):
+    cita: Cita
+
+
 OBLIGATORIOS_PARA_DERIVAR = ("calle", "tipo_hecho", "prioridad")
 
 
@@ -242,6 +255,7 @@ class Aviso(Esquema):
         "prioridad_cambiada",
         "dato_descartado",
         "modelo_no_disponible",
+        "dictado_incompleto",
     ]
     mensaje: TextoLargo
 
@@ -257,6 +271,7 @@ class Ficha(Esquema):
     checklist: list[ItemChecklist] = Field(default_factory=list)
     instrucciones: list[Instruccion] = Field(default_factory=list)
     avisos: list[Aviso] = Field(default_factory=list)
+    datos_dictados: list[DatoDictado] = Field(default_factory=list, max_length=MAXIMO_DE_DICTADOS)
 
     @model_validator(mode="after")
     def sin_preguntas_ni_instrucciones_repetidas(self) -> Self:
@@ -286,7 +301,7 @@ class Ficha(Esquema):
             if isinstance(dato, (Dicho, Inferido)) and dato.cita is not None
         ]
         del_checklist = [item.cita for item in self.checklist if item.cita is not None]
-        return de_los_datos + del_checklist
+        return de_los_datos + del_checklist + [dato.cita for dato in self.datos_dictados]
 
     def faltantes(self) -> list[str]:
         """Los datos sin los que la carta no se puede derivar."""
@@ -456,6 +471,9 @@ class Ajustes(Esquema):
     prioridad: Prioridad | None = None
     # Sólo las preguntas que el operador marcó o desmarcó.
     checklist: list[MarcaChecklist] | None = Field(default=None, max_length=50)
+    dictados_quitados: list[DictadoQuitado] | None = Field(
+        default=None, max_length=MAXIMO_DE_DICTADOS
+    )
 
     @model_validator(mode="after")
     def sin_marcas_repetidas(self) -> Self:

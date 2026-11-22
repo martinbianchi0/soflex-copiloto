@@ -13,7 +13,7 @@ from copiloto.catalogo import Catalogo, SubtipoInvalido
 from copiloto.config import Configuracion
 from copiloto.ejemplos import Ejemplo
 from copiloto.esquemas import Derivacion, Historial, Llamada, NuevaLlamada, NuevoTurno
-from copiloto.flujo import FaltanDatos, MarcaInvalida
+from copiloto.flujo import DictadoInvalido, FaltanDatos, MarcaInvalida
 from copiloto.llamadas import (
     LlamadaIlegible,
     LlamadaInexistente,
@@ -98,6 +98,13 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
     @api.exception_handler(MarcaInvalida)
     def marca_invalida(request: Request, error: MarcaInvalida) -> JSONResponse:
         donde = ["ajustes", "checklist"]
+        return JSONResponse(
+            {"detail": [{"type": "value_error", "loc": donde, "msg": str(error)}]}, 422
+        )
+
+    @api.exception_handler(DictadoInvalido)
+    def dictado_invalido(request: Request, error: DictadoInvalido) -> JSONResponse:
+        donde = ["ajustes", "dictados_quitados"]
         return JSONResponse(
             {"detail": [{"type": "value_error", "loc": donde, "msg": str(error)}]}, 422
         )
