@@ -54,6 +54,18 @@ function Cambios({ cambios, checklist }: Pick<Historial, 'cambios'> & Pick<Carta
   )
 }
 
+// Cuánto pasó entre que entró la llamada y se derivó la carta: lo que tardó en quedar lista para
+// despachar.
+function tiempoHastaDerivar(eventos: Historial['eventos']) {
+  const recibida = eventos.find(({ tipo }) => tipo === 'recibida')
+  const derivada = eventos.findLast(({ tipo }) => tipo === 'derivada')
+  if (!recibida || !derivada) return null
+  const segundos = Math.round((Date.parse(derivada.cuando) - Date.parse(recibida.cuando)) / 1000)
+  if (!Number.isFinite(segundos) || segundos < 0) return null
+  const minutos = Math.floor(segundos / 60)
+  return minutos ? `${minutos} min ${segundos % 60} s` : `${segundos} s`
+}
+
 export default function HistorialLlamada({ carta }: { carta: Carta }) {
   const { llamada_id: identificador, checklist } = carta
   const [historial, setHistorial] = useState<Historial | 'error' | null>(null)
@@ -82,6 +94,11 @@ export default function HistorialLlamada({ carta }: { carta: Carta }) {
                   </li>
                 ))}
               </ol>
+              {tiempoHastaDerivar(historial.eventos) && (
+                <p className="tiempo-derivacion">
+                  De la llamada recibida a la carta derivada: <strong>{tiempoHastaDerivar(historial.eventos)}</strong>
+                </p>
+              )}
               <Cambios cambios={historial.cambios} checklist={checklist} />
             </>
           )}

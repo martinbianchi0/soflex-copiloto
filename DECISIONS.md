@@ -129,6 +129,7 @@ Los números están en el `README.md` y el detalle por llamada, en `evaluacion/`
 
 - **El historial se lee de lo que el grafo ya guardó.** Cada nodo deja un punto guardado con su hora; el historial recorre esos puntos y cuenta qué pasó: llegó la llamada, sugirieron las reglas, respondió el modelo o quedó la sugerencia de las reglas, confirmó el operador, se derivó. No hay una tabla aparte que se pueda desfasar de lo que pasó.
 - **Qué cambió el operador sale de comparar la sugerencia con la carta.** Campo por campo y pregunta por pregunta: lo sugerido, lo que quedó. Es lo que permite revisar después una derivación, y también ver dónde el sistema propone mal.
+- **El historial dice cuánto pasó entre que entró la llamada y se derivó la carta.** Es el tiempo desde que la llamada entró al servicio hasta que quedó lista para despachar.
 - **El historial se ve en la carta derivada.** Mientras la llamada está abierta no se muestra: el operador está atendiendo.
 - **Guarda las horas del servicio, no las de la llamada.** Los turnos no traen marca de tiempo, así que el historial no dice cuándo se dijo cada cosa.
 

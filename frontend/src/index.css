@@ -278,6 +278,7 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
 .pregunta + .pregunta { border-block-start: 1px solid #d5dfe8; }
 .pregunta label { cursor: pointer; }
 .pregunta.posible .cita { font-style: italic; }
+.tiempo-derivacion { margin: 0.5rem 0 0; font-size: 0.875rem; }
 .ayuda-checklist { margin: 0.25rem 0 0; font-size: 0.875rem; color: #44576a; }
 .pregunta input { inline-size: 1.5rem; block-size: 1.5rem; margin: 0; accent-color: #1c4d77; cursor: pointer; }
 
