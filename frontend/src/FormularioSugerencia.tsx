@@ -92,7 +92,7 @@ export default function FormularioSugerencia({
   if (borrador.catalogo !== catalogo || (!analizando && borrador.sugerencia !== recibida)) {
     setBorrador(actualizarBorrador(borrador, analizando ? borrador.sugerencia : recibida, catalogo))
   }
-  const { sugerencia, campos, marcas } = borrador
+  const { sugerencia, campos, marcas, direccionAlternativa } = borrador
   const { calle, altura, esquinaUno, esquinaDos, categoria, subtipo, prioridad } = campos
   const ubicacion = sugerencia.ubicacion
   const [primeraEsquina = faltante, segundaEsquina = faltante] = ubicacion.esquinas
@@ -164,12 +164,15 @@ export default function FormularioSugerencia({
   }, [bloqueado, errores])
 
   function editar<Campo extends keyof CamposSugerencia>(campo: Campo, valor: CamposSugerencia[Campo]) {
-    setBorrador((actual) => ({ ...actual, campos: { ...actual.campos, [campo]: valor } }))
+    setBorrador((actual) => ({
+      ...actual, campos: { ...actual.campos, [campo]: valor }, editados: new Set([...actual.editados, campo]),
+    }))
   }
 
   function elegirSubtipo(elegido: string | null, tipo = categoria) {
     setBorrador((actual) => ({
       ...actual, campos: { ...actual.campos, categoria: tipo, subtipo: elegido }, marcas: new Map(),
+      editados: new Set([...actual.editados, 'categoria', 'subtipo']),
     }))
     const nombre = protocolos.find(({ id }) => id === elegido)?.nombre
     alCambiarProtocolo(nombre ? `${nombre}. Protocolo actualizado.` : 'Sin subtipo elegido.')
@@ -177,13 +180,14 @@ export default function FormularioSugerencia({
 
   function marcarPregunta(id: string) {
     const pregunta = checklist.find((item) => item.id === id)
-    const base = baseChecklist.find((item) => item.id === id)
-    if (!pregunta || !base) return
+    if (!pregunta) return
     const respondida = !pregunta.respondida
-    const siguientes = new Map(marcas)
-    if (respondida === base.respondida) siguientes.delete(id)
-    else siguientes.set(id, { id, respondida, cita: respondida ? pregunta.cita : null })
-    setBorrador((actual) => ({ ...actual, marcas: siguientes }))
+    const cita = respondida ? pregunta.cita ?? baseChecklist.find((item) => item.id === id)?.cita ?? null : null
+    setBorrador((actual) => ({
+      ...actual,
+      editados: new Set([...actual.editados, 'categoria', 'subtipo']),
+      marcas: new Map(actual.marcas).set(id, { id, respondida, cita }),
+    }))
   }
 
   function enviar(evento: FormEvent<HTMLFormElement>) {
@@ -246,7 +250,8 @@ export default function FormularioSugerencia({
           <legend>Sugerencia</legend>
           <AvisosSugerencia avisos={sugerencia.avisos} />
           <div className="direccion">
-            <CampoSugerido nombre="calle" etiqueta="Calle" dato={datos.calle} errores={erroresDe('calle')}>
+            <CampoSugerido nombre="calle" etiqueta="Calle" dato={datos.calle} errores={erroresDe('calle')}
+              nota={direccionAlternativa ? `El análisis ahora sugiere otra dirección: ${direccionAlternativa}.` : undefined}>
               {(control) => <input {...control} value={calle} onChange={(evento) => editar('calle', evento.target.value)} required />}
             </CampoSugerido>
             <CampoSugerido nombre="altura" etiqueta="Altura" dato={datos.altura} errores={erroresDe('altura')} opcional>
@@ -268,7 +273,7 @@ export default function FormularioSugerencia({
                 <select {...control} value={categoria} onChange={(evento) => {
                   elegirSubtipo(null, evento.target.value as TipoHecho | '')
                 }}>
-                  {categoriaSugerida === null && <option value="">Elegir…</option>}
+                  {(categoriaSugerida === null || categoria === '') && <option value="">Elegir…</option>}
                   {Object.entries(nombresTiposHecho).map(([opcion, nombre]) => (
                     <option key={opcion} value={opcion}>{nombre}</option>
                   ))}
@@ -293,7 +298,7 @@ export default function FormularioSugerencia({
                   <select {...control} value={prioridad} required
                     onChange={(evento) => editar('prioridad', evento.target.value as Prioridad | '')}
                     aria-describedby={nivelElegido ? `${control['aria-describedby']} prioridad-definicion` : control['aria-describedby']}>
-                    {prioridadSugerida === null && <option value="">Elegir…</option>}
+                    {(prioridadSugerida === null || prioridad === '') && <option value="">Elegir…</option>}
                     {!catalogo && prioridadSugerida && <option value={prioridadSugerida}>{prioridadSugerida}</option>}
                     {niveles.map(({ id, nombre }) => <option key={id} value={id}>{id} · {nombre}</option>)}
                   </select>

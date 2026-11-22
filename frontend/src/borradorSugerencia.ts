@@ -15,8 +15,12 @@ export type BorradorSugerencia = {
   sugerencia: Sugerencia
   catalogo: Catalogo | null
   campos: CamposSugerencia
+  editados: ReadonlySet<keyof CamposSugerencia>
   marcas: ReadonlyMap<string, MarcaChecklist>
+  direccionAlternativa?: string
 }
+
+const camposUbicacion = ['calle', 'altura', 'esquinaUno', 'esquinaDos'] as const
 
 function subtipoDe(categoria: CamposSugerencia['categoria'], subtipo: string | null, catalogo: Catalogo | null) {
   return !catalogo || catalogo.protocolos.some(
@@ -40,7 +44,7 @@ function camposDe(sugerencia: Sugerencia, catalogo: Catalogo | null): CamposSuge
 }
 
 export function iniciarBorrador(sugerencia: Sugerencia, catalogo: Catalogo | null): BorradorSugerencia {
-  return { sugerencia, catalogo, campos: camposDe(sugerencia, catalogo), marcas: new Map() }
+  return { sugerencia, catalogo, campos: camposDe(sugerencia, catalogo), editados: new Set(), marcas: new Map() }
 }
 
 export function leerAltura(altura: string) {
@@ -51,29 +55,37 @@ export function leerAltura(altura: string) {
 }
 
 export function actualizarBorrador(borrador: BorradorSugerencia, sugerencia: Sugerencia, catalogo: Catalogo | null): BorradorSugerencia {
-  const { campos, marcas } = borrador
+  const { campos, editados, marcas } = borrador
   const anterior = camposDe(borrador.sugerencia, borrador.catalogo)
   const nueva = camposDe(sugerencia, catalogo)
+  const conservarUbicacion = camposUbicacion.some((campo) => editados.has(campo))
+  const cambioDireccion = anterior.calle !== nueva.calle || anterior.altura !== nueva.altura
 
   function conservar<Campo extends keyof CamposSugerencia>(campo: Campo) {
-    return campos[campo] === anterior[campo] ? nueva[campo] : campos[campo]
+    return editados.has(campo) ? campos[campo] : nueva[campo]
   }
 
   const categoria = conservar('categoria')
   const subtipo = subtipoDe(categoria, conservar('subtipo'), catalogo)
-  const altura = leerAltura(campos.altura)
+  const ubicacion = conservarUbicacion ? campos : nueva
+  let direccionAlternativa = borrador.direccionAlternativa
+  if (conservarUbicacion && cambioDireccion) {
+    direccionAlternativa = nueva.calle ? [nueva.calle, nueva.altura].filter(Boolean).join(' ') : undefined
+  }
   return {
     sugerencia,
     catalogo,
+    editados,
     campos: {
-      calle: conservar('calle'),
-      altura: !altura.invalida && altura.numero === leerAltura(anterior.altura).numero ? nueva.altura : campos.altura,
-      esquinaUno: conservar('esquinaUno'),
-      esquinaDos: conservar('esquinaDos'),
+      calle: ubicacion.calle,
+      altura: ubicacion.altura,
+      esquinaUno: ubicacion.esquinaUno,
+      esquinaDos: ubicacion.esquinaDos,
       categoria,
       subtipo,
       prioridad: conservar('prioridad'),
     },
     marcas: subtipo === campos.subtipo ? marcas : new Map(),
+    direccionAlternativa,
   }
 }
