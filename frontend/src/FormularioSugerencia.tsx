@@ -22,6 +22,7 @@ type Propiedades = {
   nuevaLlamadaBloqueada: boolean
   errores: DetalleValidacion[]
   pieTranscripcion: ReactNode
+  avisoDuplicados: ReactNode
   alCambiarProtocolo: (mensaje: string) => void
   alDerivar: (ajustes: Ajustes) => void
   alValidar: (errores: DetalleValidacion[]) => void
@@ -87,7 +88,7 @@ function CriterioPrioridad({ niveles, reglas }: Criterio) {
 
 export default function FormularioSugerencia({
   turnos, sugerencia: recibida, catalogo, analizando, derivacionBloqueada, edicionBloqueada, ocupado,
-  nuevaLlamadaBloqueada, errores, pieTranscripcion,
+  nuevaLlamadaBloqueada, errores, pieTranscripcion, avisoDuplicados,
   alCambiarProtocolo, alDerivar, alValidar, alEmpezar,
 }: Propiedades) {
   const [borrador, setBorrador] = useState(() => iniciarBorrador(recibida, catalogo))
@@ -264,6 +265,7 @@ export default function FormularioSugerencia({
         onFocus={(evento) => setEnFoco(evento.target.id)} onBlur={() => setEnFoco('')}>
         <fieldset disabled={edicionBloqueada}>
           <legend>Sugerencia</legend>
+          {avisoDuplicados}
           <AvisosSugerencia avisos={sugerencia.avisos} />
           <div className="direccion">
             <CampoSugerido nombre="calle" etiqueta="Calle" dato={datos.calle} errores={erroresDe('calle')}
