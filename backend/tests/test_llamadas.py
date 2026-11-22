@@ -90,10 +90,12 @@ def test_los_origenes_y_las_citas_sobreviven_al_grafo_al_disco_y_al_reinicio(
     guardada = despues.consultar(llamada_id).sugerencia.model_dump(mode="json")
     cambio = {"calle": "Av. Corrientes", "altura": 1548, "esquinas": ["Montevideo", "Paraná"]}
     despues.derivar(llamada_id, ajustes(prioridad="P1", ubicacion=cambio))
+    historial = despues.consultar_historial(llamada_id)
     despues.cerrar()
 
     al_final = Llamadas(ruta)
     carta = al_final.consultar(llamada_id).carta.model_dump(mode="json")
+    assert al_final.consultar_historial(llamada_id) == historial
     al_final.cerrar()
 
     assert guardada == sugerencia_completa
@@ -167,7 +169,16 @@ def test_si_se_corta_al_armar_la_carta_se_termina_con_los_ajustes_ya_aceptados(r
     antes.cerrar()
 
     despues = Llamadas(ruta)
+    pendiente = despues.consultar_historial(llamada_id)
+    assert pendiente.cambios == []
+    assert pendiente.eventos[-1].tipo == "ajustes_operador"
+    assert pendiente.eventos[-1].detalle == "El operador confirmó. La carta todavía está pendiente."
+    assert despues.consultar_historial(llamada_id) == pendiente
+
     llamada = despues.consultar(llamada_id)
+    completo = despues.consultar_historial(llamada_id)
+    assert completo.eventos[-2].cuando == pendiente.eventos[-1].cuando
+    assert completo.eventos[-1].tipo == "derivada"
     with pytest.raises(LlamadaNoEsperaOperador):
         despues.derivar(llamada_id, ajustes(**{**COMPLETOS, "prioridad": "P4"}))
     despues.cerrar()

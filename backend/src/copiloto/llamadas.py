@@ -13,12 +13,12 @@ from pathlib import Path
 
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.sqlite import SqliteSaver
-from langgraph.types import Command
+from langgraph.types import Command, StateSnapshot
 from pydantic import ValidationError
 
-from copiloto import flujo
+from copiloto import flujo, historial
 from copiloto.config import ESPERA_DEL_MODELO_S
-from copiloto.esquemas import Ajustes, Llamada, Turno
+from copiloto.esquemas import Ajustes, Historial, Llamada, Turno
 from copiloto.grafo import Estado, construir
 from copiloto.modelo import Modelo
 from copiloto.turnos import separar_hablantes
@@ -83,6 +83,23 @@ class Llamadas:
                 llamada = self._terminar_lo_que_quedo_a_medias(llamada_id)
         return llamada
 
+    def consultar_historial(self, llamada_id: str) -> Historial:
+        fotos = list(self._grafo.get_state_history(_hilo(llamada_id)))
+        if not fotos:
+            raise LlamadaInexistente(llamada_id)
+        llamada = self._llamada_de(llamada_id, fotos[0])
+        valores: Mapping[str, object] = fotos[0].values
+        try:
+            if llamada.estado == "en_proceso" and "ajustes" in valores:
+                Ajustes.model_validate(valores["ajustes"])
+            puntos = [
+                historial.PuntoGuardado(foto.created_at, foto.values, foto.metadata or {})
+                for foto in fotos
+            ]
+            return historial.armar(llamada, puntos)
+        except ValidationError as error:
+            raise LlamadaIlegible(llamada_id) from error
+
     def derivar(self, llamada_id: str, ajustes: Ajustes) -> Llamada:
         """Retoma la llamada con lo que cambió el operador y arma la Carta de Llamada."""
         with self._derivando:
@@ -128,7 +145,10 @@ class Llamadas:
         return llamada
 
     def _leer(self, llamada_id: str) -> Llamada:
-        foto = self._grafo.get_state(_hilo(llamada_id))
+        return self._llamada_de(llamada_id, self._grafo.get_state(_hilo(llamada_id)))
+
+    @staticmethod
+    def _llamada_de(llamada_id: str, foto: StateSnapshot) -> Llamada:
         valores: Mapping[str, object] = foto.values
         if not valores:
             raise LlamadaInexistente(llamada_id)
@@ -148,7 +168,7 @@ class Llamadas:
                 {
                     "llamada_id": llamada_id,
                     "estado": estado,
-                    "turnos": valores["turnos"],
+                    "turnos": valores.get("turnos"),
                     "sugerencia": valores.get("sugerencia"),
                     "carta": carta,
                 }

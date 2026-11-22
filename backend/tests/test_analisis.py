@@ -583,3 +583,37 @@ def test_en_mock_el_alta_ya_espera_al_operador_y_completar_no_cambia_la_llamada(
     analisis = cliente.post(f"/api/llamadas/{inicial['llamada_id']}/analisis")
     assert analisis.status_code == 200
     assert analisis.json() == inicial
+
+
+@pytest.mark.parametrize(
+    ("respuestas", "detalle"),
+    [
+        pytest.param([CLASIFICACION, CHECKLIST], "Sugerencia del modelo, sin avisos.", id="modelo"),
+        pytest.param(
+            [ModeloNoDisponible("el modelo no respondió a tiempo")],
+            "El modelo no respondió: quedó la sugerencia de las reglas.",
+            id="rescate",
+        ),
+    ],
+)
+def test_el_historial_registra_el_resultado_del_modelo_en_sqlite(
+    abrir_servicio, respuestas, detalle
+):
+    with abrir_servicio(ModeloGuionado(*respuestas)) as servicio:
+        llamada_id = alta_001(servicio).llamada_id
+        inicial = servicio.consultar_historial(llamada_id)
+        assert [evento.tipo for evento in inicial.eventos] == ["recibida", "sugerencia_reglas"]
+
+        servicio.completar_analisis(llamada_id)
+        servicio.derivar(llamada_id, Ajustes())
+        historial = servicio.consultar_historial(llamada_id)
+
+    assert historial.eventos[:2] == inicial.eventos
+    assert [evento.tipo for evento in historial.eventos[2:]] == [
+        "sugerencia_modelo",
+        "ajustes_operador",
+        "derivada",
+    ]
+    assert historial.eventos[2].detalle == detalle
+    assert historial.eventos[3].detalle == "El operador confirmó sin cambios."
+    assert historial.cambios == []

@@ -222,18 +222,39 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
 .prioridad-p4 { color: #394653; background: #e9eef3; }
 .panel > .avisos-sugerencia { margin-block-start: 0.5rem; }
 
-.detalles-sugerencia, .criterio-prioridad {
+.detalles-sugerencia, .criterio-prioridad, .historial {
   margin-block-start: 0.75rem;
   border-block-start: 1px solid #aebbc8;
   padding-block-start: 0.75rem;
   font-size: 0.9375rem;
 }
 
-.detalles-sugerencia h3 { margin: 0; font-size: 1rem; }
+.detalles-sugerencia h3, .historial h3 { margin: 0; font-size: 1rem; }
 .criterio-prioridad summary { cursor: pointer; font-weight: 600; }
 .criterio-prioridad h3 { margin: 0.75rem 0 0; font-size: 1rem; }
 .detalles-sugerencia ul, .criterio-prioridad ul { margin: 0.25rem 0 0; padding-inline-start: 1.25rem; }
 .detalles-sugerencia li + li, .criterio-prioridad li + li { margin-block-start: 0.25rem; }
+
+.historial > p { margin-block-start: 0.5rem; }
+.historial ol {
+  margin: 0.5rem 0 0.75rem;
+  padding-inline-start: 0.75rem;
+  border-inline-start: 2px solid #aebbc8;
+  list-style: none;
+}
+.historial ol li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.75rem; padding-block: 0.25rem; }
+.historial time { color: #46596c; font-variant-numeric: tabular-nums; }
+.historial table { inline-size: 100%; border-collapse: collapse; text-align: start; }
+.historial caption { padding-block-end: 0.375rem; text-align: start; font-weight: 700; }
+.historial th, .historial td {
+  padding: 0.375rem;
+  border-block-end: 1px solid #d5dfe8;
+  text-align: start;
+  vertical-align: top;
+}
+.historial thead { background: #e9eef3; }
+.historial .origen { display: block; }
+.historial ul { margin: 0; padding-inline-start: 1rem; }
 
 .instrucciones {
   margin-block-start: 0.75rem;
