@@ -123,4 +123,5 @@ Qué se eligió, por qué y qué se dejó afuera.
 - **Una imagen en tres etapas:** Node compila el panel, uv instala el backend y la imagen final lleva sólo Python, el entorno y el panel. Ni Node ni uv quedan en lo que corre.
 - **El servicio corre con un usuario sin privilegios**, y la imagen declara su propio chequeo de salud sobre `/api/health`.
 - **El estado de las llamadas vive en un volumen.** `docker compose down` y `docker compose up --build` no lo borran.
+- **Integración continua.** En cada push a `main` y en cada pull request corren, por separado, los tests, el estilo y los tipos del backend; el estilo y la compilación del panel; y la construcción de la imagen (`.github/workflows/ci.yml`).
 - **`.env` es opcional y no entra a la imagen.** `docker-compose.yml` lo lee si existe y `.dockerignore` lo deja fuera del contexto de construcción.
