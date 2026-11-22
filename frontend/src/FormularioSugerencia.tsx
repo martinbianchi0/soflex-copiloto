@@ -227,8 +227,9 @@ export default function FormularioSugerencia({
     if (evento.ctrlKey || evento.metaKey) {
       evento.preventDefault()
       formulario.current?.requestSubmit()
-    } else if (evento.target instanceof HTMLInputElement) {
-      // Enter dentro de un campo no deriva: una carta derivada no se puede deshacer.
+    } else if (evento.target instanceof HTMLInputElement || evento.target instanceof HTMLSelectElement) {
+      // Enter dentro de un campo o de un desplegable no deriva: una carta derivada no se puede
+      // deshacer, y el foco suele quedar en el desplegable de la prioridad.
       evento.preventDefault()
     }
   }
