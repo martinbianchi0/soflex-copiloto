@@ -1,4 +1,4 @@
-"""Las llamadas del servicio: iniciarlas, consultarlas y derivarlas.
+"""Las llamadas del servicio: iniciarlas, consultarlas, sumarles turnos y derivarlas.
 
 Cada llamada es un hilo del grafo. Su estado se guarda en SQLite después de cada nodo, así que una
 llamada que quedó esperando al operador se puede derivar aunque el servicio se haya reiniciado.
@@ -18,7 +18,7 @@ from pydantic import ValidationError
 
 from copiloto import flujo, historial
 from copiloto.config import ESPERA_DEL_MODELO_S
-from copiloto.esquemas import Ajustes, Historial, Llamada, Turno
+from copiloto.esquemas import Ajustes, Historial, Llamada, NuevaLlamada, Turno
 from copiloto.grafo import Estado, construir
 from copiloto.modelo import Modelo
 from copiloto.turnos import separar_hablantes
@@ -36,6 +36,10 @@ class LlamadaIlegible(RuntimeError):
     """Lo guardado no cumple las reglas de esta versión del servicio."""
 
 
+class TurnoNoEntra(ValueError):
+    """El turno nuevo supera los límites de la transcripción."""
+
+
 def _hilo(llamada_id: str) -> RunnableConfig:
     return {"configurable": {"thread_id": llamada_id}}
 
@@ -48,11 +52,12 @@ class Llamadas:
         # Los pedidos llegan desde varios hilos: SqliteSaver ordena el acceso a la conexión.
         self._conexion = sqlite3.connect(ruta, check_same_thread=False)
         self._grafo = construir(modelo, espera_s).compile(checkpointer=SqliteSaver(self._conexion))
-        self._pausa_del_alta = ["analizar"] if modelo is not None else None
+        self._pausa_tras_las_reglas = ["analizar"] if modelo is not None else None
         self._analizando = threading.Lock()
-        # Una derivación por vez: dos pedidos simultáneos no derivan la misma llamada dos veces.
+        self._analisis_en_curso: str | None = None
+        # Dos pedidos simultáneos no pueden contestar la misma pausa del operador.
         # Vale dentro de este proceso; el servicio corre con un solo proceso.
-        self._derivando = threading.Lock()
+        self._modificando = threading.Lock()
 
     def cerrar(self) -> None:
         self._conexion.close()
@@ -63,24 +68,31 @@ class Llamadas:
         # Se guarda ya partida en turnos: las citas señalan cada turno por su posición.
         planos = [turno.model_dump(mode="json") for turno in separar_hablantes(turnos)]
         self._avanzar(
-            {"llamada_id": llamada_id, "turnos": planos}, llamada_id, self._pausa_del_alta
+            {"llamada_id": llamada_id, "turnos": planos}, llamada_id, self._pausa_tras_las_reglas
         )
         return self._leer(llamada_id)
 
     def completar_analisis(self, llamada_id: str) -> Llamada:
         """Completa la sugerencia si todavía falta consultar al modelo."""
         with self._analizando:
-            llamada = self._leer(llamada_id)
-            if llamada.estado == "analizando":
-                self._avanzar(None, llamada_id)
+            with self._modificando:
                 llamada = self._leer(llamada_id)
-            return llamada
+                if llamada.estado != "analizando":
+                    return llamada
+                self._analisis_en_curso = llamada_id
+            try:
+                self._avanzar(None, llamada_id)
+                return self._leer(llamada_id)
+            finally:
+                with self._modificando:
+                    self._analisis_en_curso = None
 
     def consultar(self, llamada_id: str) -> Llamada:
         llamada = self._leer(llamada_id)
         if llamada.estado == "en_proceso":
-            with self._derivando:
-                llamada = self._terminar_lo_que_quedo_a_medias(llamada_id)
+            with self._modificando:
+                if self._analisis_en_curso != llamada_id:
+                    llamada = self._terminar_lo_que_quedo_a_medias(llamada_id)
         return llamada
 
     def consultar_historial(self, llamada_id: str) -> Historial:
@@ -100,9 +112,32 @@ class Llamadas:
         except ValidationError as error:
             raise LlamadaIlegible(llamada_id) from error
 
+    def sumar_turno(self, llamada_id: str, turno: Turno) -> Llamada:
+        """Agrega lo que se dijo después y vuelve a pasar por las reglas."""
+        with self._modificando:
+            llamada = self._leer(llamada_id)
+            if llamada.estado != "esperando_operador" or self._analisis_en_curso == llamada_id:
+                raise LlamadaNoEsperaOperador(llamada_id)
+            try:
+                # El alta controla el largo antes de separar. Acá también se controla cuántos
+                # turnos van a quedar, porque se agregan a los que ya se guardaron.
+                NuevaLlamada(turnos=[*llamada.turnos, turno])
+                nuevos = separar_hablantes([turno], maximo=None)
+                NuevaLlamada(turnos=[*llamada.turnos, *nuevos])
+            except ValidationError as error:
+                raise TurnoNoEntra(error.errors()[0]["msg"]) from error
+            self._avanzar(
+                Command(resume={"turno": turno.model_dump(mode="json")}),
+                llamada_id,
+                self._pausa_tras_las_reglas,
+            )
+            return self._leer(llamada_id)
+
     def derivar(self, llamada_id: str, ajustes: Ajustes) -> Llamada:
         """Retoma la llamada con lo que cambió el operador y arma la Carta de Llamada."""
-        with self._derivando:
+        with self._modificando:
+            if self._analisis_en_curso == llamada_id:
+                raise LlamadaNoEsperaOperador(llamada_id)
             llamada = self._terminar_lo_que_quedo_a_medias(llamada_id)
             if llamada.estado != "esperando_operador":
                 raise LlamadaNoEsperaOperador(llamada_id)
@@ -112,7 +147,13 @@ class Llamadas:
             planos = ajustes.model_dump(mode="json", exclude_unset=True)
             ahora = datetime.now(UTC)
             assert llamada.sugerencia is not None  # La llamada ya está esperando al operador.
-            flujo.derivar(llamada_id, llamada.sugerencia, Ajustes.model_validate(planos), ahora)
+            flujo.derivar(
+                llamada_id,
+                llamada.sugerencia,
+                Ajustes.model_validate(planos),
+                ahora,
+                turnos=llamada.turnos,
+            )
             # Los ajustes van envueltos: LangGraph lee un diccionario vacío suelto como "no se
             # contesta ninguna pausa", y una derivación sin cambios dejaría la llamada esperando.
             self._avanzar(Command(resume={"ajustes": planos}), llamada_id)
@@ -130,14 +171,11 @@ class Llamadas:
         )
 
     def _terminar_lo_que_quedo_a_medias(self, llamada_id: str) -> Llamada:
-        """Si el servicio se cortó después de que el operador confirmó, arma la carta ahora.
-
-        Los ajustes ya estaban guardados, así que se retoma desde ahí sin volver a pedirlos.
-        """
+        """Retoma el análisis o arma la carta si el servicio se cortó entre nodos."""
         llamada = self._leer(llamada_id)
         if llamada.estado == "en_proceso":
             try:
-                self._avanzar(None, llamada_id, self._pausa_del_alta)
+                self._avanzar(None, llamada_id, self._pausa_tras_las_reglas)
             except ValidationError as error:
                 # Lo que quedó guardado (por ejemplo, los ajustes) es de otra versión del servicio.
                 raise LlamadaIlegible(llamada_id) from error
@@ -158,7 +196,7 @@ class Llamadas:
             estado = "derivada"
         elif foto.next == ("consultar_modelo",) and valores.get("falta_el_modelo", True):
             estado = "analizando"
-        elif foto.next == ("esperar_operador",) and "ajustes" not in valores:
+        elif foto.next == ("esperar_operador",) and foto.interrupts and "ajustes" not in valores:
             estado = "esperando_operador"
         else:
             estado = "en_proceso"

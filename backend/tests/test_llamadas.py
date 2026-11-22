@@ -78,6 +78,52 @@ def test_una_llamada_a_medias_se_deriva_despues_de_reiniciar(ruta):
     assert llamada.carta.llamada_id == llamada_id
 
 
+def test_se_puede_sumar_un_turno_despues_de_reiniciar(ruta):
+    antes = Llamadas(ruta)
+    inicial = antes.iniciar(turnos("Se prendió fuego un local."))
+    antes.cerrar()
+
+    despues = Llamadas(ruta)
+    nueva = Turno(texto="En Av. Corrientes 1540.", hablante="llamante")
+    ampliada = despues.sumar_turno(inicial.llamada_id, nueva)
+    despues.cerrar()
+
+    assert ampliada.estado == "esperando_operador"
+    assert ampliada.turnos == [*inicial.turnos, nueva]
+    assert ampliada.sugerencia.ubicacion.altura.valor == 1540
+    assert ampliada.sugerencia.ubicacion.calle.cita.turno == 1
+
+
+def test_si_se_corta_al_reanalizar_se_retoma_con_el_turno_ya_guardado(ruta, monkeypatch):
+    antes = Llamadas(ruta)
+    inicial = antes.iniciar(turnos("Hubo un choque."))
+    nuevo = Turno(texto="Av. Corrientes 1540", hablante="llamante")
+
+    def se_corta(_turnos):
+        raise RuntimeError("el servicio se cortó")
+
+    with monkeypatch.context() as corte:
+        corte.setattr(flujo, "analizar", se_corta)
+        with pytest.raises(RuntimeError, match="se cortó"):
+            antes.sumar_turno(inicial.llamada_id, nuevo)
+    antes.cerrar()
+
+    despues = Llamadas(ruta)
+    ampliada = despues.consultar(inicial.llamada_id)
+    historial = despues.consultar_historial(inicial.llamada_id)
+    despues.cerrar()
+
+    assert ampliada.estado == "esperando_operador"
+    assert ampliada.turnos == [*inicial.turnos, nuevo]
+    assert ampliada.sugerencia.ubicacion.altura.valor == 1540
+    assert [evento.tipo for evento in historial.eventos] == [
+        "recibida",
+        "sugerencia_reglas",
+        "turno_agregado",
+        "sugerencia_reglas",
+    ]
+
+
 def test_los_origenes_y_las_citas_sobreviven_al_grafo_al_disco_y_al_reinicio(
     ruta, monkeypatch, sugerencia_completa
 ):
@@ -155,12 +201,12 @@ def test_si_se_corta_al_armar_la_carta_se_termina_con_los_ajustes_ya_aceptados(r
     derivar_de_verdad = flujo.derivar
     veces = []
 
-    def se_corta_en_el_grafo(*argumentos):
+    def se_corta_en_el_grafo(*argumentos, **opciones):
         # La primera vez es la comprobación previa; la segunda, el nodo del grafo.
         veces.append(1)
         if len(veces) == 2:
             raise RuntimeError("el servicio se cortó")
-        return derivar_de_verdad(*argumentos)
+        return derivar_de_verdad(*argumentos, **opciones)
 
     with monkeypatch.context() as corte:
         corte.setattr(flujo, "derivar", se_corta_en_el_grafo)

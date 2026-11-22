@@ -1,9 +1,9 @@
 """Las llamadas del dataset provisto y lo que se sabe de cada una.
 
-Es para el modo simulado. Si en la llamada que entra el llamante dice exactamente lo mismo que en
-una de esas treinta, su tipo, su subtipo y su prioridad se leen de su fila, y qué preguntas del
-protocolo responde el relato sale de `datos/respuestas_anotadas.json`. No se interpreta nada: es
-una búsqueda, y el origen de esos datos lo dice.
+Es para el modo simulado. Si lo primero que dice el llamante es exactamente el relato de una de
+esas treinta, su tipo, su subtipo y su prioridad se leen de su fila, y qué preguntas del protocolo
+responde el relato sale de `datos/respuestas_anotadas.json`. No se interpreta nada: es una
+búsqueda, y el origen de esos datos lo dice.
 """
 
 import csv
@@ -27,10 +27,19 @@ class LlamadaConocida(Esquema):
     respuestas: dict[str, Texto]
 
 
+def _tramos(turnos: list[Turno]) -> list[str]:
+    return [tramo for turno in turnos for tramo in tramos_del_llamante(turno)]
+
+
 def _relato(turnos: list[Turno]) -> str | None:
-    """Lo que dijo el llamante, si lo dijo de un tirón. Sólo se emparejan los espacios."""
-    tramos = [tramo for turno in turnos for tramo in tramos_del_llamante(turno)]
-    return " ".join(tramos[0].split()) if len(tramos) == 1 else None
+    """Lo primero que dijo el llamante, de un tirón. Sólo se emparejan los espacios."""
+    tramos = _tramos(turnos)
+    return " ".join(tramos[0].split()) if tramos else None
+
+
+def se_dijo_algo_mas(turnos: list[Turno]) -> bool:
+    """Si el llamante siguió hablando después de su relato."""
+    return len(_tramos(turnos)) > 1
 
 
 @cache
@@ -82,10 +91,11 @@ def cargar() -> None:
 
 
 def buscar(turnos: list[Turno]) -> LlamadaConocida | None:
-    """La llamada del dataset en la que el llamante dice exactamente lo mismo, o ninguna.
+    """La llamada del dataset cuyo relato es lo primero que dice el llamante, o ninguna.
 
     Tiene que coincidir letra por letra: mayúsculas, acentos y puntuación. Una búsqueda no
-    generaliza: un relato parecido, o el mismo con algo más, es un texto nuevo.
+    generaliza: un relato parecido, o partido en dos, es un texto nuevo. Lo que el llamante diga
+    después no cambia cuál es la llamada, ni tampoco su ficha.
     """
     relato = _relato(turnos)
     return _conocidas().get(relato) if relato else None

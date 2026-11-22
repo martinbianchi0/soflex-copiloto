@@ -4,11 +4,10 @@ import re
 
 from pydantic import ValidationError
 
-from copiloto.esquemas import Turno
+from copiloto.esquemas import MAXIMO_DE_TURNOS, Turno
 
 # Así vienen marcados los turnos en una transcripción pegada entera: "Operador: ... Llamante: ...".
 MARCA_DE_HABLANTE = re.compile(r"\b(operador|llamante)\s*:", re.IGNORECASE)
-_MAXIMO = 500
 # Lo que está antes de la primera marca de un turno con marcas: no se sabe quién lo dijo.
 _NADIE = "sin atribuir"
 
@@ -26,7 +25,7 @@ def _tramos(turno: Turno) -> list[tuple[str | None, str]]:
     return [(quien, texto.strip()) for quien, texto in tramos if texto.strip()]
 
 
-def separar_hablantes(turnos: list[Turno]) -> list[Turno]:
+def separar_hablantes(turnos: list[Turno], *, maximo: int | None = MAXIMO_DE_TURNOS) -> list[Turno]:
     """Parte en turnos una transcripción que trae las marcas de quién habla.
 
     Se hace antes de guardar la llamada: las citas señalan el turno por su posición. Un turno que ya
@@ -45,7 +44,7 @@ def separar_hablantes(turnos: list[Turno]) -> list[Turno]:
         return turnos
     # Si no quedó nada legible o son demasiados, se guarda lo que llegó, sin partir. Quien lee la
     # llamada mira las marcas igual: lo que dijo el operador no se cuenta en ningún caso.
-    return separados if 0 < len(separados) <= _MAXIMO else turnos
+    return separados if separados and (maximo is None or len(separados) <= maximo) else turnos
 
 
 def tramos_del_llamante(turno: Turno) -> list[str]:

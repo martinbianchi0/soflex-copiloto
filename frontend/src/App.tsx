@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { analizarLlamada, consultarCatalogo, consultarEjemplos, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi } from './api'
-import type { Ajustes, Aviso, Catalogo, DetalleValidacion, Ejemplo, Llamada } from './api'
+import { analizarLlamada, consultarCatalogo, consultarEjemplos, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi, sumarTurno } from './api'
+import type { Ajustes, Aviso, Catalogo, DetalleValidacion, Ejemplo, Llamada, Turno } from './api'
 import CartaLlamada from './CartaLlamada'
 import FormularioSugerencia from './FormularioSugerencia'
+import FormularioTurno from './FormularioTurno'
 import Transcripcion from './Transcripcion'
 import { campoSugerencia, nombrarCampo } from './validacion'
 
@@ -55,7 +56,10 @@ function App() {
   const [error, setError] = useState<string | DetalleValidacion[] | null>(null)
   const [aviso, setAviso] = useState('')
   const [anuncio, setAnuncio] = useState('')
+  const [sumando, setSumando] = useState(false)
+  const [errorTurno, setErrorTurno] = useState('')
   const solicitud = useRef<AbortController | null>(null)
+  const reanalizando = useRef(false)
   const regionAvisos = useRef<HTMLDivElement>(null)
   const bloqueado = ocupado || modo === undefined
   const analisisBloqueado = bloqueado || !catalogo
@@ -127,17 +131,28 @@ function App() {
     }
   }, [])
 
-  const recibirLlamada = useCallback(async (recibida: Llamada, senal: AbortSignal, desdeAlta = false) => {
+  const recibirLlamada = useCallback(async (recibida: Llamada, senal: AbortSignal, origen: 'consulta' | 'alta' | 'turno' = 'consulta') => {
     if (senal.aborted) return
+    const actualizado = 'Sugerencia actualizada.'
+    const sumado = 'Se sumó un turno.'
+    const trasSumar = origen === 'turno' || reanalizando.current
     setLlamada(recibida)
     if (recibida.estado === 'analizando') {
-      setAnuncio(anunciarAvisos(recibida.sugerencia.avisos))
+      reanalizando.current = trasSumar
+      setAnuncio(origen === 'turno' ? sumado : anunciarAvisos(recibida.sugerencia.avisos))
       const definitiva = await analizarLlamada(recibida.llamada_id, senal)
       if (senal.aborted) return
       setLlamada(definitiva)
       setHuboAnalisis(true)
-      setAnuncio(anunciarResultado(definitiva, true))
-    } else if (desdeAlta) {
+      reanalizando.current = false
+      if (trasSumar && definitiva.estado === 'esperando_operador') {
+        setAnuncio([actualizado, anunciarAvisos(definitiva.sugerencia.avisos)].filter(Boolean).join(' '))
+      } else {
+        setAnuncio(anunciarResultado(definitiva, true))
+      }
+    } else if (origen === 'turno' && recibida.estado === 'esperando_operador') {
+      setAnuncio([sumado, actualizado, anunciarAvisos(recibida.sugerencia.avisos)].filter(Boolean).join(' '))
+    } else if (origen === 'alta') {
       setAnuncio(anunciarAvisos(recibida.sugerencia?.avisos ?? []) || 'Sugerencia lista.')
     } else {
       setAnuncio(anunciarResultado(recibida))
@@ -148,6 +163,9 @@ function App() {
     function abrirDesdeUrl() {
       solicitud.current?.abort()
       solicitud.current = null
+      reanalizando.current = false
+      setSumando(false)
+      setErrorTurno('')
       const actual = leerIdentificador()
       setIdentificador(actual)
       setLlamada(null)
@@ -199,13 +217,39 @@ function App() {
       setIdentificador(creada.llamada_id)
       setTranscripcion('')
       setEjemploElegido('')
-      await recibirLlamada(creada, senal, true)
+      await recibirLlamada(creada, senal, 'alta')
     })
   }
 
   function reintentarAnalisis() {
     if (llamada?.estado !== 'analizando') return
     void solicitar((senal) => recibirLlamada(llamada, senal))
+  }
+
+  function sumar(turno: Turno, alAceptar: () => void) {
+    if (bloqueado || llamada?.estado !== 'esperando_operador') return
+    const id = llamada.llamada_id
+    void solicitar(async (senal) => {
+      setSumando(true)
+      setErrorTurno('')
+      let ampliada: Llamada
+      try {
+        ampliada = await sumarTurno(id, turno, senal)
+      } catch (fallo) {
+        if (senal.aborted) return
+        const detalle = fallo instanceof ErrorApi ? fallo.detalle : undefined
+        if (Array.isArray(detalle)) setErrorTurno(detalle.map(({ msg }) => msg).join(' '))
+        else setErrorTurno(fallo instanceof ErrorApi
+          ? detalle ?? `El servicio respondió con un error (${fallo.estado}).`
+          : errorConexion)
+        return
+      } finally {
+        if (!senal.aborted) setSumando(false)
+      }
+      if (senal.aborted) return
+      alAceptar()
+      await recibirLlamada(ampliada, senal, 'turno')
+    })
   }
 
   function derivar(ajustes: Ajustes) {
@@ -239,6 +283,9 @@ function App() {
     if (nuevaLlamadaBloqueada || (!analizando && solicitud.current)) return
     solicitud.current?.abort()
     solicitud.current = null
+    reanalizando.current = false
+    setSumando(false)
+    setErrorTurno('')
     setOcupado(false)
     cambiarUrl(null)
     setIdentificador(null)
@@ -251,6 +298,9 @@ function App() {
     setAnuncio('Nueva llamada.')
   }
 
+  const formularioTurno = <FormularioTurno key={identificador} bloqueado={bloqueado || analizando}
+    sumando={sumando} error={errorTurno} alSumar={sumar} alEditar={() => setErrorTurno('')} />
+
   return (
     <main className={muestraSugerencia ? 'vista-operador' : undefined}>
       <header className="encabezado">
@@ -262,7 +312,7 @@ function App() {
         aria-live="polite" aria-atomic={!analisisEnCurso}>
         {analisisEnCurso && <p className="aviso">El modelo está leyendo la llamada… La ubicación ya está leída.</p>}
         <span className="solo-lectores">{ocupado && !analizando
-          ? (llamada?.estado === 'esperando_operador' ? 'Derivando carta…' : identificador ? 'Consultando llamada…' : 'Analizando llamada…')
+          ? (sumando ? 'Sumando turno…' : llamada?.estado === 'esperando_operador' ? 'Derivando carta…' : identificador ? 'Consultando llamada…' : 'Analizando llamada…')
           : anuncio}</span>
         {aviso && <p className="aviso">{aviso}</p>}
         {modo === null && error !== errorConexion && <p className="error">{errorConexion}</p>}
@@ -335,14 +385,17 @@ function App() {
 
       {muestraSugerencia && (
         muestraFormulario ? (
-          <FormularioSugerencia key={`${llamada.llamada_id}-${llamada.estado}-${Boolean(catalogo)}`}
+          <FormularioSugerencia key={llamada.llamada_id} analizando={analizando} formularioTurno={formularioTurno}
             turnos={llamada.turnos} sugerencia={llamada.sugerencia} catalogo={catalogo ?? null}
-            bloqueado={bloqueado || analizando || !catalogo} ocupado={ocupado && !analizando} nuevaLlamadaBloqueada={nuevaLlamadaBloqueada}
+            bloqueado={bloqueado || analizando || !catalogo} ocupado={ocupado && !analizando && !sumando} nuevaLlamadaBloqueada={nuevaLlamadaBloqueada}
             alDerivar={derivar} errores={Array.isArray(error) ? error : []}
             alCambiarProtocolo={setAnuncio} alValidar={setError} alEmpezar={nuevaLlamada} />
         ) : (
           <div className="panel-operador">
-            <Transcripcion turnos={llamada.turnos} />
+            <div className="columna-transcripcion">
+              <Transcripcion turnos={llamada.turnos} />
+              {formularioTurno}
+            </div>
             <div className="panel acciones">
               <button type="button" className="secundario" disabled={bloqueado} onClick={nuevaLlamada}>
                 Nueva llamada

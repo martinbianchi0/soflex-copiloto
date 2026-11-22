@@ -658,3 +658,23 @@ def test_las_entrecalles_sugeridas_se_vuelven_a_encontrar_con_la_calle_como_se_m
             assert inferidas <= set(ubicacion.entrecalles_de(lugar.calle.valor, lugar.altura.valor))
 
     assert comprobadas == 12
+
+
+def test_lo_que_se_dice_despues_del_relato_no_cambia_la_ficha_y_la_sugerencia_lo_avisa():
+    relato = [Turno(texto=TEXTO)]
+    ampliada = [*relato, Turno(hablante="llamante", texto="Ya salieron todos, no quedó nadie.")]
+
+    sola, con_mas = flujo.analizar(relato), flujo.analizar(ampliada)
+
+    assert [aviso.codigo for aviso in sola.avisos] == []
+    assert [aviso.codigo for aviso in con_mas.avisos] == ["ficha_sin_actualizar"]
+    assert con_mas.model_dump(exclude={"avisos"}) == sola.model_dump(exclude={"avisos"})
+
+
+def test_el_aviso_de_la_ficha_no_viaja_a_la_carta():
+    turnos = [Turno(texto=TEXTO), Turno(hablante="llamante", texto="Apúrense.")]
+    sugerencia = flujo.analizar(turnos)
+
+    carta = flujo.derivar("llamada-1", sugerencia, Ajustes(), datetime.now(UTC), turnos=turnos)
+
+    assert carta.avisos == []
