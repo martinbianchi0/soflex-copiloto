@@ -1,0 +1,51 @@
+{
+ "llamada_id": "llamada-por-turnos",
+ "estado": "esperando_operador",
+ "turnos": [
+  {
+   "texto": "911, ¿cuál es su emergencia?",
+   "hablante": "operador"
+  },
+  {
+   "texto": "Chocaron un auto y una moto en Av. San Juan, el de la moto quedó tirado en la calle.",
+   "hablante": "llamante"
+  }
+ ],
+ "sugerencia": {
+  "ubicacion": {
+   "calle": {
+    "origen": "dicho",
+    "valor": "Av. San Juan",
+    "cita": {
+     "turno": 1,
+     "texto": "Av. San Juan"
+    }
+   },
+   "altura": {
+    "origen": "falta"
+   },
+   "esquinas": []
+  },
+  "tipo_hecho": {
+   "origen": "inferido",
+   "valor": "ACCIDENTE_VIAL",
+   "fuente": "reglas"
+  },
+  "subtipo": {
+   "origen": "falta"
+  },
+  "prioridad": {
+   "origen": "falta"
+  },
+  "checklist": [],
+  "instrucciones": [],
+  "avisos": [
+   {
+    "codigo": "falta_altura",
+    "mensaje": "Preguntá la altura o la esquina de Av. San Juan."
+   }
+  ],
+  "datos_dictados": []
+ },
+ "carta": null
+}

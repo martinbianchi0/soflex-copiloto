@@ -1,0 +1,817 @@
+{
+ "protocolos": [
+  {
+   "id": "SFX-001",
+   "categoria": "INCENDIO_RESCATE",
+   "nombre": "Incendio en Comercio Gastronómico",
+   "preguntas": [
+    {
+     "id": "SFX-001-Q1",
+     "texto": "¿Hay personas atrapadas en el interior?"
+    },
+    {
+     "id": "SFX-001-Q2",
+     "texto": "¿Hay garrafas o cañería de gas activa?"
+    },
+    {
+     "id": "SFX-001-Q3",
+     "texto": "¿Hay inmuebles linderos afectados?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-001-I1",
+     "texto": "No reingresar al local por ningún motivo. Mantener a los peatones en la vereda de enfrente y cortar el tránsito vehicular preventivamente."
+    }
+   ]
+  },
+  {
+   "id": "SFX-002",
+   "categoria": "INCENDIO_RESCATE",
+   "nombre": "Incendio de Contenedor de Residuos",
+   "preguntas": [
+    {
+     "id": "SFX-002-Q1",
+     "texto": "¿El fuego afecta árboles o cables aéreos?"
+    },
+    {
+     "id": "SFX-002-Q2",
+     "texto": "¿El vehículo lindero corre riesgo de explosión?"
+    },
+    {
+     "id": "SFX-002-Q3",
+     "texto": "¿Hay humo ingresando a viviendas?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-002-I1",
+     "texto": "No intente apagarlo con agua si no conoce el contenido. Aléjese del vehículo estacionado por riesgo de deflagración del tanque."
+    }
+   ]
+  },
+  {
+   "id": "SFX-003",
+   "categoria": "INCENDIO_RESCATE",
+   "nombre": "Rescate de Personas en Ascensor Trancado",
+   "preguntas": [
+    {
+     "id": "SFX-003-Q1",
+     "texto": "¿La cabina quedó desnivelada entre losas?"
+    },
+    {
+     "id": "SFX-003-Q2",
+     "texto": "¿Hay ventilación forzada en el hueco?"
+    },
+    {
+     "id": "SFX-003-Q3",
+     "texto": "¿Alguna persona presenta síntomas de asfixia o descompensación?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-003-I1",
+     "texto": "No intente forzar las puertas exteriores con palancas. Hable con los ocupantes desde el piso más cercano para transmitir calma e indicarles que permanezcan sentados en el piso."
+    }
+   ]
+  },
+  {
+   "id": "SFX-004",
+   "categoria": "INCENDIO_RESCATE",
+   "nombre": "Fuego en Pastizales de Parque Público",
+   "preguntas": [
+    {
+     "id": "SFX-004-Q1",
+     "texto": "¿Hacia qué sector sopla el viento?"
+    },
+    {
+     "id": "SFX-004-Q2",
+     "texto": "¿Hay presencia de asentamientos o viviendas próximas?"
+    },
+    {
+     "id": "SFX-004-Q3",
+     "texto": "¿Hay visibilidad reducida en la avenida?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-004-I1",
+     "texto": "Evacuar el área de juegos y mantenerse a favor del viento para no inhalar el humo de combustión de plásticos."
+    }
+   ]
+  },
+  {
+   "id": "SFX-005",
+   "categoria": "ACCIDENTE_VIAL",
+   "nombre": "Colisión Vehículo vs Motovehículo",
+   "preguntas": [
+    {
+     "id": "SFX-005-Q1",
+     "texto": "¿El motociclista respira y responde al diálogo?"
+    },
+    {
+     "id": "SFX-005-Q2",
+     "texto": "¿Se le retiró el casco? (NO retirar)"
+    },
+    {
+     "id": "SFX-005-Q3",
+     "texto": "¿Hay combustible sobre el asfalto?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-005-I1",
+     "texto": "BAJO NINGUNA CIRCUNSTANCIA retire el casco del motociclista. No moverlo del asfalto. Desviar el tránsito con conos o balizas para evitar un segundo atropello."
+    }
+   ]
+  },
+  {
+   "id": "SFX-006",
+   "categoria": "ACCIDENTE_VIAL",
+   "nombre": "Choque en Cadena en Autopista Urbana",
+   "preguntas": [
+    {
+     "id": "SFX-006-Q1",
+     "texto": "¿Hay personas atrapadas en los habitáculos?"
+    },
+    {
+     "id": "SFX-006-Q2",
+     "texto": "¿Hay derrame de fluidos sobre la traza?"
+    },
+    {
+     "id": "SFX-006-Q3",
+     "texto": "¿Cuántos carriles están bloqueados?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-006-I1",
+     "texto": "Que todos los ocupantes que puedan caminar crucen la baranda de seguridad hacia la banquina protegida. No quedarse adentro de los autos ni en la calzada."
+    }
+   ]
+  },
+  {
+   "id": "SFX-007",
+   "categoria": "ACCIDENTE_VIAL",
+   "nombre": "Camión con Carga Excedida Atascado en Bajo Viaducto",
+   "preguntas": [
+    {
+     "id": "SFX-007-Q1",
+     "texto": "¿Hay heridos en la cabina o peatones alcanzados?"
+    },
+    {
+     "id": "SFX-007-Q2",
+     "texto": "¿Se observa daño estructural en la viga del puente ferroviario?"
+    },
+    {
+     "id": "SFX-007-Q3",
+     "texto": "¿Hay derrame de carga?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-007-I1",
+     "texto": "Indicar al chofer que desinfle neumáticos solo si está fuera de peligro y bajo orden de tránsito. No intentar remolcarlo sin presencia técnica."
+    }
+   ]
+  },
+  {
+   "id": "SFX-008",
+   "categoria": "EMERGENCIA_MEDICA",
+   "nombre": "Descompensación por Golpe de Calor en Estación de Subte",
+   "preguntas": [
+    {
+     "id": "SFX-008-Q1",
+     "texto": "¿La paciente puede hablar coherentemente?"
+    },
+    {
+     "id": "SFX-008-Q2",
+     "texto": "¿Tiene antecedentes cardíacos o diabetes?"
+    },
+    {
+     "id": "SFX-008-Q3",
+     "texto": "¿Sufrió golpe en el cráneo al caer?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-008-I1",
+     "texto": "Elevarle las piernas 30 cm sobre el nivel del suelo (posición Trendelenburg). Aflojarle ropa ajustada en cuello y cintura. Darle aire y no suministrarle líquidos hasta que esté completamente lúcida."
+    }
+   ]
+  },
+  {
+   "id": "SFX-009",
+   "categoria": "EMERGENCIA_MEDICA",
+   "nombre": "Crisis Asmática Aguda en Domicilio",
+   "preguntas": [
+    {
+     "id": "SFX-009-Q1",
+     "texto": "¿La niña puede completar frases al hablar?"
+    },
+    {
+     "id": "SFX-009-Q2",
+     "texto": "¿Tiene estridor o silbido audible al exhalar?"
+    },
+    {
+     "id": "SFX-009-Q3",
+     "texto": "¿Tiene antecedentes de internación en terapia?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-009-I1",
+     "texto": "Sentar a la niña erguida en una silla con los brazos apoyados hacia adelante. Mantener ventilación de aire fresco. No acostarla bajo ningún concepto."
+    }
+   ]
+  },
+  {
+   "id": "SFX-010",
+   "categoria": "EMERGENCIA_MEDICA",
+   "nombre": "Traumatismo por Caída en Adulto Mayor",
+   "preguntas": [
+    {
+     "id": "SFX-010-Q1",
+     "texto": "¿La pierna afectada presenta acortamiento o rotación externa?"
+    },
+    {
+     "id": "SFX-010-Q2",
+     "texto": "¿Perdió el conocimiento en algún momento?"
+    },
+    {
+     "id": "SFX-010-Q3",
+     "texto": "¿Tiene sangrado visible?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-010-I1",
+     "texto": "No intente pararla ni sentarla a la fuerza. Abríguela con camperas para evitar hipotermia por el contacto con la baldosa fría. Inmovilizar la pierna en la posición en la que quedó."
+    }
+   ]
+  },
+  {
+   "id": "SFX-011",
+   "categoria": "DEFENSA_CIVIL",
+   "nombre": "Árbol Caído de Gran Porte sobre Tendido y Vehículos",
+   "preguntas": [
+    {
+     "id": "SFX-011-Q1",
+     "texto": "¿Los cables están chispeando o en contacto con agua?"
+    },
+    {
+     "id": "SFX-011-Q2",
+     "texto": "¿Había ocupantes dentro de los rodados aplastados?"
+    },
+    {
+     "id": "SFX-011-Q3",
+     "texto": "¿Quedaron personas aisladas en viviendas?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-011-I1",
+     "texto": "Mantenerse a un perímetro de seguridad no menor a 20 metros. Considerar todos los cables caídos como energizados con riesgo mortal aunque no hagan chispas."
+    }
+   ]
+  },
+  {
+   "id": "SFX-012",
+   "categoria": "DEFENSA_CIVIL",
+   "nombre": "Fuga de Gas por Rotura de Caño en Vereda",
+   "preguntas": [
+    {
+     "id": "SFX-012-Q1",
+     "texto": "¿La fuga continúa sonando a alta presión?"
+    },
+    {
+     "id": "SFX-012-Q2",
+     "texto": "¿Los vecinos iniciaron autoevacuación?"
+    },
+    {
+     "id": "SFX-012-Q3",
+     "texto": "¿Se apagaron fuentes de ignición cercanas?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-012-I1",
+     "texto": "Evacuar inmediatamente a 100 metros en dirección contraria al viento. Prohibido fumar, arrancar motores, encender llaves de luz o tocar timbres en los edificios linderos."
+    }
+   ]
+  },
+  {
+   "id": "SFX-013",
+   "categoria": "SERVICIOS_PUBLICOS",
+   "nombre": "Socavón en Pavimento por Rotura de Colector Cloacal",
+   "preguntas": [
+    {
+     "id": "SFX-013-Q1",
+     "texto": "¿El socavón sigue ensanchándose?"
+    },
+    {
+     "id": "SFX-013-Q2",
+     "texto": "¿Está afectado el carril exclusivo de transporte?"
+    },
+    {
+     "id": "SFX-013-Q3",
+     "texto": "¿Hay vehículos caídos adentro?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-013-I1",
+     "texto": "No aproximarse al borde del cráter por riesgo de desmoronamiento de la losa asfáltica bajo el peso propio."
+    }
+   ]
+  },
+  {
+   "id": "SFX-014",
+   "categoria": "DEFENSA_CIVIL",
+   "nombre": "Desprendimiento de Marquesina Metálica en Altura",
+   "preguntas": [
+    {
+     "id": "SFX-014-Q1",
+     "texto": "¿La estructura tiene riesgo de caída sobre personas o vehículos?"
+    },
+    {
+     "id": "SFX-014-Q2",
+     "texto": "¿Está enganchada de cables de tensión?"
+    },
+    {
+     "id": "SFX-014-Q3",
+     "texto": "¿La vereda fue evacuada?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-014-I1",
+     "texto": "Interrumpir el paso peatonal por esa vereda de inmediato. Desviar a la gente a caminar por la acera de enfrente."
+    }
+   ]
+  },
+  {
+   "id": "SFX-015",
+   "categoria": "CONVIVENCIA_SEGURIDAD",
+   "nombre": "Disputa Colectiva en Vía Pública con Daño Material",
+   "preguntas": [
+    {
+     "id": "SFX-015-Q1",
+     "texto": "¿Se observan armas blancas o de fuego?"
+    },
+    {
+     "id": "SFX-015-Q2",
+     "texto": "¿Hay personas inconscientes en el piso?"
+    },
+    {
+     "id": "SFX-015-Q3",
+     "texto": "¿Los involucrados continúan en el lugar?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-015-I1",
+     "texto": "Resguárdese dentro de un local gastronómico. No intervenga en la disputa bajo ninguna circunstancia."
+    }
+   ]
+  },
+  {
+   "id": "SFX-016",
+   "categoria": "CONVIVENCIA_SEGURIDAD",
+   "nombre": "Canino de Raza Peligrosa Suelto y Agresivo en Plaza",
+   "preguntas": [
+    {
+     "id": "SFX-016-Q1",
+     "texto": "¿Hay personas mordidas o heridas en este momento?"
+    },
+    {
+     "id": "SFX-016-Q2",
+     "texto": "¿El animal se encuentra encerrado en el canil o suelto en la plaza?"
+    },
+    {
+     "id": "SFX-016-Q3",
+     "texto": "¿Tiene collar identificatorio?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-016-I1",
+     "texto": "No mirar fijamente al canino a los ojos ni realizar ademanes bruscos. Trabar la puerta exterior del canil desde afuera si es seguro."
+    }
+   ]
+  },
+  {
+   "id": "SFX-017",
+   "categoria": "INCENDIO_RESCATE",
+   "nombre": "Incendio en Tablero Eléctrico de Escuela",
+   "preguntas": [
+    {
+     "id": "SFX-017-Q1",
+     "texto": "¿El edificio cuenta con corte general de energía exterior?"
+    },
+    {
+     "id": "SFX-017-Q2",
+     "texto": "¿Todos los cursos desalojaron las aulas?"
+    },
+    {
+     "id": "SFX-017-Q3",
+     "texto": "¿Hay humo en vías de escape?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-017-I1",
+     "texto": "No arrojar agua bajo ninguna circunstancia sobre el tablero. Mantener a los alumnos en el sector descubierto más alejado del edificio principal."
+    }
+   ]
+  },
+  {
+   "id": "SFX-018",
+   "categoria": "ACCIDENTE_VIAL",
+   "nombre": "Ciclista Embestido por Transporte de Pasajeros",
+   "preguntas": [
+    {
+     "id": "SFX-018-Q1",
+     "texto": "¿El ciclista está atrapado debajo del eje de las ruedas?"
+    },
+    {
+     "id": "SFX-018-Q2",
+     "texto": "¿Lleva casco?"
+    },
+    {
+     "id": "SFX-018-Q3",
+     "texto": "¿Hay pérdida de fluidos del vehículo?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-018-I1",
+     "texto": "Ordenar al chofer apagar el motor y poner freno de mano de inmediato. No mover a la víctima ni tirar de su ropa."
+    }
+   ]
+  },
+  {
+   "id": "SFX-019",
+   "categoria": "EMERGENCIA_MEDICA",
+   "nombre": "Reacción Alérgica Severa (Anafilaxia)",
+   "preguntas": [
+    {
+     "id": "SFX-019-Q1",
+     "texto": "¿El paciente porta un autoinyector de adrenalina (EpiPen)?"
+    },
+    {
+     "id": "SFX-019-Q2",
+     "texto": "¿Conserva la capacidad de hablar o emitir sonidos?"
+    },
+    {
+     "id": "SFX-019-Q3",
+     "texto": "¿Presenta mareos o desmayo?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-019-I1",
+     "texto": "Si cuenta con inyector de epinefrina, aplicarlo en la cara anterolateral del muslo de inmediato a través de la ropa. Colocar al paciente sentado inclinado hacia adelante para favorecer la entrada de aire."
+    }
+   ]
+  },
+  {
+   "id": "SFX-020",
+   "categoria": "SERVICIOS_PUBLICOS",
+   "nombre": "Cables Cortados con Descarga Eléctrica Activa en Vereda",
+   "preguntas": [
+    {
+     "id": "SFX-020-Q1",
+     "texto": "¿Hay chispas o llamas activas en el cable?"
+    },
+    {
+     "id": "SFX-020-Q2",
+     "texto": "¿Hay transeúntes o comercios linderos en riesgo?"
+    },
+    {
+     "id": "SFX-020-Q3",
+     "texto": "¿Se observa agua sobre la vereda?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-020-I1",
+     "texto": "Peligro de muerte por electrocución. Manténgase usted y a todos los vecinos a más de 15 metros. Prohibido pisar charcos en toda la cuadra."
+    }
+   ]
+  },
+  {
+   "id": "SFX-021",
+   "categoria": "DEFENSA_CIVIL",
+   "nombre": "Anegamiento Severo con Vehículos Varados por Temporal",
+   "preguntas": [
+    {
+     "id": "SFX-021-Q1",
+     "texto": "¿El nivel del agua sigue ascendiendo?"
+    },
+    {
+     "id": "SFX-021-Q2",
+     "texto": "¿Hay personas con hipotermia o ancianos atrapados?"
+    },
+    {
+     "id": "SFX-021-Q3",
+     "texto": "¿El paso está clausurado al tránsito?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-021-I1",
+     "texto": "Permanezcan sobre los vehículos y no se lancen a nadar en el agua estancada por riesgo de tapas de sumidero abiertas o corriente de succión."
+    }
+   ]
+  },
+  {
+   "id": "SFX-022",
+   "categoria": "INCENDIO_RESCATE",
+   "nombre": "Derrame de Combustible por Volcadura de Cisterna",
+   "preguntas": [
+    {
+     "id": "SFX-022-Q1",
+     "texto": "¿El líquido está ingresando al sistema de desagüe pluvial?"
+    },
+    {
+     "id": "SFX-022-Q2",
+     "texto": "¿El conductor logró salir de la cabina?"
+    },
+    {
+     "id": "SFX-022-Q3",
+     "texto": "¿Se observa alguna fuente de calor o humo?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-022-I1",
+     "texto": "Cortar inmediatamente la circulación en un radio de 100 metros. Prohibido encender cigarrillos o teléfonos móviles a menos de 50 metros del derrame."
+    }
+   ]
+  },
+  {
+   "id": "SFX-023",
+   "categoria": "EMERGENCIA_MEDICA",
+   "nombre": "Fractura Expuesta en Práctica Deportiva",
+   "preguntas": [
+    {
+     "id": "SFX-023-Q1",
+     "texto": "¿El sangrado es pulsátil en chorro o continuo?"
+    },
+    {
+     "id": "SFX-023-Q2",
+     "texto": "¿La extremidad distal está tibia o fría?"
+    },
+    {
+     "id": "SFX-023-Q3",
+     "texto": "¿El paciente está consciente y ubicado?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-023-I1",
+     "texto": "Cubrir la herida con un paño limpio o gasa sin presionar directamente sobre el hueso expuesto. No intentar enderezar ni alinear la pierna. Abrigar al joven y contenerlo."
+    }
+   ]
+  },
+  {
+   "id": "SFX-024",
+   "categoria": "SERVICIOS_PUBLICOS",
+   "nombre": "Semáforos Fuera de Servicio en Cruce Crítico de Avenidas",
+   "preguntas": [
+    {
+     "id": "SFX-024-Q1",
+     "texto": "¿Hubo colisiones o heridos al momento?"
+    },
+    {
+     "id": "SFX-024-Q2",
+     "texto": "¿El cruce cuenta con sendas peatonales activas?"
+    },
+    {
+     "id": "SFX-024-Q3",
+     "texto": "¿Hay presencia de agentes de tránsito?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-024-I1",
+     "texto": "Aconsejar a los peatones cruzar en las esquinas previas donde el semáforo esté operativo."
+    }
+   ]
+  },
+  {
+   "id": "SFX-025",
+   "categoria": "INCENDIO_RESCATE",
+   "nombre": "Explosión de Batería de Litio en Local de Monopatines",
+   "preguntas": [
+    {
+     "id": "SFX-025-Q1",
+     "texto": "¿El local fue evacuado completamente?"
+    },
+    {
+     "id": "SFX-025-Q2",
+     "texto": "¿Hay más baterías de ion de litio contiguas?"
+    },
+    {
+     "id": "SFX-025-Q3",
+     "texto": "¿Hay personas con quemaduras químicas?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-025-I1",
+     "texto": "NO ARROJAR AGUA COMÚN. El agua puede reaccionar violentamente con el litio. Evacuar el local inmediatamente y cerrar la persiana para frenar la dispersión del humo fluorado."
+    }
+   ]
+  },
+  {
+   "id": "SFX-026",
+   "categoria": "EMERGENCIA_MEDICA",
+   "nombre": "Convulsión Tónico-Clónica en Restaurante",
+   "preguntas": [
+    {
+     "id": "SFX-026-Q1",
+     "texto": "¿Cuánto tiempo lleva la crisis activa?"
+    },
+    {
+     "id": "SFX-026-Q2",
+     "texto": "¿Tiene la cabeza protegida contra golpes contra el suelo?"
+    },
+    {
+     "id": "SFX-026-Q3",
+     "texto": "¿Se le colocó algún objeto en la boca? (NO colocar)"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-026-I1",
+     "texto": "NUNCA introduzca dedos ni ningún objeto dentro de la boca. Despeje mesas y sillas alrededor para que no se golpee. Coloque una campera o almohadón suave debajo de la cabeza. Al ceder las sacudidas, colocarlo de costado (posición lateral de seguridad)."
+    }
+   ]
+  },
+  {
+   "id": "SFX-027",
+   "categoria": "DEFENSA_CIVIL",
+   "nombre": "Derrumbe Parcial de Medianera en Demolición",
+   "preguntas": [
+    {
+     "id": "SFX-027-Q1",
+     "texto": "¿Hay obreros o vecinos atrapados o lesionados?"
+    },
+    {
+     "id": "SFX-027-Q2",
+     "texto": "¿Afectó cañerías de gas o agua del patio lindero?"
+    },
+    {
+     "id": "SFX-027-Q3",
+     "texto": "¿La obra continúa trabajando?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-027-I1",
+     "texto": "Prohibir el acceso de todos los habitantes del edificio al patio abierto y balcones contiguos a la obra. Clausura preventiva interna."
+    }
+   ]
+  },
+  {
+   "id": "SFX-028",
+   "categoria": "SERVICIOS_PUBLICOS",
+   "nombre": "Rotura de Caño Maestro de Agua con Inundación de Calzada",
+   "preguntas": [
+    {
+     "id": "SFX-028-Q1",
+     "texto": "¿El agua ingresa a salas de transformadores eléctricos subterráneos?"
+    },
+    {
+     "id": "SFX-028-Q2",
+     "texto": "¿Hay vehículos tapados en los garajes?"
+    },
+    {
+     "id": "SFX-028-Q3",
+     "texto": "¿Se observa socavamiento de la acera?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-028-I1",
+     "texto": "Cortar la electricidad general de los subsuelos antes de que el agua alcance tableros o tomas de corriente. No descender a pie a los garajes anegados."
+    }
+   ]
+  },
+  {
+   "id": "SFX-029",
+   "categoria": "ACCIDENTE_VIAL",
+   "nombre": "Vuelco de Vehículo Particular con Conductor Atrapado",
+   "preguntas": [
+    {
+     "id": "SFX-029-Q1",
+     "texto": "¿El conductor está consciente y responde?"
+    },
+    {
+     "id": "SFX-029-Q2",
+     "texto": "¿Hay humo o pérdida de nafta visible?"
+    },
+    {
+     "id": "SFX-029-Q3",
+     "texto": "¿Cuántos carriles están comprometidos?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-029-I1",
+     "texto": "No intentar tirar violentamente del conductor para no lesionar la columna cervical. Si puede acceder de manera segura, desconectar la batería o apagar la llave de contacto."
+    }
+   ]
+  },
+  {
+   "id": "SFX-030",
+   "categoria": "INCENDIO_RESCATE",
+   "nombre": "Principio de Incendio en Subestación Transformadora",
+   "preguntas": [
+    {
+     "id": "SFX-030-Q1",
+     "texto": "¿Hay llamas abiertas saliendo hacia la vereda?"
+    },
+    {
+     "id": "SFX-030-Q2",
+     "texto": "¿Hay viviendas pegadas a la subestación?"
+    },
+    {
+     "id": "SFX-030-Q3",
+     "texto": "¿Hay personas heridas en la vía pública?"
+    }
+   ],
+   "instrucciones": [
+    {
+     "id": "SFX-030-I1",
+     "texto": "PROHIBIDO ingresar o intentar apagar con agua. El aceite de transformador en combustión no debe sofocarse con agua. Evacuar a 50 metros a la redonda."
+    }
+   ]
+  }
+ ],
+ "criterio": {
+  "niveles": [
+   {
+    "id": "P1",
+    "nombre": "Riesgo de vida ahora",
+    "definicion": "Hay una persona en peligro de muerte, o un peligro activo que puede matar a alguien en minutos.",
+    "senales": [
+     "No respira o respira con mucha dificultad",
+     "No responde, está inconsciente o convulsiona",
+     "Reacción alérgica con la garganta cerrándose",
+     "Persona atrapada o aplastada en un siniestro: bajo un vehículo, en un auto volcado, en un incendio",
+     "Golpe de alta energía, aunque esté consciente: atropello, choque de moto, choque múltiple, vuelco, caída de altura",
+     "Fuego, humo o explosión en un lugar con gente, o en una instalación eléctrica o de combustible",
+     "Olor a gas dentro de viviendas, o escape de gas a presión",
+     "Cable con chispas o en contacto con agua",
+     "Derrame de combustible con tránsito o gente cerca"
+    ]
+   },
+   {
+    "id": "P2",
+    "nombre": "Urgente, sin riesgo de vida inmediato",
+    "definicion": "Hay personas afectadas pero estables, o un peligro que todavía no alcanzó a nadie y puede hacerlo.",
+    "senales": [
+     "Herido consciente y estable: caída, golpe o fractura, incluso expuesta, sin sangrado a chorros",
+     "Desmayo del que la persona ya se recuperó",
+     "Personas encerradas o varadas, sin lesiones: un ascensor trabado, autos en un anegamiento",
+     "Pelea con lesiones leves",
+     "Árbol, cartel o estructura caída o por caer sobre la vía pública",
+     "Cables cortados, sin chispas ni personas en contacto",
+     "Socavón, inundación o derrumbe sin heridos",
+     "Fuego al aire libre que avanza hacia donde hay gente"
+    ]
+   },
+   {
+    "id": "P3",
+    "nombre": "Sin personas afectadas",
+    "definicion": "Hay daño material o un riesgo acotado que no avanza sobre personas.",
+    "senales": [
+     "Fuego en un contenedor",
+     "Vehículo atascado, sin heridos",
+     "Animal agresivo, sin personas mordidas",
+     "Semáforos apagados"
+    ]
+   },
+   {
+    "id": "P4",
+    "nombre": "No es una emergencia",
+    "definicion": "Es un reclamo, una consulta o un pedido que puede esperar horas o días.",
+    "senales": [
+     "Ruidos molestos",
+     "Luminaria apagada",
+     "Bache",
+     "Pedido de poda"
+    ]
+   }
+  ],
+  "reglas": [
+   "Una sola señal de P1 alcanza, aunque el resto del relato suene tranquilo.",
+   "Ante la duda entre dos niveles, va el más urgente.",
+   "Un P2 sube a P1 según lo que respondan las preguntas del protocolo: por ejemplo, si el sangrado es a chorros o si alguien encerrado se descompensa.",
+   "La prioridad es una propuesta: la confirma el operador."
+  ]
+ }
+}

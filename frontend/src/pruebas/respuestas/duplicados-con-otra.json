@@ -1,0 +1,13 @@
+{
+ "llamada_id": "llamada-repetida",
+ "recibida_en": "2026-01-01T12:00:00Z",
+ "posibles": [
+  {
+   "llamada_id": "llamada-del-dataset",
+   "recibida_en": "2026-01-01T12:00:00Z",
+   "ubicacion": "Av. Corrientes 1540",
+   "categoria": "INCENDIO_RESCATE",
+   "derivada": true
+  }
+ ]
+}

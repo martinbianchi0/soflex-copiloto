@@ -1,0 +1,65 @@
+{
+ "llamada_id": "llamada-con-aviso",
+ "estado": "esperando_operador",
+ "turnos": [
+  {
+   "texto": "911 emergencias.",
+   "hablante": "operador"
+  },
+  {
+   "texto": "Se está incendiando un auto estacionado en Rivadavia al 5000, esquina Callao. Sale mucho humo negro y hay gente mirando muy cerca.",
+   "hablante": "llamante"
+  }
+ ],
+ "sugerencia": {
+  "ubicacion": {
+   "calle": {
+    "origen": "dicho",
+    "valor": "Av. Rivadavia",
+    "cita": {
+     "turno": 1,
+     "texto": "Rivadavia"
+    }
+   },
+   "altura": {
+    "origen": "dicho",
+    "valor": 5000,
+    "cita": {
+     "turno": 1,
+     "texto": "5000"
+    }
+   },
+   "esquinas": [
+    {
+     "origen": "dicho",
+     "valor": "Av. Callao",
+     "cita": {
+      "turno": 1,
+      "texto": "Callao"
+     }
+    }
+   ]
+  },
+  "tipo_hecho": {
+   "origen": "inferido",
+   "valor": "INCENDIO_RESCATE",
+   "fuente": "reglas"
+  },
+  "subtipo": {
+   "origen": "falta"
+  },
+  "prioridad": {
+   "origen": "falta"
+  },
+  "checklist": [],
+  "instrucciones": [],
+  "avisos": [
+   {
+    "codigo": "direccion_no_cierra",
+    "mensaje": "La altura 5000 no coincide con Av. Callao. Leele la dirección de vuelta al llamante."
+   }
+  ],
+  "datos_dictados": []
+ },
+ "carta": null
+}

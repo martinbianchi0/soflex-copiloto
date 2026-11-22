@@ -1,0 +1,26 @@
+{
+ "llamada_id": "llamada-del-dataset",
+ "eventos": [
+  {
+   "tipo": "recibida",
+   "cuando": "2026-01-01T12:00:00Z",
+   "detalle": "Llamada recibida, con 2 turnos."
+  },
+  {
+   "tipo": "sugerencia_reglas",
+   "cuando": "2026-01-01T12:00:00Z",
+   "detalle": "Sugerencia de las reglas, sin avisos."
+  },
+  {
+   "tipo": "ajustes_operador",
+   "cuando": "2026-01-01T12:00:00Z",
+   "detalle": "El operador confirmó sin cambios."
+  },
+  {
+   "tipo": "derivada",
+   "cuando": "2026-01-01T12:00:00Z",
+   "detalle": "Carta de Llamada derivada."
+  }
+ ],
+ "cambios": []
+}
