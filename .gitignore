@@ -1,0 +1,22 @@
+# Secretos y configuración local: sólo se versiona el ejemplo
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+
+# Estado local de las llamadas
+*.sqlite*
+*.db*
+
+# Sistema
+.DS_Store
