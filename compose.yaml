@@ -1,0 +1,19 @@
+services:
+  copiloto:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      # Opcional: sin `.env` levanta con los valores por defecto (modo `mock`).
+      - path: .env
+        required: false
+    environment:
+      # Fijas dentro del contenedor: un `.env` no puede sacar el estado del volumen.
+      SQLITE_PATH: /data/llamadas.sqlite
+      STATIC_DIR: /app/static
+    volumes:
+      # El estado de las llamadas queda fuera del contenedor: sobrevive a `down` y a `up --build`.
+      - llamadas:/data
+
+volumes:
+  llamadas:
