@@ -69,4 +69,4 @@ Qué se eligió, por qué y qué se dejó afuera.
 - **Una imagen en tres etapas:** Node compila el panel, uv instala el backend y la imagen final lleva sólo Python, el entorno y el panel. Ni Node ni uv quedan en lo que corre.
 - **El servicio corre con un usuario sin privilegios**, y la imagen declara su propio chequeo de salud sobre `/api/health`.
 - **El estado de las llamadas vive en un volumen.** `docker compose down` y `docker compose up --build` no lo borran.
-- **`.env` es opcional y no entra a la imagen.** `compose.yaml` lo lee si existe y `.dockerignore` lo deja fuera del contexto de construcción.
+- **`.env` es opcional y no entra a la imagen.** `docker-compose.yml` lo lee si existe y `.dockerignore` lo deja fuera del contexto de construcción.
