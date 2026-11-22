@@ -85,6 +85,8 @@ class Prioridad(StrEnum):
 
 class Turno(Esquema):
     texto: TextoDeTurno
+    # Quién habla, cuando se sabe. Lo que dice el operador no es evidencia de lo que pasó.
+    hablante: Literal["operador", "llamante"] | None = None
 
 
 class Cita(Esquema):
@@ -128,7 +130,8 @@ class Inferido[T](Esquema):
 
     origen: Literal["inferido"] = "inferido"
     valor: T
-    fuente: Literal["callejero", "reglas", "modelo"]
+    # "dataset": la llamada es una de las del dataset provisto y el dato sale de su ficha.
+    fuente: Literal["callejero", "reglas", "modelo", "dataset"]
 
 
 class DelOperador[T](Esquema):
@@ -246,8 +249,24 @@ class Ficha(Esquema):
         return [campo for campo in OBLIGATORIOS_PARA_DERIVAR if valor_de(datos[campo]) is None]
 
 
+class Aviso(Esquema):
+    """Algo de la sugerencia que conviene confirmar con el llamante antes de derivar."""
+
+    codigo: Literal[
+        "sin_calle",
+        "falta_altura",
+        "calle_ambigua",
+        "direccion_no_cierra",
+        "cruce_sin_confirmar",
+        "dato_descartado",
+    ]
+    mensaje: TextoLargo
+
+
 class Sugerencia(Ficha):
     """Lo que propone el sistema. El operador todavía no tocó nada."""
+
+    avisos: list[Aviso] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def es_del_sistema(self) -> Self:

@@ -11,7 +11,7 @@ TEXTO = (
     "Montevideo, se prendió fuego la campana de la cocina y se está metiendo el humo negro al "
     "salón, la gente salió corriendo a la calle pero adentro quedó el cocinero!"
 )
-TURNOS = [{"texto": TEXTO}]
+TURNOS = [{"texto": TEXTO, "hablante": None}]
 
 # Una sugerencia con todos los orígenes, como las que van a armar los intérpretes. El subtipo, las
 # preguntas y la instrucción son los del catálogo.

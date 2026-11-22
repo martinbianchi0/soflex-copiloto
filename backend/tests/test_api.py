@@ -35,6 +35,7 @@ def test_iniciar_una_llamada_devuelve_la_sugerencia_y_queda_esperando(cliente):
         "prioridad": {"origen": "falta"},
         "checklist": [],
         "instrucciones": [],
+        "avisos": [],
     }
     assert llamada["carta"] is None
 
@@ -86,7 +87,7 @@ def test_la_api_devuelve_cada_dato_con_su_origen_y_su_cita(
         creada = cliente.post("/api/llamadas", json=LLAMADA).json()
         derivada = derivar(cliente, creada["llamada_id"], {"prioridad": "P1"}).json()
 
-    assert creada["sugerencia"] == sugerencia_completa
+    assert creada["sugerencia"] == {**sugerencia_completa, "avisos": []}
     carta = derivada["carta"]
     assert carta.pop("derivada_en").endswith("Z")
     assert carta == {

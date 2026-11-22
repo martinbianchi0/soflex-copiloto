@@ -263,7 +263,7 @@ def ajustar(sugerencia: dict) -> dict:
 
 
 def test_una_sugerencia_que_ya_sigue_al_catalogo_no_cambia(sugerencia_completa):
-    assert ajustar(sugerencia_completa) == sugerencia_completa
+    assert ajustar(sugerencia_completa) == {**sugerencia_completa, "avisos": []}
 
 
 def test_de_una_sugerencia_se_quita_lo_que_no_es_del_catalogo(sugerencia_completa):

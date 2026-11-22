@@ -96,7 +96,7 @@ def test_los_origenes_y_las_citas_sobreviven_al_grafo_al_disco_y_al_reinicio(
     carta = al_final.consultar(llamada_id).carta.model_dump(mode="json")
     al_final.cerrar()
 
-    assert guardada == sugerencia_completa
+    assert guardada == {**sugerencia_completa, "avisos": []}
     assert carta["ubicacion"]["calle"] == sugerencia_completa["ubicacion"]["calle"]
     assert carta["ubicacion"]["esquinas"] == sugerencia_completa["ubicacion"]["esquinas"]
     assert carta["ubicacion"]["altura"] == {"origen": "operador", "valor": 1548}
