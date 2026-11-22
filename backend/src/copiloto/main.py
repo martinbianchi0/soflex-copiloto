@@ -31,6 +31,7 @@ from copiloto.llamadas import (
     TurnoNoEntra,
 )
 from copiloto.modelo import de_ollama
+from copiloto.trazas import callbacks_de_trazas
 
 
 def crear_app(configuracion: Configuracion | None = None) -> FastAPI:
@@ -45,11 +46,15 @@ def crear_app(configuracion: Configuracion | None = None) -> FastAPI:
         dataset.cargar()
         ejemplos.cargar()
         modelo = de_ollama(configuracion) if configuracion.llm_provider == "ollama" else None
-        app.state.llamadas = Llamadas(
-            configuracion.sqlite_path, modelo, configuracion.llm_timeout_s
-        )
-        yield
-        app.state.llamadas.cerrar()
+        with callbacks_de_trazas(configuracion) as callbacks:
+            servicio = Llamadas(
+                configuracion.sqlite_path, modelo, configuracion.llm_timeout_s, callbacks=callbacks
+            )
+            app.state.llamadas = servicio
+            try:
+                yield
+            finally:
+                servicio.cerrar()
 
     # La aplicación de afuera sólo reparte: lo que empieza con `/api` va a la API y el resto, al
     # panel. Así los errores de la API (404, 405) los contesta siempre la API, en JSON.

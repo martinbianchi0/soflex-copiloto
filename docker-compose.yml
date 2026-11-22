@@ -17,6 +17,10 @@ services:
       LLM_TIMEOUT_S: ${LLM_TIMEOUT_S:-60}
       # El Ollama de la máquina, visto desde el contenedor. Sólo se usa con LLM_PROVIDER=ollama.
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      # Trazas opcionales en un Langfuse propio: se activan con las dos claves.
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-http://host.docker.internal:3000}
     extra_hosts:
       # En Linux ese nombre no existe si no se declara.
       - "host.docker.internal:host-gateway"
