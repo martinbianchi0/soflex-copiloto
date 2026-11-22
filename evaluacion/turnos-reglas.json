@@ -1,7 +1,7 @@
 {
   "proveedor": "mock",
   "modelo": null,
-  "fecha": "2026-11-22T19:25:16+00:00",
+  "fecha": "2026-11-22T19:49:32+00:00",
   "guiones": [
     {
       "id": "G01",
@@ -28,7 +28,7 @@
             "falta_altura"
           ],
           "pedidos": 0,
-          "segundos": 0.685,
+          "segundos": 0.865,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "espera",
@@ -48,19 +48,20 @@
             "categoria": "ACCIDENTE_VIAL",
             "subtipo": null,
             "calle": "Av. San Isidro Labrador",
-            "altura": null,
-            "esquinas": [],
+            "altura": 4528,
+            "esquinas": [
+              "Ramallo",
+              "Arias"
+            ],
             "checklist": []
           },
-          "avisos": [
-            "falta_altura"
-          ],
+          "avisos": [],
           "pedidos": 0,
-          "segundos": 0.01,
+          "segundos": 0.02,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "espera",
-            "ubicacion": "incompleta"
+            "ubicacion": "acierta"
           }
         },
         {
@@ -76,19 +77,20 @@
             "categoria": "ACCIDENTE_VIAL",
             "subtipo": null,
             "calle": "Av. San Isidro Labrador",
-            "altura": null,
-            "esquinas": [],
+            "altura": 4528,
+            "esquinas": [
+              "Ramallo",
+              "Arias"
+            ],
             "checklist": []
           },
-          "avisos": [
-            "falta_altura"
-          ],
+          "avisos": [],
           "pedidos": 0,
-          "segundos": 0.01,
+          "segundos": 0.021,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
-            "ubicacion": "incompleta"
+            "ubicacion": "acierta"
           }
         },
         {
@@ -106,19 +108,20 @@
             "categoria": "ACCIDENTE_VIAL",
             "subtipo": null,
             "calle": "Av. San Isidro Labrador",
-            "altura": null,
-            "esquinas": [],
+            "altura": 4528,
+            "esquinas": [
+              "Ramallo",
+              "Arias"
+            ],
             "checklist": []
           },
-          "avisos": [
-            "falta_altura"
-          ],
+          "avisos": [],
           "pedidos": 0,
-          "segundos": 0.013,
+          "segundos": 0.022,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
-            "ubicacion": "incompleta"
+            "ubicacion": "acierta"
           }
         },
         {
@@ -137,19 +140,20 @@
             "categoria": "ACCIDENTE_VIAL",
             "subtipo": null,
             "calle": "Av. San Isidro Labrador",
-            "altura": null,
-            "esquinas": [],
+            "altura": 4528,
+            "esquinas": [
+              "Ramallo",
+              "Arias"
+            ],
             "checklist": []
           },
-          "avisos": [
-            "falta_altura"
-          ],
+          "avisos": [],
           "pedidos": 0,
-          "segundos": 0.014,
+          "segundos": 0.025,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
-            "ubicacion": "incompleta"
+            "ubicacion": "acierta"
           }
         }
       ]
@@ -180,7 +184,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.009,
+          "segundos": 0.017,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -211,7 +215,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.009,
+          "segundos": 0.02,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -243,7 +247,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.009,
+          "segundos": 0.017,
           "lectura": {
             "categoria": "mal",
             "subtipo": "sin_subtipo",
@@ -276,7 +280,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.01,
+          "segundos": 0.018,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -310,7 +314,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.007,
+          "segundos": 0.011,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "espera",
@@ -338,7 +342,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.008,
+          "segundos": 0.013,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -368,7 +372,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.008,
+          "segundos": 0.012,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -403,7 +407,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.007,
+          "segundos": 0.01,
           "lectura": {
             "categoria": "espera",
             "subtipo": "espera",
@@ -434,7 +438,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.008,
+          "segundos": 0.017,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -466,7 +470,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.011,
+          "segundos": 0.015,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -500,7 +504,7 @@
             "falta_altura"
           ],
           "pedidos": 0,
-          "segundos": 0.01,
+          "segundos": 0.013,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -522,19 +526,20 @@
             "categoria": "INCENDIO_RESCATE",
             "subtipo": null,
             "calle": "Av. Melian",
-            "altura": null,
-            "esquinas": [],
+            "altura": 1856,
+            "esquinas": [
+              "la Pampa",
+              "Mcal. Antonio Jose de Sucre"
+            ],
             "checklist": []
           },
-          "avisos": [
-            "falta_altura"
-          ],
+          "avisos": [],
           "pedidos": 0,
-          "segundos": 0.013,
+          "segundos": 0.02,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
-            "ubicacion": "incompleta"
+            "ubicacion": "acierta"
           }
         },
         {
@@ -553,19 +558,20 @@
             "categoria": "INCENDIO_RESCATE",
             "subtipo": null,
             "calle": "Av. Melian",
-            "altura": null,
-            "esquinas": [],
+            "altura": 1856,
+            "esquinas": [
+              "la Pampa",
+              "Mcal. Antonio Jose de Sucre"
+            ],
             "checklist": []
           },
-          "avisos": [
-            "falta_altura"
-          ],
+          "avisos": [],
           "pedidos": 0,
-          "segundos": 0.01,
+          "segundos": 0.022,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
-            "ubicacion": "incompleta"
+            "ubicacion": "acierta"
           }
         }
       ]
@@ -596,7 +602,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.007,
+          "segundos": 0.013,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "espera",
@@ -627,7 +633,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.01,
+          "segundos": 0.016,
           "lectura": {
             "categoria": "mal",
             "subtipo": "sin_subtipo",
@@ -659,7 +665,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.009,
+          "segundos": 0.018,
           "lectura": {
             "categoria": "mal",
             "subtipo": "sin_subtipo",
@@ -694,7 +700,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.008,
+          "segundos": 0.014,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -725,7 +731,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.011,
+          "segundos": 0.018,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -757,7 +763,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.012,
+          "segundos": 0.024,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -790,7 +796,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.011,
+          "segundos": 0.02,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -824,7 +830,7 @@
             "falta_altura"
           ],
           "pedidos": 0,
-          "segundos": 0.008,
+          "segundos": 0.016,
           "lectura": {
             "categoria": "espera",
             "subtipo": "espera",
@@ -853,7 +859,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.01,
+          "segundos": 0.022,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "espera",
@@ -884,7 +890,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.012,
+          "segundos": 0.022,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -916,7 +922,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.013,
+          "segundos": 0.026,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -952,7 +958,7 @@
             "falta_altura"
           ],
           "pedidos": 0,
-          "segundos": 0.008,
+          "segundos": 0.015,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -974,19 +980,20 @@
             "categoria": "NO_DETERMINADA",
             "subtipo": null,
             "calle": "Argerich",
-            "altura": null,
-            "esquinas": [],
+            "altura": 4926,
+            "esquinas": [
+              "Griveo",
+              "Ladines"
+            ],
             "checklist": []
           },
-          "avisos": [
-            "falta_altura"
-          ],
+          "avisos": [],
           "pedidos": 0,
-          "segundos": 0.01,
+          "segundos": 0.02,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
-            "ubicacion": "incompleta"
+            "ubicacion": "acierta"
           }
         },
         {
@@ -1005,19 +1012,20 @@
             "categoria": "NO_DETERMINADA",
             "subtipo": null,
             "calle": "Argerich",
-            "altura": null,
-            "esquinas": [],
+            "altura": 4926,
+            "esquinas": [
+              "Griveo",
+              "Ladines"
+            ],
             "checklist": []
           },
-          "avisos": [
-            "falta_altura"
-          ],
+          "avisos": [],
           "pedidos": 0,
-          "segundos": 0.011,
+          "segundos": 0.039,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
-            "ubicacion": "incompleta"
+            "ubicacion": "acierta"
           }
         }
       ]
@@ -1048,7 +1056,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.008,
+          "segundos": 0.025,
           "lectura": {
             "categoria": "espera",
             "subtipo": "espera",
@@ -1079,7 +1087,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.006,
+          "segundos": 0.02,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -1111,7 +1119,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.007,
+          "segundos": 0.026,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -1145,7 +1153,7 @@
             "falta_altura"
           ],
           "pedidos": 0,
-          "segundos": 0.006,
+          "segundos": 0.021,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "espera",
@@ -1174,7 +1182,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.009,
+          "segundos": 0.024,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "espera",
@@ -1205,7 +1213,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.009,
+          "segundos": 0.026,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -1237,7 +1245,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.012,
+          "segundos": 0.03,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -1271,7 +1279,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.006,
+          "segundos": 0.017,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -1301,7 +1309,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.007,
+          "segundos": 0.019,
           "lectura": {
             "categoria": "mal",
             "subtipo": "sin_subtipo",
@@ -1332,7 +1340,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.007,
+          "segundos": 0.024,
           "lectura": {
             "categoria": "mal",
             "subtipo": "sin_subtipo",
@@ -1364,7 +1372,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.007,
+          "segundos": 0.018,
           "lectura": {
             "categoria": "mal",
             "subtipo": "sin_subtipo",
@@ -1398,7 +1406,7 @@
             "falta_altura"
           ],
           "pedidos": 0,
-          "segundos": 0.006,
+          "segundos": 0.015,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
@@ -1418,19 +1426,20 @@
             "categoria": "SERVICIOS_PUBLICOS",
             "subtipo": null,
             "calle": "Av. Varela",
-            "altura": null,
-            "esquinas": [],
+            "altura": 914,
+            "esquinas": [
+              "Primera Junta",
+              "Tte. Cnel. Casimiro Recuero"
+            ],
             "checklist": []
           },
-          "avisos": [
-            "falta_altura"
-          ],
+          "avisos": [],
           "pedidos": 0,
-          "segundos": 0.007,
+          "segundos": 0.019,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
-            "ubicacion": "incompleta"
+            "ubicacion": "acierta"
           }
         },
         {
@@ -1448,19 +1457,20 @@
             "categoria": "SERVICIOS_PUBLICOS",
             "subtipo": null,
             "calle": "Av. Varela",
-            "altura": null,
-            "esquinas": [],
+            "altura": 914,
+            "esquinas": [
+              "Primera Junta",
+              "Tte. Cnel. Casimiro Recuero"
+            ],
             "checklist": []
           },
-          "avisos": [
-            "falta_altura"
-          ],
+          "avisos": [],
           "pedidos": 0,
-          "segundos": 0.007,
+          "segundos": 0.02,
           "lectura": {
             "categoria": "acierta",
             "subtipo": "sin_subtipo",
-            "ubicacion": "incompleta"
+            "ubicacion": "acierta"
           }
         }
       ]
@@ -1493,7 +1503,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.006,
+          "segundos": 0.015,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -1524,7 +1534,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.007,
+          "segundos": 0.019,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -1556,7 +1566,7 @@
           },
           "avisos": [],
           "pedidos": 0,
-          "segundos": 0.007,
+          "segundos": 0.017,
           "lectura": {
             "categoria": "sin_determinar",
             "subtipo": "sin_subtipo",
@@ -1609,9 +1619,9 @@
           }
         },
         "segundos": {
-          "mediana": 0.0075,
-          "p95": 0.685,
-          "maximo": 0.685
+          "mediana": 0.015,
+          "p95": 0.865,
+          "maximo": 0.865
         },
         "pedidos": {
           "mediana": 0.0,
@@ -1635,8 +1645,8 @@
           "mal": 0
         },
         "ubicacion": {
-          "acierta": 10,
-          "incompleta": 4,
+          "acierta": 14,
+          "incompleta": 0,
           "sin_calle": 0,
           "espera": 0,
           "mal": 0
@@ -1659,9 +1669,9 @@
           }
         },
         "segundos": {
-          "mediana": 0.009,
-          "p95": 0.013,
-          "maximo": 0.013
+          "mediana": 0.0195,
+          "p95": 0.024,
+          "maximo": 0.024
         },
         "pedidos": {
           "mediana": 0.0,
@@ -1685,8 +1695,8 @@
           "mal": 0
         },
         "ubicacion": {
-          "acierta": 10,
-          "incompleta": 4,
+          "acierta": 14,
+          "incompleta": 0,
           "sin_calle": 0,
           "espera": 0,
           "mal": 0
@@ -1709,9 +1719,9 @@
           }
         },
         "segundos": {
-          "mediana": 0.009,
-          "p95": 0.012,
-          "maximo": 0.012
+          "mediana": 0.0215,
+          "p95": 0.039,
+          "maximo": 0.039
         },
         "pedidos": {
           "mediana": 0.0,
@@ -1735,8 +1745,8 @@
           "mal": 0
         },
         "ubicacion": {
-          "acierta": 5,
-          "incompleta": 2,
+          "acierta": 7,
+          "incompleta": 0,
           "sin_calle": 0,
           "espera": 0,
           "mal": 0
@@ -1759,9 +1769,9 @@
           }
         },
         "segundos": {
-          "mediana": 0.012,
-          "p95": 0.014,
-          "maximo": 0.014
+          "mediana": 0.022,
+          "p95": 0.03,
+          "maximo": 0.03
         },
         "pedidos": {
           "mediana": 0,
@@ -1786,8 +1796,8 @@
         "mal": 0
       },
       "ubicacion": {
-        "acierta": 39,
-        "incompleta": 10,
+        "acierta": 49,
+        "incompleta": 0,
         "sin_calle": 0,
         "espera": 0,
         "mal": 0
@@ -1810,9 +1820,9 @@
         }
       },
       "segundos": {
-        "mediana": 0.009,
-        "p95": 0.013,
-        "maximo": 0.685
+        "mediana": 0.019,
+        "p95": 0.03,
+        "maximo": 0.865
       },
       "pedidos": {
         "mediana": 0,
@@ -1828,9 +1838,9 @@
       },
       "direccion_completa": {
         "antes": 0,
-        "igual": 10,
+        "igual": 14,
         "despues": 0,
-        "nunca": 4
+        "nunca": 0
       },
       "por_guion": [
         {
@@ -1842,8 +1852,8 @@
           },
           "direccion_completa": {
             "esperado": 2,
-            "propuesto": null,
-            "clase": "nunca"
+            "propuesto": 2,
+            "clase": "igual"
           }
         },
         {
@@ -1894,8 +1904,8 @@
           },
           "direccion_completa": {
             "esperado": 2,
-            "propuesto": null,
-            "clase": "nunca"
+            "propuesto": 2,
+            "clase": "igual"
           }
         },
         {
@@ -1946,8 +1956,8 @@
           },
           "direccion_completa": {
             "esperado": 2,
-            "propuesto": null,
-            "clase": "nunca"
+            "propuesto": 2,
+            "clase": "igual"
           }
         },
         {
@@ -1998,8 +2008,8 @@
           },
           "direccion_completa": {
             "esperado": 2,
-            "propuesto": null,
-            "clase": "nunca"
+            "propuesto": 2,
+            "clase": "igual"
           }
         },
         {

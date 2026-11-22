@@ -354,17 +354,17 @@ def test_lo_que_miden_las_reglas_sobre_los_guiones(evaluar):
 
     assert resumen["total"]["intercambios"] == 49
     assert resumen["total"]["ubicacion"] == {
-        "acierta": 39,
-        "incompleta": 10,
+        "acierta": 49,
+        "incompleta": 0,
         "sin_calle": 0,
         "espera": 0,
         "mal": 0,
     }
     assert resumen["primera_vez"]["direccion_completa"] == {
         "antes": 0,
-        "igual": 10,
+        "igual": 14,
         "despues": 0,
-        "nunca": 4,
+        "nunca": 0,
     }
     assert resumen["total"]["categoria"] == {
         "acierta": 29,
