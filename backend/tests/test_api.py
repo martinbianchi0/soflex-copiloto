@@ -1,5 +1,5 @@
 import pytest
-from conftest import TURNOS
+from conftest import FILAS_DATASET, REFERENCIA, TEXTO, TURNOS, TURNOS_SIN_DATOS
 from fastapi.testclient import TestClient
 
 from copiloto import flujo
@@ -13,8 +13,8 @@ INCENDIO = {"categoria": "INCENDIO_RESCATE", "subtipo": None}
 COMPLETOS = {"prioridad": "P2", "tipo_hecho": INCENDIO, "ubicacion": UBICACION}
 
 
-def iniciar(cliente) -> str:
-    return cliente.post("/api/llamadas", json=LLAMADA).json()["llamada_id"]
+def iniciar(cliente, turnos=TURNOS) -> str:
+    return cliente.post("/api/llamadas", json={"turnos": turnos}).json()["llamada_id"]
 
 
 def derivar(cliente, llamada_id: str, ajustes: dict):
@@ -22,13 +22,15 @@ def derivar(cliente, llamada_id: str, ajustes: dict):
 
 
 def test_iniciar_una_llamada_devuelve_la_sugerencia_y_queda_esperando(cliente):
-    respuesta = cliente.post("/api/llamadas", json=LLAMADA)
+    respuesta = cliente.post("/api/llamadas", json={"turnos": TURNOS_SIN_DATOS})
 
     assert respuesta.status_code == 201
     llamada = respuesta.json()
     assert llamada["estado"] == "esperando_operador"
-    assert llamada["turnos"] == TURNOS
-    assert llamada["sugerencia"] == {
+    assert llamada["turnos"] == TURNOS_SIN_DATOS
+    sugerencia = llamada["sugerencia"]
+    assert [aviso["codigo"] for aviso in sugerencia.pop("avisos")] == ["sin_calle"]
+    assert sugerencia == {
         "ubicacion": {"calle": {"origen": "falta"}, "altura": {"origen": "falta"}, "esquinas": []},
         "tipo_hecho": {"origen": "inferido", "valor": "NO_DETERMINADA", "fuente": "reglas"},
         "subtipo": {"origen": "falta"},
@@ -51,9 +53,16 @@ def test_cada_llamada_se_consulta_por_su_identificador(cliente):
 
 
 def test_derivar_devuelve_la_carta_con_lo_que_completo_el_operador(cliente):
-    llamada_id = iniciar(cliente)
+    alta = cliente.post("/api/llamadas", json=LLAMADA)
+    assert alta.status_code == 201
+    creada = alta.json()
+    llamada_id = creada["llamada_id"]
+    sugerencia = creada["sugerencia"]
+    ubicacion = {**UBICACION, "altura": 1548, "esquinas": ["Montevideo", "Uruguay"]}
+    esquinas = sugerencia["ubicacion"]["esquinas"]
+    montevideo = next(esquina for esquina in esquinas if esquina["valor"] == "Montevideo")
 
-    respuesta = derivar(cliente, llamada_id, COMPLETOS)
+    respuesta = derivar(cliente, llamada_id, {"prioridad": "P2", "ubicacion": ubicacion})
 
     assert respuesta.status_code == 200
     llamada = respuesta.json()
@@ -63,18 +72,18 @@ def test_derivar_devuelve_la_carta_con_lo_que_completo_el_operador(cliente):
     assert carta == {
         "llamada_id": llamada_id,
         "ubicacion": {
-            "calle": {"origen": "operador", "valor": "Av. Corrientes"},
-            "altura": {"origen": "operador", "valor": 1540},
+            "calle": sugerencia["ubicacion"]["calle"],
+            "altura": {"origen": "operador", "valor": 1548},
             "esquinas": [
-                {"origen": "operador", "valor": "Montevideo"},
-                {"origen": "operador", "valor": "Paraná"},
+                montevideo,
+                {"origen": "operador", "valor": "Uruguay"},
             ],
         },
-        "tipo_hecho": {"origen": "operador", "valor": "INCENDIO_RESCATE"},
-        "subtipo": {"origen": "falta"},
+        "tipo_hecho": sugerencia["tipo_hecho"],
+        "subtipo": sugerencia["subtipo"],
         "prioridad": {"origen": "operador", "valor": "P2"},
-        "checklist": [],
-        "instrucciones": [],
+        "checklist": sugerencia["checklist"],
+        "instrucciones": sugerencia["instrucciones"],
     }
 
 
@@ -86,7 +95,7 @@ def test_la_api_devuelve_cada_dato_con_su_origen_y_su_cita(
         creada = cliente.post("/api/llamadas", json=LLAMADA).json()
         derivada = derivar(cliente, creada["llamada_id"], {"prioridad": "P1"}).json()
 
-    assert creada["sugerencia"] == sugerencia_completa
+    assert creada["sugerencia"] == {**sugerencia_completa, "avisos": []}
     carta = derivada["carta"]
     assert carta.pop("derivada_en").endswith("Z")
     assert carta == {
@@ -131,7 +140,7 @@ def test_un_error_de_validacion_no_devuelve_lo_que_mando_el_cliente(cliente):
 
 
 def test_sin_los_datos_obligatorios_devuelve_422_y_la_llamada_sigue_esperando(cliente):
-    llamada_id = iniciar(cliente)
+    llamada_id = iniciar(cliente, TURNOS_SIN_DATOS)
 
     rechazo = cliente.post(f"/api/llamadas/{llamada_id}/derivar", json={})
 
@@ -184,7 +193,7 @@ def test_un_ajuste_invalido_devuelve_422_y_la_llamada_sigue_esperando(cliente, a
 
 
 def test_una_ubicacion_sin_altura_ni_esquinas_es_valida(cliente):
-    llamada_id = iniciar(cliente)
+    llamada_id = iniciar(cliente, TURNOS_SIN_DATOS)
     ubicacion = {"calle": "Plaza de Mayo", "altura": None, "esquinas": []}
 
     respuesta = derivar(cliente, llamada_id, {"prioridad": "P3", "ubicacion": ubicacion})
@@ -195,6 +204,86 @@ def test_una_ubicacion_sin_altura_ni_esquinas_es_valida(cliente):
         "altura": {"origen": "falta"},
         "esquinas": [],
     }
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [pytest.param(caso["texto"], id=caso["id"]) for caso in REFERENCIA]
+    + [
+        pytest.param("1234567890", id="solo_digitos"),
+        pytest.param("Operador: ¿Hay fuego en Av. Corrientes 1540?", id="solo_operador"),
+        pytest.param("x" * 20_000, id="veinte_mil_caracteres"),
+        pytest.param("¿?!_-…", id="solo_puntuacion"),
+        pytest.param("Operador: Llamante: Operador:", id="solo_marcas"),
+    ],
+)
+def test_se_pueden_guardar_y_consultar_transcripciones_de_distintos_formatos(cliente, texto):
+    alta = cliente.post("/api/llamadas", json={"turnos": [{"texto": texto}]})
+
+    assert alta.status_code == 201
+    creada = alta.json()
+    consulta = cliente.get(f"/api/llamadas/{creada['llamada_id']}")
+    assert consulta.status_code == 200
+    assert consulta.json() == creada
+
+
+def test_una_llamada_del_dataset_se_deriva_sin_cambios_con_su_protocolo(cliente):
+    texto = FILAS_DATASET["SFX-001"]["transcripcion_cruda"]
+    alta = cliente.post("/api/llamadas", json={"turnos": [{"texto": texto}]})
+
+    assert alta.status_code == 201
+    creada = alta.json()
+    llamada_id = creada["llamada_id"]
+    consulta = cliente.get(f"/api/llamadas/{llamada_id}")
+    assert consulta.status_code == 200
+    turnos_esperados = [
+        {"hablante": "operador", "texto": "911 emergencias, ¿dónde es su urgencia?"},
+        {"hablante": "llamante", "texto": TEXTO},
+    ]
+    assert consulta.json()["turnos"] == creada["turnos"] == turnos_esperados
+
+    respuesta = derivar(cliente, llamada_id, {})
+
+    assert respuesta.status_code == 200
+    derivada = respuesta.json()
+    assert derivada["estado"] == "derivada"
+    carta = derivada["carta"]
+    assert carta["llamada_id"] == llamada_id
+    assert carta["ubicacion"] == creada["sugerencia"]["ubicacion"]
+    for campo, valor in (
+        ("tipo_hecho", "INCENDIO_RESCATE"),
+        ("subtipo", "SFX-001"),
+        ("prioridad", "P1"),
+    ):
+        assert carta[campo] == {"origen": "inferido", "valor": valor, "fuente": "dataset"}
+    assert carta["checklist"] == creada["sugerencia"]["checklist"]
+    assert [item for item in carta["checklist"] if item["respondida"]] == [
+        {
+            "id": "SFX-001-Q1",
+            "pregunta": "¿Hay personas atrapadas en el interior?",
+            "respondida": True,
+            "cita": {"turno": 1, "texto": "adentro quedó el cocinero"},
+        }
+    ]
+    assert carta["instrucciones"] == [
+        {
+            "id": "SFX-001-I1",
+            "texto": "No reingresar al local por ningún motivo. Mantener a los peatones en la "
+            "vereda de enfrente y cortar el tránsito vehicular preventivamente.",
+        }
+    ]
+    assert cliente.get(f"/api/llamadas/{llamada_id}").json() == derivada
+
+
+def test_la_llamada_002_avisa_que_la_altura_no_cierra_con_las_esquinas(cliente):
+    texto = FILAS_DATASET["SFX-002"]["transcripcion_cruda"]
+    alta = cliente.post("/api/llamadas", json={"turnos": [{"texto": texto}]})
+
+    assert alta.status_code == 201
+    avisos = alta.json()["sugerencia"]["avisos"]
+    conflictos = [aviso["mensaje"] for aviso in avisos if aviso["codigo"] == "direccion_no_cierra"]
+    assert any("800" in mensaje and "Vera" in mensaje for mensaje in conflictos)
+    assert any("800" in mensaje and "Velasco" in mensaje for mensaje in conflictos)
 
 
 @pytest.mark.parametrize(
@@ -360,3 +449,16 @@ def test_la_api_entrega_el_criterio_de_prioridad_junto_al_catalogo(cliente):
     assert [nivel["id"] for nivel in criterio["niveles"]] == ["P1", "P2", "P3", "P4"]
     assert set(criterio["niveles"][0]) == {"id", "nombre", "definicion", "senales"}
     assert len(criterio["reglas"]) == 4
+
+
+def test_lo_que_dice_el_operador_no_cuenta_aunque_la_transcripcion_no_se_pueda_partir(cliente):
+    # Son más turnos de los que se guardan: la transcripción queda entera, con sus marcas.
+    texto = "Operador: incendio en Av. Cabildo 1. " * 501
+
+    respuesta = cliente.post("/api/llamadas", json={"turnos": [{"texto": texto}]})
+
+    assert respuesta.status_code == 201
+    llamada = respuesta.json()
+    assert len(llamada["turnos"]) == 1
+    assert llamada["sugerencia"]["ubicacion"]["calle"] == {"origen": "falta"}
+    assert llamada["sugerencia"]["tipo_hecho"]["valor"] == "NO_DETERMINADA"

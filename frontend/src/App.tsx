@@ -152,6 +152,13 @@ function App() {
       setIdentificador(creada.llamada_id)
       setLlamada(creada)
       setTranscripcion('')
+      // Los avisos aparecen junto con el formulario: se anuncian acá para quien no ve la pantalla.
+      const porConfirmar = creada.sugerencia?.avisos.length ?? 0
+      if (porConfirmar > 0) {
+        setAviso(porConfirmar === 1
+          ? 'La sugerencia tiene un aviso para revisar antes de derivar.'
+          : `La sugerencia tiene ${porConfirmar} avisos para revisar antes de derivar.`)
+      }
     })
   }
 
@@ -232,7 +239,13 @@ function App() {
         <>
           <section className="panel">
             <h2>Transcripción de la llamada</h2>
-            <p className="transcripcion">{llamada.turnos.map(({ texto }) => texto).join('\n\n')}</p>
+            {llamada.turnos.map(({ texto, hablante }, indice) => (
+              <p key={indice} className={hablante === 'llamante' ? 'turno turno-llamante' : 'turno'}>
+                <small className="numero-turno">Turno {indice + 1}</small>
+                {hablante && <strong>{hablante === 'operador' ? 'Operador' : 'Llamante'}: </strong>}
+                {texto}
+              </p>
+            ))}
           </section>
           {catalogo ? (
             <FormularioSugerencia key={llamada.llamada_id} sugerencia={llamada.sugerencia} catalogo={catalogo}

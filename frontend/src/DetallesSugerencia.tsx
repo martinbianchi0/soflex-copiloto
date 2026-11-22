@@ -12,7 +12,7 @@ export default function DetallesSugerencia({
             {checklist.map(({ id, pregunta, respondida, cita }) => (
               <li key={id}>
                 {pregunta} <strong>{respondida ? 'Respondida' : 'Pendiente'}</strong>
-                {cita && <small className="cita">«{cita.texto}»</small>}
+                {cita && <small className="cita">Turno {cita.turno + 1} · «{cita.texto}»</small>}
               </li>
             ))}
           </ul>

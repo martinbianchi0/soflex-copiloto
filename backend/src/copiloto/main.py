@@ -7,7 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from copiloto import catalogo
+from copiloto import callejero, catalogo, dataset
 from copiloto.catalogo import Catalogo, SubtipoInvalido
 from copiloto.config import Configuracion
 from copiloto.esquemas import Derivacion, Llamada, NuevaLlamada
@@ -25,7 +25,11 @@ def crear_app(configuracion: Configuracion | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def ciclo_de_vida(app: FastAPI):
-        catalogo.cargar()  # Si el catálogo no sirve, el servicio no arranca.
+        # Los datos se leen al arrancar: si alguno no sirve, el servicio no levanta, en vez de
+        # fallar en la primera llamada.
+        catalogo.cargar()
+        callejero.cargar()
+        dataset.cargar()
         app.state.llamadas = Llamadas(configuracion.sqlite_path)
         yield
         app.state.llamadas.cerrar()

@@ -17,7 +17,7 @@ export type Cita = { turno: number; texto: string }
 
 export type Dato<Valor> =
   | { origen: 'dicho'; valor: Valor; cita: Cita }
-  | { origen: 'inferido'; valor: Valor; fuente: 'callejero' | 'reglas' | 'modelo' }
+  | { origen: 'inferido'; valor: Valor; fuente: 'callejero' | 'reglas' | 'modelo' | 'dataset' }
   | { origen: 'operador'; valor: Valor | null }
   | { origen: 'falta' }
 
@@ -26,7 +26,7 @@ export function valorDato<Valor>(dato: Dato<Valor>): Valor | null {
 }
 
 export function textoOrigen(dato: Dato<unknown>): string {
-  if (dato.origen === 'inferido') return `inferido · ${dato.fuente}`
+  if (dato.origen === 'inferido') return dato.fuente === 'dataset' ? 'ficha del dataset' : `inferido · ${dato.fuente}`
   if (dato.origen === 'operador') return 'del operador'
   return dato.origen
 }
@@ -59,7 +59,12 @@ export type Criterio = { niveles: Nivel[]; reglas: string[] }
 
 export type Catalogo = { protocolos: Protocolo[]; criterio: Criterio }
 
-export type Sugerencia = {
+export type Aviso = {
+  codigo: 'sin_calle' | 'falta_altura' | 'calle_ambigua' | 'direccion_no_cierra' | 'cruce_sin_confirmar' | 'dato_descartado'
+  mensaje: string
+}
+
+type Ficha = {
   ubicacion: Ubicacion
   tipo_hecho: Dato<TipoHecho>
   subtipo: Dato<string>
@@ -68,20 +73,22 @@ export type Sugerencia = {
   instrucciones: TextoProtocolo[]
 }
 
+export type Sugerencia = Ficha & { avisos: Aviso[] }
+
 export type Ajustes = {
   ubicacion?: UbicacionAjustada
   tipo_hecho?: { categoria: TipoHecho; subtipo: string | null }
   prioridad?: Prioridad
 }
 
-export type Carta = Sugerencia & {
+export type Carta = Ficha & {
   llamada_id: string
   derivada_en: string
 }
 
 export type Llamada = {
   llamada_id: string
-  turnos: { texto: string }[]
+  turnos: { texto: string; hablante: 'operador' | 'llamante' | null }[]
 } & (
   | { estado: 'en_proceso'; sugerencia: Sugerencia | null; carta: null }
   | { estado: 'esperando_operador'; sugerencia: Sugerencia; carta: null }

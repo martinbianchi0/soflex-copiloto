@@ -1,0 +1,780 @@
+"""Interpreta lo que dijo el llamante y lo contrasta con el callejero de CABA."""
+
+import re
+import unicodedata
+from collections.abc import Iterator
+from dataclasses import dataclass, replace
+from functools import cache
+from itertools import groupby
+
+from copiloto.callejero import Callejero, Candidato, cargar, normalizar
+from copiloto.esquemas import (
+    Altura,
+    Aviso,
+    Cita,
+    Dicho,
+    Esquema,
+    Falta,
+    Inferido,
+    Texto,
+    Turno,
+    Ubicacion,
+    texto_plano,
+)
+from copiloto.turnos import MARCA_DE_HABLANTE
+
+BASICOS = {
+    "DOS": 2,
+    "TRES": 3,
+    "CUATRO": 4,
+    "CINCO": 5,
+    "SEIS": 6,
+    "SIETE": 7,
+    "OCHO": 8,
+    "NUEVE": 9,
+    "DIEZ": 10,
+    "ONCE": 11,
+    "DOCE": 12,
+    "TRECE": 13,
+    "CATORCE": 14,
+    "QUINCE": 15,
+    "DIECISEIS": 16,
+    "DIECISIETE": 17,
+    "DIECIOCHO": 18,
+    "DIECINUEVE": 19,
+    "VEINTE": 20,
+    "VEINTIUNO": 21,
+    "VEINTIDOS": 22,
+    "VEINTITRES": 23,
+    "VEINTICUATRO": 24,
+    "VEINTICINCO": 25,
+    "VEINTISEIS": 26,
+    "VEINTISIETE": 27,
+    "VEINTIOCHO": 28,
+    "VEINTINUEVE": 29,
+}
+DECENAS = {
+    "TREINTA": 30,
+    "CUARENTA": 40,
+    "CINCUENTA": 50,
+    "SESENTA": 60,
+    "SETENTA": 70,
+    "OCHENTA": 80,
+    "NOVENTA": 90,
+}
+CENTENAS = {
+    "CIEN": 100,
+    "CIENTO": 100,
+    "DOSCIENTOS": 200,
+    "TRESCIENTOS": 300,
+    "CUATROCIENTOS": 400,
+    "QUINIENTOS": 500,
+    "SEISCIENTOS": 600,
+    "SETECIENTOS": 700,
+    "OCHOCIENTOS": 800,
+    "NOVECIENTOS": 900,
+}
+# Sustantivos que se cuentan: "82 años", "180 chicos". Un número seguido de esto no es una altura.
+SE_CUENTAN = {
+    "ANOS",
+    "ANO",
+    "METROS",
+    "METRO",
+    "PERSONAS",
+    "PERSONA",
+    "VECINOS",
+    "VECINO",
+    "VECINAS",
+    "VECINA",
+    "CHICOS",
+    "CHICO",
+    "CHICAS",
+    "CHICA",
+    "NENES",
+    "NENE",
+    "NENAS",
+    "NENA",
+    "NINOS",
+    "NINO",
+    "NINAS",
+    "NINA",
+    "MINUTOS",
+    "MINUTO",
+    "SEGUNDOS",
+    "SEGUNDO",
+    "AUTOS",
+    "AUTO",
+    "MOTOS",
+    "MOTO",
+    "CAMIONETAS",
+    "PISOS",
+    "PISO",
+    "CARRILES",
+    "MANZANAS",
+    "DISPAROS",
+    "HORAS",
+    "HORA",
+    "CUADRAS",
+    "CUADRA",
+    "KM",
+    "KILOMETROS",
+    "CM",
+    "MESES",
+    "DIAS",
+    "HERIDOS",
+    "HERIDAS",
+    "TIPOS",
+    "TIPO",
+    "HOMBRES",
+    "HOMBRE",
+    "MUJERES",
+    "MUJER",
+    "PIBES",
+    "PIBE",
+    "PIBAS",
+    "PIBA",
+    "GENTE",
+    "ADULTOS",
+    "ADULTAS",
+    "PASAJEROS",
+    "PASAJERAS",
+    "CAMIONES",
+    "COLECTIVOS",
+    "VEHICULOS",
+    "RODADOS",
+    "ALUMNOS",
+    "VECES",
+    "POSTES",
+    "ANCLAJES",
+    "SUBSUELOS",
+    "KILOS",
+    "LITROS",
+}
+NUMERO_CON_FORMATO = re.compile(
+    r"[0-9]{1,2}[ \t]*:[ \t]*[0-9]{2}(?::[0-9]{2})?(?:HS?)?\b"
+    r"|[0-9]+(?:[ \t]*\.?[ºª°]|\.?(?:ER|RO|DO|TO|TA|MO|MA|VO|VA|NO|NA|RA|DA)\b)"
+    r"|(?P<miles>[0-9]{1,3}(?:\.[0-9]{3})+)(?!\w|\.[0-9])",
+    re.IGNORECASE,
+)
+CIERRE_DE_FRASE = re.compile(r"[^\S\n]*[.!?…\n]")
+CORTE_ENTRE_PALABRAS = re.compile(r"[,.;:!?…\n]")
+ANTES_DE_ALTURA = {"AL", "ALTURA", "NUMERO", "NRO", "N"}
+SALTABLES = {"AV", "AVENIDA", "CALLE", "LA", "LAS", "EL", "LOS", "DE", "DEL", "VIAS", "VIA"}
+MARCAS_DE_CALLE = {"AV", "AVENIDA", "AUTOPISTA", "CALLE"}
+MARCAS_DE_CRUCE = {"CASI", "ESQUINA", "ESQ"}
+MARCAS_DE_LUGAR = {
+    "PARQUE",
+    "PLAZA",
+    "ESTACION",
+    "PUENTE",
+    "VIADUCTO",
+    "BAJADA",
+    "ROTONDA",
+    "VIAS",
+    "VIA",
+}
+CORTA_CRUCE = {
+    "AHI",
+    "AL",
+    "CASI",
+    "CERCA",
+    "CON",
+    "CUANDO",
+    "DONDE",
+    "E",
+    "EN",
+    "ESA",
+    "ESQ",
+    "ESQUINA",
+    "ESTA",
+    "ESTABA",
+    "ESTAMOS",
+    "HAY",
+    "NO",
+    "PARA",
+    "QUE",
+    "SE",
+    "SENTIDO",
+    "SON",
+    "UN",
+    "UNA",
+    "VEO",
+    "Y",
+}
+TOLERANCIA_CASI = 150
+
+
+class Interpretacion(Esquema):
+    ubicacion: Ubicacion
+    avisos: list[Aviso]
+    calle_oficial: str | None
+
+
+@dataclass(frozen=True)
+class _Posicion:
+    turno: int
+    bloque: int
+    indice: int
+
+    @property
+    def tramo(self) -> tuple[int, int]:
+        return self.turno, self.bloque
+
+
+@dataclass(frozen=True)
+class _Token:
+    palabra: str
+    inicio: _Posicion
+    fin: _Posicion
+
+
+def _bloques_del_llamante(turno: Turno) -> Iterator[tuple[int, int]]:
+    if turno.hablante == "operador":
+        return
+    marcas = list(MARCA_DE_HABLANTE.finditer(turno.texto))
+    if not marcas:
+        yield 0, len(turno.texto)
+        return
+    for marca, siguiente in zip(marcas, [*marcas[1:], None], strict=True):
+        if marca[1].lower() == "llamante":
+            yield marca.end(), siguiente.start() if siguiente else len(turno.texto)
+
+
+def _tokens_del_llamante(turnos: list[Turno]) -> Iterator[_Token]:
+    for numero, turno in enumerate(turnos):
+        for inicio, fin in _bloques_del_llamante(turno):
+            letras: list[str] = []
+            desde = hasta = indice = inicio
+            while indice < fin:
+                caracter = turno.texto[indice]
+                if (
+                    not letras
+                    and "0" <= caracter <= "9"
+                    and (numero_escrito := NUMERO_CON_FORMATO.match(turno.texto, indice, fin))
+                ):
+                    palabra = numero_escrito[0]
+                    if numero_escrito["miles"]:
+                        palabra = palabra.replace(".", "")
+                    yield _Token(
+                        palabra.upper(),
+                        _Posicion(numero, inicio, indice),
+                        _Posicion(numero, inicio, numero_escrito.end()),
+                    )
+                    indice = numero_escrito.end()
+                    continue
+                indice += 1
+                if unicodedata.category(caracter) == "Mn":
+                    if letras:
+                        hasta = indice
+                    continue
+                parte = caracter.upper() if caracter.isascii() and caracter.isalnum() else ""
+                if not caracter.isascii():
+                    parte = normalizar(caracter)
+                if parte:
+                    if not letras:
+                        desde = indice - 1
+                    letras.append(parte)
+                    hasta = indice
+                elif letras:
+                    yield _Token(
+                        "".join(letras),
+                        _Posicion(numero, inicio, desde),
+                        _Posicion(numero, inicio, hasta),
+                    )
+                    letras.clear()
+            if letras:
+                yield _Token(
+                    "".join(letras),
+                    _Posicion(numero, inicio, desde),
+                    _Posicion(numero, inicio, hasta),
+                )
+
+
+def _numeros_en_palabras(tokens: list[_Token], turnos: list[Turno]) -> list[_Token]:
+    """'MIL QUINIENTOS CUARENTA' -> '1540'. No toca 'UN/UNA' sueltos ni junta números separados."""
+
+    def sigue_numero(antes: _Token, despues: _Token) -> bool:
+        fin = antes.fin
+        return fin.tramo == despues.inicio.tramo or not CIERRE_DE_FRASE.match(
+            turnos[fin.turno].texto, fin.indice
+        )
+
+    # `nivel` obliga a que las palabras vayan de mayor a menor: centena (3) > decena (2) > unidad (1).
+    salida: list[_Token] = []
+    i = 0
+    while i < len(tokens):
+        total, actual, nivel, hubo_mil, j = 0, 0, 4, False, i
+        while j < len(tokens):
+            if j > i and not sigue_numero(tokens[j - 1], tokens[j]):
+                break
+            t = tokens[j].palabra
+            if t == "MIL" and not hubo_mil:
+                total, actual, nivel, hubo_mil = (actual or 1) * 1000, 0, 4, True
+            elif t in CENTENAS and nivel > 3:
+                actual, nivel = actual + CENTENAS[t], 3
+            elif t in DECENAS and nivel > 2:
+                actual, nivel = actual + DECENAS[t], 2
+            elif t in BASICOS and nivel > 2:
+                actual, nivel = actual + BASICOS[t], 1
+            elif (
+                t == "Y"
+                and nivel == 2
+                and j + 1 < len(tokens)
+                and tokens[j + 1].palabra in BASICOS.keys() | {"UN", "UNO", "UNA"}
+                and sigue_numero(tokens[j], tokens[j + 1])
+            ):
+                actual, nivel = actual + BASICOS.get(tokens[j + 1].palabra, 1), 1
+                j += 1
+            else:
+                break
+            j += 1
+        if j > i:
+            fin = tokens[j - 1].fin
+            if tokens[i].inicio.tramo == fin.tramo:
+                salida.append(replace(tokens[i], palabra=str(total + actual), fin=fin))
+            else:
+                # Un número interrumpido queda sin leer, tampoco vale una parte como altura.
+                salida.extend(tokens[i:j])
+            i = j
+        else:
+            salida.append(tokens[i])
+            i += 1
+    return salida
+
+
+@dataclass(frozen=True)
+class _Mencion:
+    inicio: int
+    fin: int
+    cita: Cita
+    candidatos: list[Candidato]
+
+
+@dataclass(frozen=True)
+class _Direccion:
+    mencion: _Mencion
+    calle: str
+    alternativas: list[str]
+    altura: Dicho[Altura]
+    fin: int
+    existe: bool
+
+    def coincide_con(self, otra: "_Direccion") -> bool:
+        return self.altura.valor == otra.altura.valor and bool(
+            {self.calle, *self.alternativas} & {otra.calle, *otra.alternativas}
+        )
+
+
+class _Resolvedor:
+    def __init__(self, turnos: list[Turno], callejero: Callejero) -> None:
+        self.turnos = turnos
+        self.cj = callejero
+        self.candidatos = cache(callejero.candidatos)
+        self.alturas_en_esquina = cache(callejero.alturas_en_esquina)
+        self.planos: dict[int, str] = {}
+        self.tokens = _numeros_en_palabras(list(_tokens_del_llamante(turnos)), turnos)
+        self.palabras = [token.palabra for token in self.tokens]
+        self.tramos: list[range] = []
+        for _, tokens in groupby(self.tokens, key=lambda token: token.inicio.tramo):
+            cantidad = sum(1 for _ in tokens)
+            inicio = len(self.tramos)
+            self.tramos.extend([range(inicio, inicio + cantidad)] * cantidad)
+
+    def _cita(self, desde: int, hasta: int) -> Cita | None:
+        if hasta not in self.tramos[desde]:
+            return None
+        inicio, fin = self.tokens[desde].inicio, self.tokens[hasta].fin
+        if fin.indice - inicio.indice > 200:
+            return None
+        fragmento = self.turnos[inicio.turno].texto[inicio.indice : fin.indice]
+        buscado = texto_plano(fragmento)
+        if not buscado:
+            return None
+        # La cita tiene que coincidir por palabras enteras, igual que en cita_esta_en.
+        if inicio.turno not in self.planos:
+            self.planos[inicio.turno] = f" {texto_plano(self.turnos[inicio.turno].texto)} "
+        if f" {buscado} " in self.planos[inicio.turno]:
+            return Cita(turno=inicio.turno, texto=fragmento)
+        return None
+
+    def _separador(self, izquierda: int, derecha: int) -> str:
+        antes, despues = self.tokens[izquierda].fin, self.tokens[derecha].inicio
+        return self.turnos[antes.turno].texto[antes.indice : despues.indice]
+
+    def _calle_antes(self, fin: int, altura: int | None) -> tuple[_Mencion | None, bool]:
+        """Busca la coincidencia más larga y deja la búsqueda difusa para el final."""
+        inicio_tramo = self.tramos[fin].start
+        for difuso in (False, True):
+            for largo in range(5, 0, -1):
+                ini = fin - largo + 1
+                if ini < inicio_tramo:
+                    continue
+                grama = self.palabras[ini : fin + 1]
+                marca_anterior = ini > inicio_tramo and self.palabras[ini - 1] in MARCAS_DE_CALLE
+                es_av = grama[0] in MARCAS_DE_CALLE or marca_anterior
+                nombre = [palabra for palabra in grama if palabra != "CALLE"]
+                if not nombre or (
+                    difuso and (largo > 3 or nombre[0] in SALTABLES - {"AV", "AVENIDA"})
+                ):
+                    continue
+                candidatos = self.candidatos(" ".join(nombre), difuso=difuso)
+                if altura is not None:
+                    candidatos = [c for c in candidatos if self.cj.tramos_en(c.nombre, altura)]
+                if candidatos:
+                    desde = ini - 1 if marca_anterior else ini
+                    cita = self._cita(desde, fin) or self._cita(ini, fin)
+                    if cita:
+                        return _Mencion(ini, fin, cita, candidatos), es_av
+        return None, False
+
+    def _calle_despues(self, ini: int, limite: int, marca: int | None = None) -> _Mencion | None:
+        inicio = ini if marca is None else marca
+        prefijo = "AUTOPISTA " if marca is not None and self.palabras[marca] == "AUTOPISTA" else ""
+        salteados = 0
+        while ini < limite and self.palabras[ini] in SALTABLES and salteados < 4:
+            ini, salteados = ini + 1, salteados + 1
+        for difuso in (False, True):
+            for largo in range(4, 0, -1):
+                if ini + largo > limite or (difuso and largo > 3):
+                    continue
+                grama = self.palabras[ini : ini + largo]
+                candidatos = self.candidatos(prefijo + " ".join(grama), difuso=difuso)
+                if candidatos:
+                    fin = ini + largo - 1
+                    cita = self._cita(inicio, fin)
+                    if cita is None and not prefijo:
+                        cita = self._cita(ini, fin)
+                    if cita:
+                        return _Mencion(ini, fin, cita, candidatos)
+        return None
+
+    def _elegir(self, candidatos: list[Candidato], es_av: bool) -> tuple[str, list[str]]:
+        if es_av and any(c.nombre in self.cj.avenidas for c in candidatos):
+            candidatos = [c for c in candidatos if c.nombre in self.cj.avenidas]
+        elegido, *otros = candidatos
+        return elegido.nombre, [c.nombre for c in otros if c.puntaje == elegido.puntaje]
+
+    def _direcciones(self) -> Iterator[_Direccion]:
+        for i, palabra in enumerate(self.palabras):
+            if not palabra.isdigit():
+                continue
+            cifras = palabra.lstrip("0")
+            if not cifras or len(cifras) > 5:
+                continue
+            tramo = self.tramos[i]
+            if (
+                i + 1 in tramo
+                and self.palabras[i + 1] in SE_CUENTAN
+                and not CORTE_ENTRE_PALABRAS.search(self._separador(i, i + 1))
+            ):
+                continue
+            fin = i - 1
+            while fin in tramo and self.palabras[fin] in ANTES_DE_ALTURA:
+                fin -= 1
+            if fin not in tramo or not (cita := self._cita(i, i)):
+                continue
+            altura = int(cifras)
+            mencion, es_av = self._calle_antes(fin, altura)
+            existe = mencion is not None
+            if mencion is None:
+                mencion, es_av = self._calle_antes(fin, None)
+                if mencion is None:
+                    continue
+            candidatos = mencion.candidatos
+            # Una altura fuera de rango no sirve para respaldar una coincidencia débil.
+            if altura < 100 or not existe:
+                candidatos = [c for c in candidatos if c.como in ("exacto", "apellido")]
+            if candidatos:
+                nombre, alternativas = self._elegir(candidatos, es_av)
+                yield _Direccion(
+                    mencion, nombre, alternativas, Dicho[Altura](valor=altura, cita=cita), i, existe
+                )
+
+    def _en_esquina(self) -> tuple[_Mencion, str, _Mencion, str] | None:
+        entre = -1
+        y_de_entre = None
+        for i, palabra in enumerate(self.palabras):
+            if palabra == "ENTRE":
+                entre, y_de_entre = i, self._y_de_entre(i)
+            if palabra not in ("Y", "E"):
+                continue
+            tramo = self.tramos[i]
+            if i - 1 not in tramo:
+                continue
+            izquierda, _ = self._calle_antes(i - 1, None)
+            # En «entre X y Z» las calles son entrecalles. «Entre Ríos» es un nombre.
+            if izquierda and i == y_de_entre and izquierda.inicio > entre:
+                continue
+            if izquierda and (derecha := self._calle_despues(i + 1, tramo.stop)):
+                for a in izquierda.candidatos:
+                    for b in derecha.candidatos:
+                        if self.alturas_en_esquina(a.nombre, b.nombre):
+                            return izquierda, a.nombre, derecha, b.nombre
+        return None
+
+    def _con_marca(self) -> tuple[_Mencion, str, list[str]] | None:
+        for i, palabra in enumerate(self.palabras):
+            if palabra in MARCAS_DE_CALLE and (
+                mencion := self._calle_despues(i + 1, self.tramos[i].stop, marca=i)
+            ):
+                nombre, alternativas = self._elegir(
+                    mencion.candidatos, palabra in {"AV", "AVENIDA"}
+                )
+                return mencion, nombre, alternativas
+        return None
+
+    def _calle_sola(self) -> tuple[_Mencion, str, list[str]] | None:
+        for i, tramo in enumerate(self.tramos):
+            if i != tramo.start or len(tramo) > 5:
+                continue
+            fin = tramo.stop - 1
+            if self.palabras[fin] in {"Y", "E"}:
+                fin -= 1
+            consulta = " ".join(self.palabras[i : fin + 1])
+            if len(consulta) > 200:
+                continue
+            candidatos = [
+                c
+                for c in self.candidatos(consulta, difuso=False)
+                if c.como in ("exacto", "apellido")
+            ]
+            if candidatos and (cita := self._cita(i, fin)):
+                nombre, alternativas = self._elegir(candidatos, False)
+                return _Mencion(i, fin, cita, candidatos), nombre, alternativas
+        return None
+
+    def _cruce_desconocido(self, ini: int, limite: int) -> _Mencion | None:
+        while ini < limite and self.palabras[ini] in SALTABLES - MARCAS_DE_LUGAR:
+            ini += 1
+        if ini == limite or self.palabras[ini] in MARCAS_DE_LUGAR:
+            return None
+        fin = ini - 1
+        for i in range(ini, min(limite, ini + 4)):
+            palabra = self.palabras[i]
+            if palabra in CORTA_CRUCE or palabra.isdigit():
+                break
+            if i > ini and CORTE_ENTRE_PALABRAS.search(self._separador(i - 1, i)):
+                break
+            fin = i
+        if fin >= ini and (cita := self._cita(ini, fin)):
+            return _Mencion(ini, fin, cita, [])
+        return None
+
+    def _y_de_entre(self, i: int) -> int | None:
+        try:
+            return self.palabras.index("Y", i + 2, min(i + 7, self.tramos[i].stop))
+        except ValueError:
+            return None
+
+    def _cruces_marcados(self, fin_direccion: int) -> Iterator[_Mencion]:
+        for i, palabra in enumerate(self.palabras):
+            if palabra == "ENTRE":
+                limite = self.tramos[i].stop
+                j = self._y_de_entre(i)
+                if j is None:
+                    continue
+                consulta = " ".join(x for x in self.palabras[i + 1 : j] if x not in MARCAS_DE_CALLE)
+                candidatos = self.candidatos(consulta)
+                derecha = self._calle_despues(j + 1, limite)
+                izquierda = None
+                if candidatos and (cita := self._cita(i + 1, j - 1)):
+                    izquierda = _Mencion(i + 1, j - 1, cita, candidatos)
+                if i == fin_direccion + 1:
+                    izquierda = izquierda or self._cruce_desconocido(i + 1, j)
+                    derecha = derecha or self._cruce_desconocido(j + 1, limite)
+                if izquierda and derecha:
+                    yield izquierda
+                    yield derecha
+            elif palabra in MARCAS_DE_CRUCE:
+                limite = self.tramos[i].stop
+                mencion = self._calle_despues(i + 1, limite)
+                if not mencion and (i == fin_direccion + 1 or palabra != "CASI"):
+                    mencion = self._cruce_desconocido(i + 1, limite)
+                if mencion:
+                    yield mencion
+
+    def resolver(self) -> Interpretacion:
+        altura: Dicho[Altura] | Falta = Falta()
+        alternativas: list[str] = []
+        cruces: list[tuple[_Mencion, str]] = []
+        por_marca = False
+        direcciones = list(self._direcciones())
+        direccion = next(
+            (direccion for direccion in direcciones if direccion.existe),
+            direcciones[0] if direcciones else None,
+        )
+        if direccion:
+            principal, calle = direccion.mencion, direccion.calle
+            alternativas, altura, fin_direccion = (
+                direccion.alternativas,
+                direccion.altura,
+                direccion.fin,
+            )
+        elif en_esquina := self._en_esquina():
+            principal, calle, mencion, nombre = en_esquina
+            cruces.append((mencion, nombre))
+            fin_direccion = mencion.fin
+        elif con_marca := self._con_marca():
+            principal, calle, alternativas = con_marca
+            fin_direccion = principal.fin
+            por_marca = True
+        elif calle_sola := self._calle_sola():
+            principal, calle, alternativas = calle_sola
+            fin_direccion = principal.fin
+        else:
+            return Interpretacion(
+                ubicacion=Ubicacion(calle=Falta(), altura=Falta(), esquinas=[]),
+                avisos=[
+                    Aviso(codigo="sin_calle", mensaje="Pedí la dirección y confirmá la calle.")
+                ],
+                calle_oficial=None,
+            )
+
+        avisos: list[Aviso] = []
+        dos_direcciones = False
+        altura_dicha = altura.valor if isinstance(altura, Dicho) else None
+        entrecalles = []
+        calle_visible = self.cj.nombre_para_mostrar(calle)
+        if direccion:
+            if direccion.existe:
+                entrecalles = self.cj.entrecalles(calle, direccion.altura.valor)
+            else:
+                avisos.append(
+                    Aviso(
+                        codigo="direccion_no_cierra",
+                        mensaje=(
+                            f"La altura {direccion.altura.valor} no existe en {calle_visible}. "
+                            "Leele la dirección de vuelta al llamante."
+                        ),
+                    )
+                )
+            otra = next((otra for otra in direcciones if not direccion.coincide_con(otra)), None)
+            if otra:
+                dos_direcciones = True
+                otra_calle = self.cj.nombre_para_mostrar(otra.calle)
+                avisos.append(
+                    Aviso(
+                        codigo="direccion_no_cierra",
+                        mensaje=(
+                            f"Se mencionaron {calle_visible} {direccion.altura.valor} y "
+                            f"{otra_calle} {otra.altura.valor}. "
+                            "Confirmá con el llamante cuál es la dirección."
+                        ),
+                    )
+                )
+        mencionados = list(self._cruces_marcados(fin_direccion))
+        if por_marca:
+            siguiente = principal.fin + 1
+            tramo = self.tramos[principal.fin]
+            if siguiente in tramo and self.palabras[siguiente] in {"Y", "E"}:
+                cruce = self._calle_despues(siguiente + 1, tramo.stop) or self._cruce_desconocido(
+                    siguiente + 1, tramo.stop
+                )
+                if cruce:
+                    mencionados.append(cruce)
+        no_confirmados: set[str] = set()
+        # Con dos direcciones en el relato no se sabe cuál completar: no se infiere nada.
+        hay_conflicto = dos_direcciones
+        for mencion in mencionados:
+            cruza = next(
+                (
+                    (c.nombre, alturas)
+                    for c in mencion.candidatos
+                    if (alturas := self.alturas_en_esquina(calle, c.nombre))
+                ),
+                None,
+            )
+            if cruza is None:
+                dicho = mencion.cita.texto
+                if mencion.candidatos and mencion.candidatos[0].nombre == calle:
+                    continue
+                if dicho not in no_confirmados:
+                    no_confirmados.add(dicho)
+                    avisos.append(
+                        Aviso(
+                            codigo="cruce_sin_confirmar",
+                            mensaje=f"Confirmá si «{dicho}» cruza {calle_visible}.",
+                        )
+                    )
+                continue
+            nombre, alturas = cruza
+            cruces.append((mencion, nombre))
+            if (
+                direccion is not None
+                and direccion.existe
+                and nombre not in entrecalles
+                and min(abs(direccion.altura.valor - a) for a in alturas) > TOLERANCIA_CASI
+            ):
+                hay_conflicto = True
+                avisos.append(
+                    Aviso(
+                        codigo="direccion_no_cierra",
+                        mensaje=(
+                            f"La altura {altura_dicha} no coincide con "
+                            f"{self.cj.nombre_para_mostrar(nombre)}. "
+                            "Leele la dirección de vuelta al llamante."
+                        ),
+                    )
+                )
+
+        esquinas = self._esquinas(
+            principal, calle_visible, cruces, [] if hay_conflicto else entrecalles
+        )
+        if altura_dicha is None and not esquinas:
+            avisos.append(
+                Aviso(
+                    codigo="falta_altura",
+                    mensaje=f"Preguntá la altura o la esquina de {calle_visible}.",
+                )
+            )
+        if alternativas:
+            nombres = ", ".join(self.cj.nombre_para_mostrar(nombre) for nombre in alternativas)
+            avisos.append(
+                Aviso(
+                    codigo="calle_ambigua", mensaje=f"Confirmá si es {calle_visible} o {nombres}."
+                )
+            )
+
+        return Interpretacion(
+            ubicacion=Ubicacion(
+                calle=Dicho[Texto](valor=calle_visible, cita=principal.cita),
+                altura=altura,
+                esquinas=esquinas,
+            ),
+            avisos=avisos,
+            calle_oficial=calle,
+        )
+
+    def _esquinas(
+        self,
+        principal: _Mencion,
+        calle_visible: str,
+        cruces: list[tuple[_Mencion, str]],
+        inferidas: list[str],
+    ) -> list[Dicho[Texto] | Inferido[Texto]]:
+        esquinas: list[Dicho[Texto] | Inferido[Texto]] = []
+        vistos = {texto_plano(calle_visible)}
+        # Una marca puede volver a leer la mención principal como otra calle homónima.
+        cruces.sort(key=lambda par: (par[0].inicio <= principal.fin <= par[0].fin, par[0].inicio))
+        for mencion, nombre in cruces:
+            valor = self.cj.nombre_para_mostrar(nombre)
+            clave = texto_plano(valor)
+            if clave not in vistos:
+                esquinas.append(Dicho[Texto](valor=valor, cita=mencion.cita))
+                vistos.add(clave)
+            if len(esquinas) == 2:
+                return esquinas
+        for nombre in inferidas:
+            valor = self.cj.nombre_para_mostrar(nombre)
+            clave = texto_plano(valor)
+            if clave not in vistos:
+                esquinas.append(Inferido[Texto](valor=valor, fuente="callejero"))
+                vistos.add(clave)
+            if len(esquinas) == 2:
+                break
+        return esquinas
+
+
+def interpretar(turnos: list[Turno]) -> Interpretacion:
+    """Reconoce la dirección y conserva una cita literal por cada dato dicho."""
+    return _Resolvedor(turnos, cargar()).resolver()

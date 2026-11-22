@@ -10,6 +10,7 @@ from copiloto.esquemas import (
     Dato,
     ItemChecklist,
     Llamada,
+    NuevaLlamada,
     Sugerencia,
     Texto,
     Turno,
@@ -325,3 +326,18 @@ def test_una_ficha_guardada_sin_subtipo_se_lee_como_que_falta(sugerencia_complet
     del sugerencia_completa["subtipo"]
 
     assert Sugerencia.model_validate(sugerencia_completa).subtipo.origen == "falta"
+
+
+def test_una_sugerencia_no_da_por_respondida_una_pregunta_sin_su_cita(sugerencia_completa):
+    sugerencia_completa["checklist"][0]["cita"] = None
+
+    with pytest.raises(ValidationError, match="lleva su cita"):
+        Sugerencia.model_validate(sugerencia_completa)
+
+
+def test_una_llamada_tiene_un_largo_maximo_en_total():
+    turno = {"texto": "a" * 20_000}
+
+    NuevaLlamada.model_validate({"turnos": [turno, turno]})
+    with pytest.raises(ValidationError, match="50000 caracteres"):
+        NuevaLlamada.model_validate({"turnos": [turno, turno, turno]})

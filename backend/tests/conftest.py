@@ -1,4 +1,8 @@
 import copy
+import csv
+import json
+from importlib import resources
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -11,9 +15,23 @@ TEXTO = (
     "Montevideo, se prendió fuego la campana de la cocina y se está metiendo el humo negro al "
     "salón, la gente salió corriendo a la calle pero adentro quedó el cocinero!"
 )
-TURNOS = [{"texto": TEXTO}]
+TURNOS = [{"texto": TEXTO, "hablante": None}]
+TEXTO_SIN_DATOS = "Hola, ¿me escuchan?"
+TURNOS_SIN_DATOS = [{"texto": TEXTO_SIN_DATOS, "hablante": None}]
 
-# Una sugerencia con todos los orígenes, como las que van a armar los intérpretes. El subtipo, las
+DATOS_EMPAQUETADOS = resources.files("copiloto").joinpath("datos")
+with DATOS_EMPAQUETADOS.joinpath("dataset_challenge_soflex.csv").open(
+    encoding="utf-8-sig", newline=""
+) as archivo:
+    FILAS_DATASET = {
+        f"SFX-{fila['id_registro'].rsplit('-', 1)[1]}": fila for fila in csv.DictReader(archivo)
+    }
+
+REFERENCIA = json.loads(
+    (Path(__file__).parent / "datos" / "ubicaciones_de_referencia.json").read_text(encoding="utf-8")
+)
+
+# Una sugerencia con todos los orígenes, como las que puede armar un intérprete. El subtipo, las
 # preguntas y la instrucción son los del catálogo.
 _SUGERENCIA_COMPLETA = {
     "ubicacion": {
