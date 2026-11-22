@@ -31,7 +31,7 @@ La ubicación la siguen leyendo las reglas y aparece al instante; lo que propone
 
 ## Cuánto acierta
 
-Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo camino que el panel. Una corrida, en una Mac M5 con 16 GB y Ollama 0.40.16. El detalle por llamada está en `evaluacion/`, y la lectura de estos números, en `DECISIONS.md`.
+Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo camino que el panel. Dos corridas, que dieron las mismas propuestas en las 62 llamadas, en una Mac M5 con 16 GB y Ollama 0.40.16; los tiempos son los de la segunda. El detalle por llamada está en `evaluacion/`, y la lectura de estos números, en `DECISIONS.md`.
 
 | | Reglas (`mock`), 32 nuevas | Modelo, 32 nuevas | Modelo, 30 del dataset |
 |---|---|---|---|
@@ -43,7 +43,7 @@ Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo
 | Subtipo correcto | — | — | 26 (4 sin subtipo, 0 equivocados) |
 | Subtipo propuesto sin que el catálogo tenga uno | — | 4 | — |
 | Preguntas del protocolo: posibles respuestas | — | — | señala 4 de las 7 anotadas, y otras 15 |
-| Tiempo por llamada (mediana y percentil 95) | menos de 0,1 s | 5,2 y 10,0 s | 7,2 y 11,5 s |
+| Tiempo por llamada (mediana y percentil 95) | menos de 0,1 s | 4,8 y 9,5 s | 5,7 y 6,7 s |
 
 Las 30 llamadas del dataset son las mismas con las que se escribieron el criterio de prioridad y el catálogo: sus números son un techo. Las otras 32 son sintéticas y no son del dataset: son pocas, y no reemplazan una medición con llamadas reales. En modo `mock`, las 30 del dataset se reconocen por su texto y traen su ficha, así que ahí no hay nada que medir. La ubicación sale siempre de las reglas: reconoce la calle en 27 de las 28 llamadas nuevas que nombran una (`backend/tests/test_medicion.py`).
 
