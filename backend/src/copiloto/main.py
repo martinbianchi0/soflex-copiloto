@@ -1,9 +1,10 @@
-"""La aplicación web: la API vive bajo `/api`."""
+"""La aplicación web: la API vive bajo `/api` y, si está compilado, el panel se sirve en `/`."""
 
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from copiloto.config import Configuracion
 from copiloto.esquemas import Derivacion, NuevaLlamada
@@ -19,10 +20,12 @@ def crear_app(configuracion: Configuracion | None = None) -> FastAPI:
         yield
         app.state.llamadas.cerrar()
 
-    # La aplicación de afuera sólo reparte: lo que empieza con `/api` va a la API, que contesta
-    # también sus propios errores (404, 405), siempre en JSON.
+    # La aplicación de afuera sólo reparte: lo que empieza con `/api` va a la API y el resto, al
+    # panel. Así los errores de la API (404, 405) los contesta siempre la API, en JSON.
     app = FastAPI(lifespan=ciclo_de_vida, docs_url=None, redoc_url=None, openapi_url=None)
     app.mount("/api", crear_api(app, configuracion))
+    if configuracion.static_dir is not None:
+        app.mount("/", StaticFiles(directory=configuracion.static_dir, html=True), name="panel")
     return app
 
 

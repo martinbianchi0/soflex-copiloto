@@ -11,3 +11,5 @@ class Configuracion(BaseSettings):
     llm_provider: Literal["mock"] = "mock"
     # Dónde se guarda el estado de las llamadas.
     sqlite_path: Path = Path("data/llamadas.sqlite")
+    # Carpeta con el panel ya compilado. Sin ella, el servicio expone sólo la API.
+    static_dir: Path | None = None

@@ -23,3 +23,11 @@ Qué se eligió, por qué y qué se dejó afuera.
 - **Lo que entra se valida antes de tocar el flujo.** Los esquemas rechazan campos desconocidos, textos vacíos y prioridades fuera de P1–P4. Un ajuste inválido devuelve 422 y la llamada sigue esperando al operador.
 - **El operador manda sólo lo que cambia.** Lo que no manda queda como lo sugirió el sistema, y la carta registra qué campos ajustó. La ubicación es la excepción: se manda entera y reemplaza a la sugerida, para que no quede una dirección armada con partes de dos.
 - **Los errores dicen qué pasó:** 404 si la llamada no existe y 409 si ya no está esperando al operador.
+
+## Panel
+
+- **React, Vite y TypeScript, compilado a archivos estáticos que sirve el mismo backend.** Un solo servidor y un solo puerto, sin CORS.
+- **El panel se sirve en `/` y la API es una aplicación aparte montada en `/api`.** Todo lo que empieza con `/api` lo contesta la API, también sus errores: un 404 o un 405 de la API nunca devuelve la página del panel.
+- **El identificador de la llamada vive en la URL (`?llamada=…`).** Recargar la página o reiniciar el servicio no pierde una llamada a medias: el panel la vuelve a pedir.
+- **El panel manda sólo lo que el operador cambió.** Lo demás queda como lo sugirió el sistema.
+- **Sin librería de componentes ni de rutas.** Son tres vistas; el formulario usa los controles del navegador con sus etiquetas, y los avisos se anuncian en una región `aria-live`.
