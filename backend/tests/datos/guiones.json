@@ -1,0 +1,802 @@
+[
+  {
+    "id": "G01",
+    "titulo": "Choque en Saavedra · primero la altura, después la moto",
+    "categoria": "ACCIDENTE_VIAL",
+    "subtipo": "SFX-005",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "911, ¿cuál es su emergencia?"},
+          {"hablante": "llamante", "texto": "Acá en avenida San Isidro Labrador hubo un choque. Escuché el golpe desde el negocio y salí a la vereda para llamar."}
+        ],
+        "esperado": {
+          "categoria": "ACCIDENTE_VIAL",
+          "subtipo": null,
+          "respondidas": [],
+          "calle_oficial": "SAN ISIDRO LABRADOR AV.",
+          "altura": null,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿A qué altura de la avenida?"},
+          {"hablante": "llamante", "texto": "Al 4528, en Saavedra, adelante del portón grande. Me quedé en la vereda y desde acá les puedo hacer señas."}
+        ],
+        "esperado": {
+          "categoria": "ACCIDENTE_VIAL",
+          "subtipo": null,
+          "respondidas": [],
+          "calle_oficial": "SAN ISIDRO LABRADOR AV.",
+          "altura": 4528,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Qué vehículos chocaron?"},
+          {"hablante": "llamante", "texto": "Veo la camioneta atravesada en la entrada de la cochera. Los que estaban en la vereda me dicen que, cuando quiso entrar, le pegó de costado a una moto."}
+        ],
+        "esperado": {
+          "categoria": "ACCIDENTE_VIAL",
+          "subtipo": "SFX-005",
+          "respondidas": [],
+          "calle_oficial": "SAN ISIDRO LABRADOR AV.",
+          "altura": 4528,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿En qué parte de la calle quedó el de la moto?"},
+          {"hablante": "llamante", "texto": "Al lado del cordón, ahí nomás de la entrada. Tiene el casco puesto tal como cayó, nadie se lo sacó."}
+        ],
+        "esperado": {
+          "categoria": "ACCIDENTE_VIAL",
+          "subtipo": "SFX-005",
+          "respondidas": ["SFX-005-Q2"],
+          "calle_oficial": "SAN ISIDRO LABRADOR AV.",
+          "altura": 4528,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Respira y le contesta si le habla?"},
+          {"hablante": "llamante", "texto": "Sí, respira y me contesta. Recién le pregunté si me escuchaba y me dijo que sí, que no lo dejemos solo."}
+        ],
+        "esperado": {
+          "categoria": "ACCIDENTE_VIAL",
+          "subtipo": "SFX-005",
+          "respondidas": ["SFX-005-Q2", "SFX-005-Q1"],
+          "calle_oficial": "SAN ISIDRO LABRADOR AV.",
+          "altura": 4528,
+          "esquina_oficial": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "G02",
+    "titulo": "Auto de costado contra un cantero · tres datos del vuelco",
+    "categoria": "ACCIDENTE_VIAL",
+    "subtipo": "SFX-029",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "911 emergencias, dígame."},
+          {"hablante": "llamante", "texto": "En avenida Eva Perón 4042 volcó un auto al esquivar un carro. Quedó de costado contra el cantero y el conductor está encajado entre el asiento y el volante."}
+        ],
+        "esperado": {
+          "categoria": "ACCIDENTE_VIAL",
+          "subtipo": "SFX-029",
+          "respondidas": [],
+          "calle_oficial": "PERON, EVA AV.",
+          "altura": 4042,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿El conductor está despierto? ¿Le responde?"},
+          {"hablante": "llamante", "texto": "Sí, está despierto y me contestó cuando le pregunté si me escuchaba. Me pidió que avise que el volante le aprieta las piernas."}
+        ],
+        "esperado": {
+          "categoria": "ACCIDENTE_VIAL",
+          "subtipo": "SFX-029",
+          "respondidas": ["SFX-029-Q1"],
+          "calle_oficial": "PERON, EVA AV.",
+          "altura": 4042,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "Desde donde está, ¿ve que salga humo o pierda nafta?"},
+          {"hablante": "llamante", "texto": "No, no sale humo del auto ni se ve que pierda nafta. Desde la vereda se ve entero el costado que quedó para arriba."}
+        ],
+        "esperado": {
+          "categoria": "ACCIDENTE_VIAL",
+          "subtipo": "SFX-029",
+          "respondidas": ["SFX-029-Q1", "SFX-029-Q2"],
+          "calle_oficial": "PERON, EVA AV.",
+          "altura": 4042,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Cuántos carriles quedaron ocupados?"},
+          {"hablante": "llamante", "texto": "Uno solo, el de al lado del cantero. Por el otro todavía pasan de a uno los autos que vienen para este lado."}
+        ],
+        "esperado": {
+          "categoria": "ACCIDENTE_VIAL",
+          "subtipo": "SFX-029",
+          "respondidas": ["SFX-029-Q1", "SFX-029-Q2", "SFX-029-Q3"],
+          "calle_oficial": "PERON, EVA AV.",
+          "altura": 4042,
+          "esquina_oficial": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "G03",
+    "titulo": "Pelea en la feria · el daño se conoce después del cruce",
+    "categoria": "CONVIVENCIA_SEGURIDAD",
+    "subtipo": "SFX-015",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "911, ¿dónde es la emergencia?"},
+          {"hablante": "llamante", "texto": "En la esquina de Donado y avenida Congreso hubo una pelea en la calle. Los vecinos salimos al balcón por los gritos."}
+        ],
+        "esperado": {
+          "categoria": "CONVIVENCIA_SEGURIDAD",
+          "subtipo": null,
+          "respondidas": [],
+          "calle_oficial": "DONADO",
+          "altura": null,
+          "esquina_oficial": "CONGRESO AV."
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Qué llegó a ver de la pelea?"},
+          {"hablante": "llamante", "texto": "Eran dos grupos de feriantes que discutían por el lugar de un puesto. Se agarraron a golpes y rompieron el parabrisas de una camioneta estacionada."}
+        ],
+        "esperado": {
+          "categoria": "CONVIVENCIA_SEGURIDAD",
+          "subtipo": "SFX-015",
+          "respondidas": [],
+          "calle_oficial": "DONADO",
+          "altura": null,
+          "esquina_oficial": "CONGRESO AV."
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Desde ahí ve cuchillos o armas de fuego?"},
+          {"hablante": "llamante", "texto": "No, no veo cuchillos ni armas de fuego. Desde el balcón tengo a la vista la zona donde estaba el puesto."}
+        ],
+        "esperado": {
+          "categoria": "CONVIVENCIA_SEGURIDAD",
+          "subtipo": "SFX-015",
+          "respondidas": ["SFX-015-Q1"],
+          "calle_oficial": "DONADO",
+          "altura": null,
+          "esquina_oficial": "CONGRESO AV."
+        }
+      }
+    ]
+  },
+  {
+    "id": "G04",
+    "titulo": "Ascensor de un hotel · el pedido de ayuda llega primero",
+    "categoria": "INCENDIO_RESCATE",
+    "subtipo": "SFX-003",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "911, ¿desde dónde llama?"},
+          {"hablante": "llamante", "texto": "Estoy en Bacacay 3437, en Floresta. Por favor manden a alguien, estoy en la entrada y me puedo quedar acá para recibirlos."}
+        ],
+        "esperado": {
+          "categoria": null,
+          "subtipo": null,
+          "respondidas": [],
+          "calle_oficial": "BACACAY",
+          "altura": 3437,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "Ya tengo la dirección. ¿Qué pasó ahí?"},
+          {"hablante": "llamante", "texto": "Es un hotel. Se clavó el ascensor de servicio con la chica de lavandería adentro. Por la reja se ve que la cabina quedó entre el primero y el segundo."}
+        ],
+        "esperado": {
+          "categoria": "INCENDIO_RESCATE",
+          "subtipo": "SFX-003",
+          "respondidas": ["SFX-003-Q1"],
+          "calle_oficial": "BACACAY",
+          "altura": 3437,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿A ella le cuesta respirar o se siente mal?"},
+          {"hablante": "llamante", "texto": "No, me dice que respira bien y que no está mareada ni se siente mal. Me habla desde adentro de la cabina."}
+        ],
+        "esperado": {
+          "categoria": "INCENDIO_RESCATE",
+          "subtipo": "SFX-003",
+          "respondidas": ["SFX-003-Q1", "SFX-003-Q3"],
+          "calle_oficial": "BACACAY",
+          "altura": 3437,
+          "esquina_oficial": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "G05",
+    "titulo": "Fuego en el taller de la escuela · la altura se confirma desde el patio",
+    "categoria": "INCENDIO_RESCATE",
+    "subtipo": "SFX-017",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "911, ¿cuál es la emergencia?"},
+          {"hablante": "llamante", "texto": "En la escuela técnica de avenida Melián se prendió fuego el tablero de electricidad del taller de carpintería. Soy el profe del turno noche."}
+        ],
+        "esperado": {
+          "categoria": "INCENDIO_RESCATE",
+          "subtipo": "SFX-017",
+          "respondidas": [],
+          "calle_oficial": "MELIAN AV.",
+          "altura": null,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿A qué altura está la escuela?"},
+          {"hablante": "llamante", "texto": "Al 1856, el número está arriba del portón de chapa. Es la entrada que está pegada a la del taller."},
+          {"hablante": "operador", "texto": "¿Dónde va a estar para recibirlos?"},
+          {"hablante": "llamante", "texto": "En el patio, al lado del portón. Ya salieron de las aulas los dos cursos del turno y tengo a todos los chicos acá conmigo."}
+        ],
+        "esperado": {
+          "categoria": "INCENDIO_RESCATE",
+          "subtipo": "SFX-017",
+          "respondidas": ["SFX-017-Q2"],
+          "calle_oficial": "MELIAN AV.",
+          "altura": 1856,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Hay humo en algún lugar por donde tengan que salir?"},
+          {"hablante": "llamante", "texto": "Sí, el pasillo que va del taller a la salida de la calle está lleno de humo. Lo veo desde el patio."}
+        ],
+        "esperado": {
+          "categoria": "INCENDIO_RESCATE",
+          "subtipo": "SFX-017",
+          "respondidas": ["SFX-017-Q2", "SFX-017-Q3"],
+          "calle_oficial": "MELIAN AV.",
+          "altura": 1856,
+          "esquina_oficial": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "G06",
+    "titulo": "Fuego en un edificio bajo · después se sabe qué funciona ahí",
+    "categoria": "INCENDIO_RESCATE",
+    "subtipo": "SFX-030",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "911, ¿qué está pasando?"},
+          {"hablante": "llamante", "texto": "Hay fuego adentro de un edificio bajito en Murguiondo 2378, en Mataderos. Se veía el resplandor desde el negocio de enfrente y salí a llamar."}
+        ],
+        "esperado": {
+          "categoria": "INCENDIO_RESCATE",
+          "subtipo": null,
+          "respondidas": [],
+          "calle_oficial": "MURGUIONDO",
+          "altura": 2378,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Qué funciona en ese edificio?"},
+          {"hablante": "llamante", "texto": "Es la subestación eléctrica del barrio. Ahí adentro se prendió fuego. Comparte la medianera con una casa, la de las persianas verdes."}
+        ],
+        "esperado": {
+          "categoria": "INCENDIO_RESCATE",
+          "subtipo": "SFX-030",
+          "respondidas": ["SFX-030-Q2"],
+          "calle_oficial": "MURGUIONDO",
+          "altura": 2378,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Las llamas llegan a salir a la vereda?"},
+          {"hablante": "llamante", "texto": "Sí, recién empezaron a salir por debajo del portón y se ven bien desde la vereda de enfrente, donde estoy yo."}
+        ],
+        "esperado": {
+          "categoria": "INCENDIO_RESCATE",
+          "subtipo": "SFX-030",
+          "respondidas": ["SFX-030-Q2", "SFX-030-Q1"],
+          "calle_oficial": "MURGUIONDO",
+          "altura": 2378,
+          "esquina_oficial": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "G07",
+    "titulo": "Asma en casa · cómo habla, cómo respira y si estuvo en terapia",
+    "categoria": "EMERGENCIA_MEDICA",
+    "subtipo": "SFX-009",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "SAME 107, ¿dónde necesita la ambulancia?"},
+          {"hablante": "llamante", "texto": "En Brasil 1273, es mi casa. Mi hijo de doce tiene asma, le agarró un ataque de golpe al rato de acostarse y ahora le cuesta muchísimo respirar."}
+        ],
+        "esperado": {
+          "categoria": "EMERGENCIA_MEDICA",
+          "subtipo": "SFX-009",
+          "respondidas": [],
+          "calle_oficial": "BRASIL",
+          "altura": 1273,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Puede decir una frase entera de corrido?"},
+          {"hablante": "llamante", "texto": "No, dice dos o tres palabras y para a tomar aire. Quiso decirme que me quede con él y no pudo terminar la frase."}
+        ],
+        "esperado": {
+          "categoria": "EMERGENCIA_MEDICA",
+          "subtipo": "SFX-009",
+          "respondidas": ["SFX-009-Q1"],
+          "calle_oficial": "BRASIL",
+          "altura": 1273,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "Cuando larga el aire, ¿escucha algún silbido?"},
+          {"hablante": "llamante", "texto": "Sí, cada vez que larga el aire hace un silbido finito. Se escucha bien, estoy sentada al lado de él."}
+        ],
+        "esperado": {
+          "categoria": "EMERGENCIA_MEDICA",
+          "subtipo": "SFX-009",
+          "respondidas": ["SFX-009-Q1", "SFX-009-Q2"],
+          "calle_oficial": "BRASIL",
+          "altura": 1273,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Alguna vez estuvo internado en terapia intensiva?"},
+          {"hablante": "llamante", "texto": "Sí, por un ataque el invierno pasado estuvo dos días en terapia intensiva. Después lo pasaron a sala y al otro día volvió a casa."}
+        ],
+        "esperado": {
+          "categoria": "EMERGENCIA_MEDICA",
+          "subtipo": "SFX-009",
+          "respondidas": ["SFX-009-Q1", "SFX-009-Q2", "SFX-009-Q3"],
+          "calle_oficial": "BRASIL",
+          "altura": 1273,
+          "esquina_oficial": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "G08",
+    "titulo": "Picadura en un local · del pedido de ayuda al cuadro alérgico",
+    "categoria": "EMERGENCIA_MEDICA",
+    "subtipo": "SFX-019",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "911 emergencias, ¿desde dónde llama?"},
+          {"hablante": "llamante", "texto": "Estoy en la calle Agrelo. ¿Pueden mandar a alguien? Me quedo al lado del portón para hacerles señas cuando lleguen."}
+        ],
+        "esperado": {
+          "categoria": null,
+          "subtipo": null,
+          "respondidas": [],
+          "calle_oficial": "AGRELO",
+          "altura": null,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿A qué altura de Agrelo?"},
+          {"hablante": "llamante", "texto": "Al 3846, en el local con toldo azul. Necesito una ambulancia para mi compañero, se empezó a sentir muy mal de golpe."}
+        ],
+        "esperado": {
+          "categoria": "EMERGENCIA_MEDICA",
+          "subtipo": null,
+          "respondidas": [],
+          "calle_oficial": "AGRELO",
+          "altura": 3846,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Qué le pasó a su compañero?"},
+          {"hablante": "llamante", "texto": "Es alérgico a las picaduras. Lo picó una avispa en la muñeca y enseguida se llenó de ronchas, se le hincharon los labios, le cuesta respirar y ahora está mareadísimo."}
+        ],
+        "esperado": {
+          "categoria": "EMERGENCIA_MEDICA",
+          "subtipo": "SFX-019",
+          "respondidas": ["SFX-019-Q3"],
+          "calle_oficial": "AGRELO",
+          "altura": 3846,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Todavía puede hablar o hacer algún sonido?"},
+          {"hablante": "llamante", "texto": "Sí, me contesta con voz bajita, pero le entiendo lo que dice. Estoy al lado suyo y me escucha cuando le hablo."}
+        ],
+        "esperado": {
+          "categoria": "EMERGENCIA_MEDICA",
+          "subtipo": "SFX-019",
+          "respondidas": ["SFX-019-Q3", "SFX-019-Q2"],
+          "calle_oficial": "AGRELO",
+          "altura": 3846,
+          "esquina_oficial": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "G09",
+    "titulo": "Caída de una silla · la dirección se completa antes de preguntar por el desmayo",
+    "categoria": "EMERGENCIA_MEDICA",
+    "subtipo": "SFX-010",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "SAME 107, ¿cuál es la emergencia?"},
+          {"hablante": "llamante", "texto": "Mi tío de 79 se cayó de una silla al bajar una caja. Estamos en la calle Argerich. Se pegó en la cadera y le veo sangre en el codo."}
+        ],
+        "esperado": {
+          "categoria": "EMERGENCIA_MEDICA",
+          "subtipo": "SFX-010",
+          "respondidas": ["SFX-010-Q3"],
+          "calle_oficial": "ARGERICH",
+          "altura": null,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿A qué número de Argerich mandamos la ambulancia?"},
+          {"hablante": "llamante", "texto": "Al 4926. Es una casa con rejas blancas y la puerta del pasillo está abierta. Mi tío se cayó en el comedor, al fondo."}
+        ],
+        "esperado": {
+          "categoria": "EMERGENCIA_MEDICA",
+          "subtipo": "SFX-010",
+          "respondidas": ["SFX-010-Q3"],
+          "calle_oficial": "ARGERICH",
+          "altura": 4926,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "Desde que se cayó, ¿en algún momento se desmayó?"},
+          {"hablante": "llamante", "texto": "No, estuvo despierto todo el tiempo. Lo vi caer y desde el golpe me viene contestando cada vez que le hablo."}
+        ],
+        "esperado": {
+          "categoria": "EMERGENCIA_MEDICA",
+          "subtipo": "SFX-010",
+          "respondidas": ["SFX-010-Q3", "SFX-010-Q2"],
+          "calle_oficial": "ARGERICH",
+          "altura": 4926,
+          "esquina_oficial": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "G10",
+    "titulo": "Vereda hundida en La Boca · el caño roto aparece al contar qué pasó",
+    "categoria": "DEFENSA_CIVIL",
+    "subtipo": "SFX-012",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "Guardia de Auxilio 103, buenas tardes."},
+          {"hablante": "llamante", "texto": "Por favor vengan a Olavarría 1126, en La Boca. Estoy enfrente, en la puerta de chapa, les puedo hacer señas desde acá."}
+        ],
+        "esperado": {
+          "categoria": null,
+          "subtipo": null,
+          "respondidas": [],
+          "calle_oficial": "OLAVARRIA",
+          "altura": 1126,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Qué pasó en la dirección que me dio?"},
+          {"hablante": "llamante", "texto": "La vereda se hundió cuando se subió una camioneta de reparto. Quedó un caño de gas partido y sale olor del hueco. Los vecinos del pasillo ya salimos todos."}
+        ],
+        "esperado": {
+          "categoria": "DEFENSA_CIVIL",
+          "subtipo": "SFX-012",
+          "respondidas": ["SFX-012-Q2"],
+          "calle_oficial": "OLAVARRIA",
+          "altura": 1126,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Todavía se escucha salir el gas con fuerza?"},
+          {"hablante": "llamante", "texto": "Sí, se escucha un soplido fuerte y parejo, incluso desde la otra vereda. Sigue sonando igual que cuando se hundió."}
+        ],
+        "esperado": {
+          "categoria": "DEFENSA_CIVIL",
+          "subtipo": "SFX-012",
+          "respondidas": ["SFX-012-Q2", "SFX-012-Q1"],
+          "calle_oficial": "OLAVARRIA",
+          "altura": 1126,
+          "esquina_oficial": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "G11",
+    "titulo": "Algo colgado del frente · la marquesina se identifica al tercer intercambio",
+    "categoria": "DEFENSA_CIVIL",
+    "subtipo": "SFX-014",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "Guardia de Auxilio 103, ¿qué está pasando?"},
+          {"hablante": "llamante", "texto": "En avenida Pedro Goyena hay algo colgando del frente de un edificio. Se acaba de aflojar y parece que se viene abajo sobre la vereda."}
+        ],
+        "esperado": {
+          "categoria": "DEFENSA_CIVIL",
+          "subtipo": null,
+          "respondidas": [],
+          "calle_oficial": "GOYENA, PEDRO AV.",
+          "altura": null,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿A qué altura de Pedro Goyena?"},
+          {"hablante": "llamante", "texto": "Al 661, estoy del lado de enfrente, abajo del toldo de la panadería. Desde acá veo bien el frente del edificio."}
+        ],
+        "esperado": {
+          "categoria": "DEFENSA_CIVIL",
+          "subtipo": null,
+          "respondidas": [],
+          "calle_oficial": "GOYENA, PEDRO AV.",
+          "altura": 661,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Qué parte del frente quedó colgando?"},
+          {"hablante": "llamante", "texto": "Es la marquesina de chapa del cine. Un camión de reparto la enganchó al maniobrar y quedó torcida justo arriba de la gente que hace fila para entrar."}
+        ],
+        "esperado": {
+          "categoria": "DEFENSA_CIVIL",
+          "subtipo": "SFX-014",
+          "respondidas": ["SFX-014-Q1"],
+          "calle_oficial": "GOYENA, PEDRO AV.",
+          "altura": 661,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Ya quedó despejada la vereda?"},
+          {"hablante": "llamante", "texto": "Sí, la chica de la boletería hizo cruzar a toda la fila. De ese lado de la cuadra no quedó nadie."}
+        ],
+        "esperado": {
+          "categoria": "DEFENSA_CIVIL",
+          "subtipo": "SFX-014",
+          "respondidas": ["SFX-014-Q1", "SFX-014-Q3"],
+          "calle_oficial": "GOYENA, PEDRO AV.",
+          "altura": 661,
+          "esquina_oficial": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "G12",
+    "titulo": "Semáforos fijos en rojo · tres datos sobre el cruce",
+    "categoria": "SERVICIOS_PUBLICOS",
+    "subtipo": "SFX-024",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "147 Ciudad, buen día. ¿En qué puedo ayudar?"},
+          {"hablante": "llamante", "texto": "En avenida Asamblea y avenida La Plata los semáforos del cruce quedaron todos clavados en rojo. Pasaron varios minutos sin un solo verde y algunos autos ya cruzan igual."}
+        ],
+        "esperado": {
+          "categoria": "SERVICIOS_PUBLICOS",
+          "subtipo": "SFX-024",
+          "respondidas": [],
+          "calle_oficial": "ASAMBLEA AV.",
+          "altura": null,
+          "esquina_oficial": "LA PLATA AV."
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Ya chocó alguien o hubo algún herido?"},
+          {"hablante": "llamante", "texto": "No, hasta ahora no chocó nadie ni hubo heridos. Los que arrancaron lo hicieron despacio, después de quedarse un rato parados."}
+        ],
+        "esperado": {
+          "categoria": "SERVICIOS_PUBLICOS",
+          "subtipo": "SFX-024",
+          "respondidas": ["SFX-024-Q1"],
+          "calle_oficial": "ASAMBLEA AV.",
+          "altura": null,
+          "esquina_oficial": "LA PLATA AV."
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Se pueden usar las sendas peatonales en ese cruce?"},
+          {"hablante": "llamante", "texto": "No, las sendas están cerradas con vallas por un arreglo de la calle. Para pasar a pie hay que ir a la cuadra siguiente."}
+        ],
+        "esperado": {
+          "categoria": "SERVICIOS_PUBLICOS",
+          "subtipo": "SFX-024",
+          "respondidas": ["SFX-024-Q1", "SFX-024-Q2"],
+          "calle_oficial": "ASAMBLEA AV.",
+          "altura": null,
+          "esquina_oficial": "LA PLATA AV."
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Hay algún agente de tránsito en la esquina?"},
+          {"hablante": "llamante", "texto": "Sí, acaba de llegar uno con chaleco de Tránsito. Está en el medio del cruce y les hace señas a los autos para que pasen de a tandas."}
+        ],
+        "esperado": {
+          "categoria": "SERVICIOS_PUBLICOS",
+          "subtipo": "SFX-024",
+          "respondidas": ["SFX-024-Q1", "SFX-024-Q2", "SFX-024-Q3"],
+          "calle_oficial": "ASAMBLEA AV.",
+          "altura": null,
+          "esquina_oficial": "LA PLATA AV."
+        }
+      }
+    ]
+  },
+  {
+    "id": "G13",
+    "titulo": "Agua en toda la calzada · la vereda cede después",
+    "categoria": "SERVICIOS_PUBLICOS",
+    "subtipo": "SFX-028",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "147 Atención Ciudadana, ¿motivo del llamado?"},
+          {"hablante": "llamante", "texto": "En avenida Varela se rajó el caño principal de agua corriente. Me lo acaba de decir uno de la cuadrilla. Sale por las juntas del asfalto y ya cubrió toda la calzada."}
+        ],
+        "esperado": {
+          "categoria": "SERVICIOS_PUBLICOS",
+          "subtipo": "SFX-028",
+          "respondidas": [],
+          "calle_oficial": "VARELA AV.",
+          "altura": null,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿A qué altura está la rotura?"},
+          {"hablante": "llamante", "texto": "Al 914, a la altura del kiosco, donde pusieron los conos naranjas. Se lo puedo señalar desde la puerta del negocio."}
+        ],
+        "esperado": {
+          "categoria": "SERVICIOS_PUBLICOS",
+          "subtipo": "SFX-028",
+          "respondidas": [],
+          "calle_oficial": "VARELA AV.",
+          "altura": 914,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Ve que se haya hundido o quedado hueca alguna parte de la vereda?"},
+          {"hablante": "llamante", "texto": "Sí, recién se hundió una parte al lado de la parada. Desde el negocio veo una baldosa en el aire y el hueco abajo."}
+        ],
+        "esperado": {
+          "categoria": "SERVICIOS_PUBLICOS",
+          "subtipo": "SFX-028",
+          "respondidas": ["SFX-028-Q3"],
+          "calle_oficial": "VARELA AV.",
+          "altura": 914,
+          "esquina_oficial": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "G14",
+    "titulo": "Perro suelto en una plaza · la mordedura se confirma al final",
+    "categoria": "CONVIVENCIA_SEGURIDAD",
+    "subtipo": "SFX-016",
+    "intercambios": [
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "147 Ciudad, buenas tardes, dígame."},
+          {"hablante": "llamante", "texto": "Hay un rottweiler suelto en la plaza de Concepción Arenal 3222. Les muestra los dientes y se les tira encima a los que pasan por el sendero."}
+        ],
+        "esperado": {
+          "categoria": "CONVIVENCIA_SEGURIDAD",
+          "subtipo": "SFX-016",
+          "respondidas": ["SFX-016-Q2"],
+          "calle_oficial": "ARENAL, CONCEPCION",
+          "altura": 3222,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿En qué parte de la plaza quedó el perro?"},
+          {"hablante": "llamante", "texto": "Se quedó al lado del bebedero, cerca de la entrada de Concepción Arenal. Lo estoy mirando desde la vereda de enfrente."}
+        ],
+        "esperado": {
+          "categoria": "CONVIVENCIA_SEGURIDAD",
+          "subtipo": "SFX-016",
+          "respondidas": ["SFX-016-Q2"],
+          "calle_oficial": "ARENAL, CONCEPCION",
+          "altura": 3222,
+          "esquina_oficial": null
+        }
+      },
+      {
+        "turnos": [
+          {"hablante": "operador", "texto": "¿Llegó a morder o lastimar a alguien?"},
+          {"hablante": "llamante", "texto": "Sí, mordió en la pantorrilla a un señor que venía corriendo por el sendero. El señor cruzó la calle y está acá conmigo."}
+        ],
+        "esperado": {
+          "categoria": "CONVIVENCIA_SEGURIDAD",
+          "subtipo": "SFX-016",
+          "respondidas": ["SFX-016-Q2", "SFX-016-Q1"],
+          "calle_oficial": "ARENAL, CONCEPCION",
+          "altura": 3222,
+          "esquina_oficial": null
+        }
+      }
+    ]
+  }
+]
