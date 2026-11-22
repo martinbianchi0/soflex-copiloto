@@ -53,7 +53,7 @@ Las trazas llevan el texto de la llamada y lo que entra y sale de cada paso: la 
 
 ## Cuánto acierta
 
-Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo camino que el panel. Corridas repetidas dieron las mismas propuestas en las 62 llamadas (el pedido va con temperatura 0 y semilla fija), en una Mac M5 con 16 GB y Ollama 0.40.16. Los tiempos son los de la corrida guardada, hecha con el equipo a batería y en modo de bajo consumo; la anterior, con el equipo enchufado y antes de sumar la segunda lectura de la dirección, dio medianas de 4,8 y 5,7 segundos. El detalle por llamada está en `evaluacion/`, y la lectura de estos números, en `DECISIONS.md`.
+Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo camino que el panel. Corridas repetidas dieron las mismas propuestas en las 62 llamadas (el pedido va con temperatura 0 y semilla fija), en una Mac M5 con 16 GB y Ollama 0.40.16. Los tiempos son los de la corrida guardada, hecha con el equipo a batería y en modo de bajo consumo. Cambian mucho con el estado del equipo: otras tres corridas de las mismas 62 llamadas, con el equipo enchufado, dieron medianas de entre 5 y 15 segundos, con las mismas propuestas. El detalle por llamada está en `evaluacion/`, y la lectura de estos números, en `DECISIONS.md`.
 
 | | Reglas (`mock`), 32 nuevas | Modelo, 32 nuevas | Modelo, 30 del dataset |
 |---|---|---|---|
