@@ -1,7 +1,7 @@
 {
   "proveedor": "mock",
   "modelo": null,
-  "fecha": "2026-11-22T08:49:41+00:00",
+  "fecha": "2026-11-22T20:51:26+00:00",
   "resultados": [
     {
       "id": "SFX-001",
@@ -27,13 +27,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-001-Q1": "adentro quedó el cocinero"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.122,
-      "segundos": 0.122
+      "segundos_alta": 0.237,
+      "segundos": 0.237
     },
     {
       "id": "SFX-002",
@@ -53,7 +54,8 @@
         "prioridad": "P3",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "direccion_no_cierra",
@@ -61,8 +63,8 @@
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.003,
-      "segundos": 0.003
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-003",
@@ -88,13 +90,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-003-Q1": "Se trabó el ascensor principal entre los pisos 5 y 6"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.003,
-      "segundos": 0.003
+      "segundos_alta": 0.006,
+      "segundos": 0.006
     },
     {
       "id": "SFX-004",
@@ -114,13 +117,14 @@
         "prioridad": "P2",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-005",
@@ -146,13 +150,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-005-Q2": "tiene casco puesto"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.003,
-      "segundos": 0.003
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-006",
@@ -172,15 +177,16 @@
         "prioridad": "P1",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "falta_altura"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-007",
@@ -200,7 +206,8 @@
         "prioridad": "P3",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "cruce_sin_confirmar",
@@ -208,8 +215,8 @@
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-008",
@@ -229,15 +236,16 @@
         "prioridad": "P2",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "sin_calle"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "SFX-009",
@@ -257,13 +265,14 @@
         "prioridad": "P1",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "SFX-010",
@@ -283,13 +292,14 @@
         "prioridad": "P2",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-011",
@@ -309,15 +319,16 @@
         "prioridad": "P2",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "cruce_sin_confirmar"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.003,
-      "segundos": 0.003
+      "segundos_alta": 0.006,
+      "segundos": 0.006
     },
     {
       "id": "SFX-012",
@@ -337,13 +348,14 @@
         "prioridad": "P1",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-013",
@@ -369,13 +381,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-013-Q2": "En el carril del Metrobus se abrió un pozo"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-014",
@@ -401,15 +414,16 @@
         ],
         "citas_del_protocolo": {
           "SFX-014-Q1": "Quedó colgada de un solo perno balanceándose sobre la vereda"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [
         "direccion_no_cierra"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-015",
@@ -435,13 +449,14 @@
         ],
         "citas_del_protocolo": {
           "SFX-015-Q3": "Se están tirando sillas plásticas y botellas"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "SFX-016",
@@ -461,13 +476,14 @@
         "prioridad": "P3",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "SFX-017",
@@ -487,13 +503,14 @@
         "prioridad": "P1",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.003,
-      "segundos": 0.003
+      "segundos_alta": 0.006,
+      "segundos": 0.006
     },
     {
       "id": "SFX-018",
@@ -513,13 +530,14 @@
         "prioridad": "P1",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "SFX-019",
@@ -539,13 +557,14 @@
         "prioridad": "P1",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "SFX-020",
@@ -571,15 +590,16 @@
         ],
         "citas_del_protocolo": {
           "SFX-020-Q1": "Hay un cable grueso chispeando contra el asfalto mojado"
-        }
+        },
+        "direccion_alternativa": null
       },
       "avisos": [
         "direccion_no_cierra"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-021",
@@ -599,13 +619,14 @@
         "prioridad": "P2",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "SFX-022",
@@ -625,7 +646,8 @@
         "prioridad": "P1",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "cruce_sin_confirmar",
@@ -633,8 +655,8 @@
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-023",
@@ -654,13 +676,14 @@
         "prioridad": "P2",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-024",
@@ -680,13 +703,14 @@
         "prioridad": "P3",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.003,
-      "segundos": 0.003
+      "segundos_alta": 0.006,
+      "segundos": 0.006
     },
     {
       "id": "SFX-025",
@@ -706,13 +730,14 @@
         "prioridad": "P1",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "SFX-026",
@@ -732,13 +757,14 @@
         "prioridad": "P1",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "SFX-027",
@@ -758,13 +784,14 @@
         "prioridad": "P2",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-028",
@@ -784,13 +811,14 @@
         "prioridad": "P2",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-029",
@@ -810,15 +838,16 @@
         "prioridad": "P1",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "falta_altura"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "SFX-030",
@@ -838,13 +867,14 @@
         "prioridad": "P1",
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.003,
-      "segundos": 0.003
+      "segundos_alta": 0.006,
+      "segundos": 0.006
     },
     {
       "id": "T01",
@@ -864,13 +894,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "T02",
@@ -890,13 +921,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.006,
+      "segundos": 0.006
     },
     {
       "id": "T03",
@@ -916,13 +948,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.003,
+      "segundos": 0.003
     },
     {
       "id": "T04",
@@ -942,13 +975,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "T05",
@@ -968,13 +1002,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "T06",
@@ -994,13 +1029,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "T07",
@@ -1020,13 +1056,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "T08",
@@ -1047,13 +1084,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.003,
+      "segundos": 0.003
     },
     {
       "id": "T09",
@@ -1073,13 +1111,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.003,
-      "segundos": 0.003
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "T10",
@@ -1100,13 +1139,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "T11",
@@ -1126,13 +1166,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "T12",
@@ -1152,15 +1193,16 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "sin_calle"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "L01",
@@ -1180,13 +1222,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "L02",
@@ -1207,15 +1250,16 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "calle_ambigua"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "L03",
@@ -1235,15 +1279,16 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "sin_calle"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "L04",
@@ -1264,7 +1309,8 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "direccion_no_cierra",
@@ -1272,8 +1318,8 @@
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "L05",
@@ -1293,13 +1339,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "L06",
@@ -1319,15 +1366,16 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "cruce_sin_confirmar"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "L07",
@@ -1347,13 +1395,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "L08",
@@ -1373,15 +1422,16 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "sin_calle"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "L09",
@@ -1402,13 +1452,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "L10",
@@ -1429,15 +1480,16 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "direccion_no_cierra"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "R01",
@@ -1457,13 +1509,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "R02",
@@ -1483,13 +1536,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "R03",
@@ -1509,15 +1563,16 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "sin_calle"
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.003,
-      "segundos": 0.003
+      "segundos_alta": 0.013,
+      "segundos": 0.013
     },
     {
       "id": "R04",
@@ -1537,13 +1592,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.003,
-      "segundos": 0.003
+      "segundos_alta": 0.009,
+      "segundos": 0.009
     },
     {
       "id": "R05",
@@ -1563,13 +1619,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "R06",
@@ -1589,7 +1646,8 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [
         "direccion_no_cierra",
@@ -1597,8 +1655,8 @@
       ],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     },
     {
       "id": "R07",
@@ -1619,13 +1677,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "R08",
@@ -1645,13 +1704,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.004,
+      "segundos": 0.004
     },
     {
       "id": "R09",
@@ -1671,13 +1731,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.006,
+      "segundos": 0.006
     },
     {
       "id": "R10",
@@ -1698,13 +1759,14 @@
         "prioridad": null,
         "cita_prioridad": null,
         "respondidas": [],
-        "citas_del_protocolo": {}
+        "citas_del_protocolo": {},
+        "direccion_alternativa": null
       },
       "avisos": [],
       "mensajes": [],
       "pedidos": 0,
-      "segundos_alta": 0.002,
-      "segundos": 0.002
+      "segundos_alta": 0.005,
+      "segundos": 0.005
     }
   ]
 }

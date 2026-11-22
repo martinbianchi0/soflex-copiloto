@@ -39,7 +39,7 @@ La ubicación la siguen leyendo las reglas y aparece al instante; lo que propone
 
 ## Cuánto acierta
 
-Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo camino que el panel. Dos corridas, que dieron las mismas propuestas en las 62 llamadas, en una Mac M5 con 16 GB y Ollama 0.40.16; los tiempos son los de la segunda. El detalle por llamada está en `evaluacion/`, y la lectura de estos números, en `DECISIONS.md`.
+Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo camino que el panel. Corridas repetidas dieron las mismas propuestas en las 62 llamadas (el pedido va con temperatura 0 y semilla fija), en una Mac M5 con 16 GB y Ollama 0.40.16. Los tiempos son los de la corrida guardada, hecha con el equipo a batería y en modo de bajo consumo; la anterior, con el equipo enchufado y antes de sumar la segunda lectura de la dirección, dio medianas de 4,8 y 5,7 segundos. El detalle por llamada está en `evaluacion/`, y la lectura de estos números, en `DECISIONS.md`.
 
 | | Reglas (`mock`), 32 nuevas | Modelo, 32 nuevas | Modelo, 30 del dataset |
 |---|---|---|---|
@@ -51,12 +51,31 @@ Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo
 | Subtipo correcto | — | — | 26 (4 sin subtipo, 0 equivocados) |
 | Subtipo propuesto sin que el catálogo tenga uno | — | 4 | — |
 | Preguntas del protocolo: posibles respuestas | — | — | señala 4 de las 7 anotadas, y otras 15 |
-| Tiempo por llamada (mediana y percentil 95) | menos de 0,1 s | 4,8 y 9,5 s | 5,7 y 6,7 s |
+| Tiempo por llamada (mediana y percentil 95) | menos de 0,1 s | 7,7 y 13,9 s | 11,6 y 18,2 s |
 
-Las 30 llamadas del dataset son las mismas con las que se escribieron el criterio de prioridad y el catálogo: sus números son un techo. Las otras 32 son sintéticas y no son del dataset: son pocas, y no reemplazan una medición con llamadas reales. En modo `mock`, las 30 del dataset se reconocen por su texto y traen su ficha, así que ahí no hay nada que medir. La ubicación sale siempre de las reglas: reconoce la calle en 27 de las 28 llamadas nuevas que nombran una (`backend/tests/test_medicion.py`).
+Las 30 llamadas del dataset son las mismas con las que se escribieron el criterio de prioridad y el catálogo: sus números son un techo. Las otras 32 son sintéticas y no son del dataset: son pocas, y no reemplazan una medición con llamadas reales. En modo `mock`, las 30 del dataset se reconocen por su texto y traen su ficha, así que ahí no hay nada que medir. La ubicación que se sugiere sale siempre de las reglas: reconoce la calle en 27 de las 28 llamadas nuevas que nombran una (`backend/tests/test_medicion.py`). En 16 de las 62 las reglas dan un aviso sobre la dirección y el análisis suma el pedido de la segunda lectura, que ofreció otra dirección en 2.
 
 ```bash
 cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida ../evaluacion/modelo.json
+```
+
+### La segunda lectura de la dirección
+
+`backend/herramientas/evaluar_direccion.py` pasa 48 llamadas sintéticas con direcciones difíciles (`backend/tests/datos/direcciones_dificiles.json`: el llamante se corrige, dice la altura en palabras, nombra dos direcciones, se contradice) por el mismo camino que el panel. En 29 las reglas dan un aviso de los que piden la segunda lectura (detalle en `evaluacion/direccion-modelo.json`):
+
+| | Modelo, 29 llamadas con aviso |
+|---|---|
+| No había otra dirección que proponer (las reglas ya tenían la dicha, o lo dicho no alcanza para dar una): el modelo no propuso ninguna | 16 de 16 |
+| Las reglas no la tenían: el modelo propuso la dirección dicha | 7 de 13 |
+| Las reglas no la tenían: el modelo propuso otra cosa | 1 de 13 (la calle y las esquinas dichas, sin la altura) |
+| Las reglas no la tenían: el modelo no propuso nada | 5 de 13 |
+| Tiempo que agrega el pedido (mediana y percentil 95) | 4,9 y 7,3 s |
+| Tiempo del análisis completo con aviso (mediana y percentil 95) | 11,7 y 17,1 s (sin aviso, 6,6 s de mediana) |
+
+Son pocas llamadas y sintéticas: con una corrección menos, la segunda lectura no habría alcanzado el mínimo que se fijó para sumarla (corregir la mitad). La lectura está en `DECISIONS.md`.
+
+```bash
+cd backend && uv run python herramientas/evaluar_direccion.py --proveedor ollama --salida ../evaluacion/direccion-modelo.json
 ```
 
 ### A medida que llega la llamada
