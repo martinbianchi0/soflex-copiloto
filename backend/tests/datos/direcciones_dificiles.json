@@ -1,0 +1,699 @@
+[
+  {
+    "id": "D01",
+    "clase": "recuperable",
+    "dificultad": "autocorreccion",
+    "texto": "Operador: SAME 107, ¿a qué dirección mandamos la ambulancia? Llamante: A Vidal 2866. No, pará, invertí dos números. Es Vidal 2686, lo tengo en el portero. Mi suegro se levantó de la mesa y se cayó de golpe. Ahora me contesta, pero muy bajito, y dice que le zumba todo. Fue hace un minuto. Yo estaba en la cocina y al principio pensé que se había caído la silla.",
+    "esperado": {
+      "calle_oficial": "VIDAL",
+      "altura": 2686,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "El llamante corrige el número a 2686 después de mirar el portero."
+  },
+  {
+    "id": "D02",
+    "clase": "recuperable",
+    "dificultad": "autocorreccion",
+    "texto": "Operador: nueve once dónde es la emergencia Llamante: en gurruchaga 1236 mandá bomberos por favor no perdón es aráoz 1236 entre masón y cabrera se prendió fuego el toldo del patio ya salimos por delante pero el humo está entrando al departamento de arriba y no sabemos si hay alguien",
+    "esperado": {
+      "calle_oficial": "ARAOZ",
+      "altura": 1236,
+      "esquinas_oficiales": [
+        "MASON",
+        "CABRERA, JOSE A."
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "La corrección cambia la calle a Aráoz y repite el 1236, entre Masón y Cabrera."
+  },
+  {
+    "id": "D03",
+    "clase": "recuperable",
+    "dificultad": "autocorreccion",
+    "texto": "Operador: Guardia de Auxilio 103, dígame dónde es. Llamante: Zelada 6148. Ah, no, ese es el número pegado en el portón del garaje que tengo en la foto. Anote Zelada 6184, ahí está el poste que se inclinó. El cable quedó tan bajo que los autos frenan en seco para esquivarlo.",
+    "esperado": {
+      "calle_oficial": "ZELADA",
+      "altura": 6184,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "El 6148 corresponde al garaje de la foto y el llamante ubica el poste en el 6184."
+  },
+  {
+    "id": "D04",
+    "clase": "recuperable",
+    "dificultad": "autocorreccion",
+    "texto": "Operador: ciento cuarenta y siete ciudad en qué te puedo ayudar Llamante: el reclamo es para méxico 3246 ay me confundí de calle es venezuela 3246 casi veinticuatro de noviembre hay una pérdida en la vereda y donde se hizo el charco ya se levantaron varias baldosas esto viene desde el viernes a la mañana se llena de gente que va a laburar y todos tienen que pasar de a uno pegados a la pared",
+    "esperado": {
+      "calle_oficial": "REPUBLICA BOLIVARIANA DE VENEZUELA",
+      "altura": 3246,
+      "esquinas_oficiales": [
+        "24 DE NOVIEMBRE"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "El reclamo se corrige a Venezuela 3246 y 24 de Noviembre es una de sus entrecalles."
+  },
+  {
+    "id": "D05",
+    "clase": "recuperable",
+    "dificultad": "numero_en_palabras",
+    "texto": "Operador: nueve once dónde pasó Llamante: avenida chiclana treinta y tres cuarenta y ocho casi virrey liniers llamo de un kiosco un tipo se llevó la caja y empujó al chico que atiende se acaba de ir el chico se cortó con el vidrio del mostrador y está sentado acá al lado mío",
+    "esperado": {
+      "calle_oficial": "CHICLANA AV.",
+      "altura": 3348,
+      "esquinas_oficiales": [
+        "LINIERS VIRREY"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Treinta y tres cuarenta y ocho es 3348, en la cuadra que llega a Virrey Liniers."
+  },
+  {
+    "id": "D06",
+    "clase": "recuperable",
+    "dificultad": "numero_en_palabras",
+    "texto": "Operador: SAME 107, ¿cuál es la dirección? Llamante: Avenida Martín García seiscientos ochenta y cuatro, casi Azara. Mi compañera se enganchó el pie bajando la escalera y cayó de costado. Está despierta, pero no puede mover el brazo y le duele hasta cuando respira. Yo estoy con ella en el hall.",
+    "esperado": {
+      "calle_oficial": "GARCIA, MARTIN AV.",
+      "altura": 684,
+      "esquinas_oficiales": [
+        "AZARA"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Seiscientos ochenta y cuatro es 684 y Azara cruza en uno de los extremos de la cuadra."
+  },
+  {
+    "id": "D07",
+    "clase": "recuperable",
+    "dificultad": "numero_en_palabras",
+    "texto": "Operador: 147, buenas noches. ¿En qué te ayudo? Llamante: Es por un bar en Pedro Goyena, trece sesenta y cuatro, casi Puán. Sacaron un parlante a la vereda y la música se escucha desde el fondo de casa. Les pedimos que la bajen, la bajaron un rato y ahora está igual que antes.",
+    "esperado": {
+      "calle_oficial": "GOYENA, PEDRO AV.",
+      "altura": 1364,
+      "esquinas_oficiales": [
+        "PUAN"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Trece sesenta y cuatro corresponde a 1364 y Puán delimita esa cuadra."
+  },
+  {
+    "id": "D08",
+    "clase": "recuperable",
+    "dificultad": "numero_en_palabras",
+    "texto": "Operador: guardia de auxilio ciento tres diga la dirección Llamante: echeverría cuatro mil setecientos sesenta y cuatro hay un tanque de plástico que se soltó de la terraza quedó apoyado en la baranda y cuando sopla el viento se mueve entero le pedimos a la gente que cruce de vereda porque pasa justo por abajo",
+    "esperado": {
+      "calle_oficial": "ECHEVERRIA",
+      "altura": 4764,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Cuatro mil setecientos sesenta y cuatro da la altura exacta de Echeverría."
+  },
+  {
+    "id": "D09",
+    "clase": "recuperable",
+    "dificultad": "mal_escrita",
+    "texto": "Operador: nueve once emergencias dónde es Llamante: hola eh en pumacaua 1264 casi santander hay olor a gas en el hall del edificio este los vecinos ya bajamos y estamos en la vereda pero una señora del último piso avisó por el portero que no puede bajar sola",
+    "esperado": {
+      "calle_oficial": "PUMACAHUA",
+      "altura": 1264,
+      "esquinas_oficiales": [
+        "SANTANDER"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "«Pumacaua» conserva el sonido de Pumacahua y Santander confirma la cuadra del 1264."
+  },
+  {
+    "id": "D10",
+    "clase": "recuperable",
+    "dificultad": "mal_escrita",
+    "texto": "Operador: same ciento siete cuál es la dirección Llamante: en coskin 2536 eh casi avenida de los corrales es en la puerta del taller le cayó una rueda en el pie a un muchacho está despierto pero no puede ni pararse este lo tenemos sentado en una silla afuera",
+    "esperado": {
+      "calle_oficial": "COSQUIN",
+      "altura": 2536,
+      "esquinas_oficiales": [
+        "DE LOS CORRALES AV."
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "«Coskin» suena a Cosquín y en el 2536 la avenida de los Corrales es entrecalle."
+  },
+  {
+    "id": "D11",
+    "clase": "recuperable",
+    "dificultad": "mal_escrita",
+    "texto": "Operador: ciento tres guardia de auxilio de dónde llamás Llamante: de uspayata 774 casi tacuarí este se abrió un agujero pegado al cordón cuando pasó el camión de la basura al principio era chiquito y ahora se desprendió otro pedazo de asfalto y se ve agua por abajo",
+    "esperado": {
+      "calle_oficial": "USPALLATA",
+      "altura": 774,
+      "esquinas_oficiales": [
+        "TACUARI"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "«Uspayata» reproduce la pronunciación de Uspallata y Tacuarí cruza en esa cuadra."
+  },
+  {
+    "id": "D12",
+    "clase": "recuperable",
+    "dificultad": "mal_escrita",
+    "texto": "Operador: ciento cuarenta y siete ciudad cuál es el reclamo Llamante: hola eh estoy en arjerich 942 entre páez y neuquén desde el lunes la tapa de la cámara está floja cada vez que pasa un auto pega un golpe fuertísimo anoche se corrió un poco y casi se mete la rueda de una bici",
+    "esperado": {
+      "calle_oficial": "ARGERICH",
+      "altura": 942,
+      "esquinas_oficiales": [
+        "PAEZ",
+        "NEUQUEN"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "«Arjerich» representa el sonido de Argerich y Páez y Neuquén delimitan la cuadra del 942."
+  },
+  {
+    "id": "D13",
+    "clase": "recuperable",
+    "dificultad": "dos_direcciones",
+    "texto": "Operador: 911, ¿dónde está pasando? Llamante: Yo vivo en Habana 3316, pero estoy cuidando al gato de mi hermana en Concordia 3648, casi Navarro. Es acá, en Concordia. Hay un hombre pateando la puerta del departamento del fondo y la chica que vive ahí me pidió por mensaje que llame. Ahora paró de patear, pero lo sigo escuchando en el pasillo. Ella me escribió que está sola adentro.",
+    "esperado": {
+      "calle_oficial": "CONCORDIA",
+      "altura": 3648,
+      "esquinas_oficiales": [
+        "NAVARRO"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Habana es el domicilio del llamante y el incidente ocurre en Concordia 3648, casi Navarro."
+  },
+  {
+    "id": "D14",
+    "clase": "recuperable",
+    "dificultad": "dos_direcciones",
+    "texto": "Operador: SAME 107, ¿dónde está la persona? Llamante: Salí de la ferretería de Donato Álvarez 1492. Ya doblé y estoy con el señor en Nicasio Oroño 1308, casi Galicia. Se mareó mientras paseaba al perro y se sentó en el piso. Me contesta, pero dice que ve todo negro.",
+    "esperado": {
+      "calle_oficial": "OROÑO, NICASIO",
+      "altura": 1308,
+      "esquinas_oficiales": [
+        "GALICIA"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Donato Álvarez es el punto de partida y el paciente está en Nicasio Oroño 1308."
+  },
+  {
+    "id": "D15",
+    "clase": "recuperable",
+    "dificultad": "dos_direcciones",
+    "texto": "Operador: ciento tres guardia de auxilio dígame Llamante: recién salí de lo de mi vieja en méxico 3150 y vine a buscar el auto estoy en catamarca 532 casi venezuela acá es donde cayó una chapa del techo quedó atravesada en la entrada del garaje y todavía hay otra suelta arriba",
+    "esperado": {
+      "calle_oficial": "CATAMARCA",
+      "altura": 532,
+      "esquinas_oficiales": [
+        "REPUBLICA BOLIVARIANA DE VENEZUELA"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "México 3150 es de donde salió y la chapa cayó en Catamarca 532, casi Venezuela."
+  },
+  {
+    "id": "D16",
+    "clase": "recuperable",
+    "dificultad": "dos_direcciones",
+    "texto": "Operador: 147, Atención Ciudadana. Llamante: Quiero avisar que dejaron un volquete ocupando la vereda en Avenida Cobo 1228, casi Del Barco Centenera. Yo salgo con la silla desde Avelino Díaz 1724 y hoy, cuando llegué al 1228 de Cobo, tuve que bajar a la calzada para esquivarlo. Sigue ahí, pegado al frente.",
+    "esperado": {
+      "calle_oficial": "COBO AV.",
+      "altura": 1228,
+      "esquinas_oficiales": [
+        "BARCO CENTENERA DEL"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Avelino Díaz es el origen del recorrido y el volquete quedó en Avenida Cobo 1228."
+  },
+  {
+    "id": "D17",
+    "clase": "recuperable",
+    "dificultad": "ambigua_resuelta",
+    "texto": "Operador: nueve once dónde está la emergencia Llamante: en olazábal 5174 en el local de arreglos de ropa hay humo en el cuartito del fondo y saltó la térmica salimos con los clientes pero quedó el perro abajo de la mesa y no lo podemos sacar desde la puerta",
+    "esperado": {
+      "calle_oficial": "OLAZABAL AV.",
+      "altura": 5174,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Entre las dos Olazábal, sólo la avenida tiene un tramo que contiene el 5174.",
+    "nombre_dicho": "Olazábal"
+  },
+  {
+    "id": "D18",
+    "clase": "recuperable",
+    "dificultad": "ambigua_resuelta",
+    "texto": "Operador: SAME 107, ¿dónde está el paciente? Llamante: En Mitre 1268, casi Asamblea. Es un repartidor que se cayó al bajar de la moto y se pegó contra el cordón. Está despierto, habla, pero no puede apoyar el pie. Me pidió que llame porque se le rompió el celular con la caída.",
+    "esperado": {
+      "calle_oficial": "MITRE, EMILIO",
+      "altura": 1268,
+      "esquinas_oficiales": [
+        "ASAMBLEA AV."
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Ambas Mitre tienen 1268, pero Asamblea sólo cruza a Emilio Mitre.",
+    "nombre_dicho": "Mitre"
+  },
+  {
+    "id": "D19",
+    "clase": "recuperable",
+    "dificultad": "ambigua_resuelta",
+    "texto": "Operador: 147, buen día. ¿Dónde es el reclamo? Llamante: En Alsina 838, casi Tacuarí. El camión pasó anoche, pero quedaron bolsas abiertas al lado del contenedor y se desparramó todo por la vereda. El encargado barrió lo que pudo, pero en la entrada del edificio sigue habiendo vidrios rotos.",
+    "esperado": {
+      "calle_oficial": "ALSINA, ADOLFO",
+      "altura": 838,
+      "esquinas_oficiales": [
+        "TACUARI"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Ambas Alsina tienen 838, pero Tacuarí sólo cruza a Adolfo Alsina.",
+    "nombre_dicho": "Alsina"
+  },
+  {
+    "id": "D20",
+    "clase": "recuperable",
+    "dificultad": "ambigua_resuelta",
+    "texto": "Operador: Guardia de Auxilio 103, ¿dónde es el problema? Llamante: En Larrazábal 1836, lo estoy leyendo en la puerta. El viento volcó el cartel del local y lo dejó apoyado sobre la vidriera. El vidrio empezó a rajarse de abajo para arriba. Estamos del otro lado de la calle esperando que se calme un poco.",
+    "esperado": {
+      "calle_oficial": "LARRAZABAL",
+      "altura": 1836,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "El 1836 existe en la calle Larrazábal y queda fuera de los tramos de la avenida.",
+    "nombre_dicho": "Larrazábal"
+  },
+  {
+    "id": "D21",
+    "clase": "recuperable",
+    "dificultad": "otro_turno",
+    "texto": "Operador: 103, Guardia de Auxilio, dígame. Llamante: En Avenida Asamblea se está desprendiendo una persiana metálica de un negocio cerrado. Cada vez que sopla se levanta y pega contra el marco. Operador: ¿A qué altura de Asamblea? Llamante: A la altura del 1436, casi Miró. Estoy enfrente y veo el número en el vidrio.",
+    "esperado": {
+      "calle_oficial": "ASAMBLEA AV.",
+      "altura": 1436,
+      "esquinas_oficiales": [
+        "MIRO"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "La respuesta al pedido de altura completa Avenida Asamblea con el 1436 y Miró."
+  },
+  {
+    "id": "D22",
+    "clase": "recuperable",
+    "dificultad": "otro_turno",
+    "texto": "Operador: same ciento siete dónde está la persona Llamante: en bernardo de irigoyen en el hall se descompuso el portero y está muy pálido Operador: qué número es Llamante: 1046 lo acabo de mirar Operador: cerca de qué esquina Llamante: casi humberto primero yo me quedo en la puerta así nos ven",
+    "esperado": {
+      "calle_oficial": "IRIGOYEN, BERNARDO DE",
+      "altura": 1046,
+      "esquinas_oficiales": [
+        "HUMBERTO 1°"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "El llamante da la calle primero, el 1046 después y Humberto Primero en su última respuesta."
+  },
+  {
+    "id": "D23",
+    "clase": "recuperable",
+    "dificultad": "otro_turno",
+    "texto": "Operador: 911, ¿dónde es la emergencia? Llamante: En el 2728, casi Manuel Ugarte. Se oyó un estruendo en el garaje y ahora está saliendo humo por la rejilla de la vereda. Operador: ¿El 2728 de qué calle? Llamante: De Superí. Me corrí hasta la entrada del edificio de al lado para poder hablar. La persiana del garaje está baja. Después del estruendo empezó a sonar la alarma de un auto y se sigue escuchando.",
+    "esperado": {
+      "calle_oficial": "SUPERI",
+      "altura": 2728,
+      "esquinas_oficiales": [
+        "UGARTE, MANUEL"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Superí aparece recién cuando le preguntan a qué calle corresponde el 2728."
+  },
+  {
+    "id": "D24",
+    "clase": "recuperable",
+    "dificultad": "otro_turno",
+    "texto": "Operador: ciento cuarenta y siete ciudad dónde está el problema Llamante: sobre pilar hay una luminaria que se prende y se apaga toda la noche Operador: sabés a qué altura Llamante: el número no lo veo desde la ventana Operador: podés mirar en una puerta o decirme las entrecalles Llamante: sí ahí bajé es pilar 1858 entre bragado y tapalqué",
+    "esperado": {
+      "calle_oficial": "PILAR",
+      "altura": 1858,
+      "esquinas_oficiales": [
+        "BRAGADO",
+        "TAPALQUE"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Tras bajar a mirar, el llamante aporta el 1858 y las dos entrecalles."
+  },
+  {
+    "id": "D25",
+    "clase": "leer_de_vuelta",
+    "dificultad": "altura_contradictoria",
+    "texto": "Operador: 147, Ciudad. ¿Dónde está el semáforo? Llamante: Me avisaron que el semáforo está apagado en Avenida Santa Fe 2846, en la esquina de Callao. Me dieron el número y la esquina juntos por mensaje. Yo estoy en el trabajo y no consigo que me atiendan para chequear. Dicen que se está complicando cruzar.",
+    "esperado": {
+      "calle_oficial": "SANTA FE AV.",
+      "altura": null,
+      "esquinas_oficiales": null,
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "Callao cruza Santa Fe alrededor del 1800 y el llamante no puede confirmar cuál de los dos datos vale.",
+    "altura_dicha": 2846,
+    "esquina_dicha": "Callao"
+  },
+  {
+    "id": "D26",
+    "clase": "leer_de_vuelta",
+    "dificultad": "altura_contradictoria",
+    "texto": "Operador: ciento tres guardia de auxilio desde dónde llamás Llamante: estoy avisando por mi vecino me dijo zavaleta 472 esquina amancio alcorta quedó una rama atravesada contra un auto y no puede sacarlo Operador: podés confirmar el número o la esquina Llamante: te lo estoy leyendo tal cual me lo mandó no estoy ahí",
+    "esperado": {
+      "calle_oficial": "ZAVALETA",
+      "altura": null,
+      "esquinas_oficiales": null,
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "Amancio Alcorta cruza Zavaleta alrededor del 700, lejos del 472, y ambos datos vienen del mismo mensaje.",
+    "altura_dicha": 472,
+    "esquina_dicha": "Amancio Alcorta"
+  },
+  {
+    "id": "D27",
+    "clase": "leer_de_vuelta",
+    "dificultad": "altura_contradictoria",
+    "texto": "Operador: SAME 107, ¿dónde está el paciente? Llamante: Es mi papá. Me pasó Iberá 5482, esquina Cabildo. Me dijo que no podía respirar bien y se cortó. Operador: ¿Puede confirmar si ese número y esa esquina son del mismo lugar? Llamante: Eso fue lo que me dijo en la misma frase. Ahora no me atiende.",
+    "esperado": {
+      "calle_oficial": "IBERA",
+      "altura": null,
+      "esquinas_oficiales": null,
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "Cabildo cruza Iberá alrededor del 2400 y no hay confirmación de si vale la esquina o el 5482.",
+    "altura_dicha": 5482,
+    "esquina_dicha": "Cabildo"
+  },
+  {
+    "id": "D28",
+    "clase": "leer_de_vuelta",
+    "dificultad": "altura_contradictoria",
+    "texto": "Operador: 911, ¿dónde pasó? Llamante: Santo Tomé 3886, esquina Avenida Lope de Vega. Una chica del grupo nos pidió que avisemos porque le arrebataron la mochila y la tiraron al piso. Es lo único que dijo de dónde está. Le pedí que mande la ubicación, pero todavía no le llegó mi mensaje.",
+    "esperado": {
+      "calle_oficial": "SANTO TOME",
+      "altura": null,
+      "esquinas_oficiales": null,
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "Avenida Lope de Vega cruza Santo Tomé alrededor del 5300 y no hay datos para elegir entre el cruce y el 3886.",
+    "altura_dicha": 3886,
+    "esquina_dicha": "Avenida Lope de Vega"
+  },
+  {
+    "id": "D29",
+    "clase": "leer_de_vuelta",
+    "dificultad": "nombre_ambiguo",
+    "texto": "Operador: 911, ¿dónde es la emergencia? Llamante: En Perón. Mi hermano alcanzó a decirme eso y que lo venían siguiendo dos tipos. Operador: ¿Le dio alguna altura o alguna esquina? Llamante: No, dijo Perón y cortó. Él anda haciendo entregas, así que no sé en qué parte de la ciudad está.",
+    "esperado": {
+      "calle_oficial": null,
+      "altura": null,
+      "esquinas_oficiales": null,
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "Perón puede ser Juan Domingo Perón o Avenida Eva Perón y no se dio otro dato de ubicación.",
+    "nombre_dicho": "Perón"
+  },
+  {
+    "id": "D30",
+    "clase": "leer_de_vuelta",
+    "dificultad": "nombre_ambiguo",
+    "texto": "Operador: same ciento siete dónde está la persona Llamante: mi mamá me dijo que está en hernández y que mi abuelo se desmayó me pidió que llame yo porque tiene poca batería Operador: hernández a qué altura Llamante: no sé me dijo hernández nada más y ahora cuando la llamo me manda al buzón",
+    "esperado": {
+      "calle_oficial": null,
+      "altura": null,
+      "esquinas_oficiales": null,
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "Hernández puede ser José o Rafael y el llamante no sabe la altura ni otra referencia.",
+    "nombre_dicho": "Hernández"
+  },
+  {
+    "id": "D31",
+    "clase": "leer_de_vuelta",
+    "dificultad": "nombre_ambiguo",
+    "texto": "Operador: 103, Guardia de Auxilio. Llamante: Mi compañera me mandó un audio de que hay un pedazo de balcón por caerse en Sáenz Peña. Me pidió que avise. Operador: ¿Te dijo una esquina o el número del edificio? Llamante: Sólo dijo Sáenz Peña, no sé cuál. Estoy tratando de llamarla para que me ubique mejor.",
+    "esperado": {
+      "calle_oficial": null,
+      "altura": null,
+      "esquinas_oficiales": null,
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "Sáenz Peña puede ser Luis o Roque y el audio no aporta cómo elegir.",
+    "nombre_dicho": "Sáenz Peña"
+  },
+  {
+    "id": "D32",
+    "clase": "leer_de_vuelta",
+    "dificultad": "nombre_ambiguo",
+    "texto": "Operador: 147, ¿dónde habría que hacer la inspección? Llamante: En Dorrego. Me pidieron que avise porque hace varios días que dejan escombros en la vereda y se hace difícil pasar. Operador: ¿Tenés el número o aunque sea una esquina? Llamante: No, me anotaron Dorrego en un papel y pensé que con eso alcanzaba.",
+    "esperado": {
+      "calle_oficial": null,
+      "altura": null,
+      "esquinas_oficiales": null,
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "El callejero distingue calle y avenida Dorrego y el llamante no aporta ningún dato que las distinga.",
+    "nombre_dicho": "Dorrego"
+  },
+  {
+    "id": "D33",
+    "clase": "control",
+    "dificultad": "altura_y_entrecalle",
+    "texto": "Operador: 911, ¿cuál es la dirección? Llamante: Olavarría 432, casi Martín Rodríguez. Forzaron la cortina del negocio de planta baja y acabo de ver a alguien salir con una caja. Yo estoy en el primer piso. Desde la ventana veo que la cortina quedó levantada de un lado. No tengo el contacto del dueño del local, pero la vecina del piso de arriba también lo vio.",
+    "esperado": {
+      "calle_oficial": "OLAVARRIA",
+      "altura": 432,
+      "esquinas_oficiales": [
+        "RODRIGUEZ, MARTIN"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Olavarría 432 existe y Martín Rodríguez delimita la cuadra."
+  },
+  {
+    "id": "D34",
+    "clase": "control",
+    "dificultad": "altura_y_entrecalle",
+    "texto": "Operador: Guardia de Auxilio 103, ¿dónde es? Llamante: Manuela Pedraza 4368, casi Holmberg. Se está venciendo el poste de madera de la vereda. Después de la lluvia quedó torcido y ahora se ve que la base está abierta. No cayó ningún cable, pero pasa gente por abajo todo el tiempo.",
+    "esperado": {
+      "calle_oficial": "PEDRAZA, MANUELA",
+      "altura": 4368,
+      "esquinas_oficiales": [
+        "HOLMBERG"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Manuela Pedraza 4368 existe y Holmberg es una entrecalle de esa cuadra."
+  },
+  {
+    "id": "D35",
+    "clase": "control",
+    "dificultad": "altura_y_entrecalle",
+    "texto": "Operador: 147, acá Atención Ciudadana. Llamante: En Montiel 1516, casi Ercilla, quedó un contenedor arriba de la vereda. Hace dos días que no se puede pasar con el cochecito. Intentamos correrlo entre dos vecinos, pero se trabó una rueda y pesa un montón.",
+    "esperado": {
+      "calle_oficial": "MONTIEL",
+      "altura": 1516,
+      "esquinas_oficiales": [
+        "ERCILLA"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Montiel 1516 está en una cuadra que llega a Ercilla."
+  },
+  {
+    "id": "D36",
+    "clase": "control",
+    "dificultad": "altura_y_entrecalle",
+    "texto": "Operador: SAME 107, ¿a dónde tenemos que ir? Llamante: Amenábar 1838, casi La Pampa. Soy el encargado. Una vecina bajó al hall, se agarró del mostrador y se vino al piso. Ahora está despierta y me responde, pero dice que si se incorpora siente que se vuelve a desmayar.",
+    "esperado": {
+      "calle_oficial": "AMENABAR",
+      "altura": 1838,
+      "esquinas_oficiales": [
+        "LA PAMPA"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "La Pampa delimita la cuadra de Amenábar donde cae el 1838."
+  },
+  {
+    "id": "D37",
+    "clase": "control",
+    "dificultad": "cruce",
+    "texto": "Operador: 147, buen día. ¿En qué te puedo ayudar? Llamante: En la esquina de Avenida Alicia Moreau de Justo y Macacha Güemes dejaron una valla tirada sobre la senda peatonal. Hace un rato una señora con bastón tuvo que bajar por el cordón para esquivarla. Está ahí desde temprano.",
+    "esperado": {
+      "calle_oficial": "MOREAU DE JUSTO, ALICIA AV.",
+      "altura": null,
+      "esquinas_oficiales": [
+        "GUEMES, MACACHA"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Las dos calles se cruzan y el llamante ubica el hecho en la esquina."
+  },
+  {
+    "id": "D38",
+    "clase": "control",
+    "dificultad": "cruce",
+    "texto": "Operador: nueve once dónde es el accidente Llamante: en la esquina de murguiondo y avenida riestra una camioneta dobló y se llevó puesta una moto el de la moto quedó sentado en el piso tiene el casco puesto y se agarra la muñeca la camioneta paró acá los dos siguen en la esquina",
+    "esperado": {
+      "calle_oficial": "MURGUIONDO",
+      "altura": null,
+      "esquinas_oficiales": [
+        "RIESTRA AV."
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Murguiondo y Avenida Riestra forman un cruce real indicado sin altura."
+  },
+  {
+    "id": "D39",
+    "clase": "control",
+    "dificultad": "cruce",
+    "texto": "Operador: 911, ¿dónde está ocurriendo? Llamante: En la esquina de Timoteo Gordillo y Ventura Bosch. Un auto estacionado está perdiendo nafta por abajo. Lo vio el del kiosco porque el charco le llegó hasta la entrada. No vemos a nadie adentro ni conocemos al dueño. El olor se siente desde el otro cordón.",
+    "esperado": {
+      "calle_oficial": "GORDILLO, TIMOTEO",
+      "altura": null,
+      "esquinas_oficiales": [
+        "BOSCH, VENTURA"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Timoteo Gordillo cruza Ventura Bosch y la esquina es la ubicación que se da."
+  },
+  {
+    "id": "D40",
+    "clase": "control",
+    "dificultad": "cruce",
+    "texto": "Operador: 103, Guardia de Auxilio. Llamante: En la esquina de Conde y Virrey Loreto se vino abajo un árbol. Cayó sobre la caja de una camioneta que estaba estacionada y la copa quedó en el medio de la calle. No había nadie adentro. Los autos dan marcha atrás cuando llegan a la esquina.",
+    "esperado": {
+      "calle_oficial": "CONDE",
+      "altura": null,
+      "esquinas_oficiales": [
+        "LORETO, VIRREY"
+      ],
+      "propuesta_correcta": "direccion"
+    },
+    "nota": "Conde y Virrey Loreto se cruzan y el llamante no da una altura."
+  },
+  {
+    "id": "D41",
+    "clase": "sin_direccion",
+    "dificultad": "referencia",
+    "texto": "Operador: 147, buen día. ¿Dónde es el reclamo? Llamante: En Plaza Irlanda, en los juegos de los chicos. Quedó una hamaca agarrada de una sola cadena y los nenes igual se quieren subir. Avisé al que está vendiendo cerca, pero no sabe si hoy pasa alguien de mantenimiento por la plaza.",
+    "esperado": {
+      "calle_oficial": null,
+      "altura": null,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "Se indica un sector de Plaza Irlanda sin calle, altura ni esquina."
+  },
+  {
+    "id": "D42",
+    "clase": "sin_direccion",
+    "dificultad": "referencia",
+    "texto": "Operador: SAME 107, ¿dónde está la persona? Llamante: En la estación Los Incas de la línea B, abajo donde están los molinetes. Un hombre se agarró del pasamanos y se dobló para adelante. Dice que le falta el aire. Yo estoy al lado con una empleada de la estación, que también pidió ayuda. Preguntó si podía sentarse y se dejó caer antes de que le arrimaran la silla. Todavía me contesta cuando le hablo.",
+    "esperado": {
+      "calle_oficial": null,
+      "altura": null,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "Los Incas identifica la estación y los molinetes precisan un punto interior sin domicilio vial."
+  },
+  {
+    "id": "D43",
+    "clase": "sin_direccion",
+    "dificultad": "referencia",
+    "texto": "Operador: 911, ¿desde dónde llama? Llamante: Desde el Hospital Álvarez, en la sala de espera de la guardia. Me sacaron el bolso cuando fui a preguntar por mi hijo. Una señora vio a alguien salir apurado con él. Sigo acá con la gente de seguridad, al lado de la ventanilla.",
+    "esperado": {
+      "calle_oficial": null,
+      "altura": null,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "La ubicación dada es la sala de espera de un hospital, sin una dirección de calle."
+  },
+  {
+    "id": "D44",
+    "clase": "sin_direccion",
+    "dificultad": "fuera_de_caba",
+    "texto": "Operador: 911 emergencias, ¿en qué localidad es? Llamante: En Florida, partido de Vicente López, Avenida Maipú 1258. Un auto se vino para atrás y apretó a un hombre contra la persiana del local. Ya corrieron el auto. El hombre está despierto, pero le duele mucho el pecho cuando quiere hablar.",
+    "esperado": {
+      "calle_oficial": null,
+      "altura": null,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "Florida, en Vicente López, excluye la Maipú del callejero de la Ciudad."
+  },
+  {
+    "id": "D45",
+    "clase": "sin_direccion",
+    "dificultad": "fuera_de_caba",
+    "texto": "Operador: SAME 107, ¿dónde está la persona? Llamante: En Lanús, provincia, avenida Hipólito Yrigoyen 4264. A mi compañera le agarró un dolor fuerte de golpe y se quedó sentada en el medio de la escalera. Está consciente, pero transpira y dice que le cuesta subir hasta el descanso.",
+    "esperado": {
+      "calle_oficial": null,
+      "altura": null,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "El llamante ubica Hipólito Yrigoyen en Lanús, fuera de CABA."
+  },
+  {
+    "id": "D46",
+    "clase": "sin_direccion",
+    "dificultad": "fuera_de_caba",
+    "texto": "Operador: 911, ¿dónde es la emergencia? Llamante: Avenida Bartolomé Mitre 1860, en el partido de Avellaneda. Hay humo saliendo de un depósito y se activó la alarma. Estábamos en el negocio de al lado y salimos cuando empezó el ruido. No llego a ver llamas desde donde estoy parada.",
+    "esperado": {
+      "calle_oficial": null,
+      "altura": null,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "El partido de Avellaneda descarta la Bartolomé Mitre de la Ciudad."
+  },
+  {
+    "id": "D47",
+    "clase": "sin_direccion",
+    "dificultad": "sin_ubicacion",
+    "texto": "Operador: 911, ¿dónde está pasando? Llamante: Mi prima me llamó llorando. Dice que le están pateando la puerta. Me pidió que llame yo porque se iba a encerrar en el baño. Operador: ¿Sabés dónde está ella? Llamante: No, dijo que estaba en lo de una amiga. No sé dónde vive la amiga.",
+    "esperado": {
+      "calle_oficial": null,
+      "altura": null,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "La mención a la casa de una amiga no aporta una ubicación identificable."
+  },
+  {
+    "id": "D48",
+    "clase": "sin_direccion",
+    "dificultad": "sin_ubicacion",
+    "texto": "Operador: same ciento siete dígame dónde está Llamante: en el departamento de mi sobrino mi marido se desmayó vine hoy por primera vez Operador: ve algún número o algún cartel desde ahí Llamante: no estoy adentro y mi sobrino salió a comprar el vecino está buscando algo que diga la dirección pero todavía no encontró nada",
+    "esperado": {
+      "calle_oficial": null,
+      "altura": null,
+      "esquinas_oficiales": [],
+      "propuesta_correcta": "ninguna"
+    },
+    "nota": "El llamante sólo identifica el departamento por parentesco y nunca da un dato geográfico."
+  }
+]

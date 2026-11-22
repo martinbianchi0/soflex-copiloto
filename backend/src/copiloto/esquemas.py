@@ -309,8 +309,24 @@ class Ficha(Esquema):
         return [campo for campo in OBLIGATORIOS_PARA_DERIVAR if valor_de(datos[campo]) is None]
 
 
+class DireccionAlternativa(Esquema):
+    """Otra lectura de la dirección, para que el operador la confirme."""
+
+    calle: Texto
+    altura: Altura | None
+    esquinas: list[Texto] = Field(max_length=2)
+
+    @model_validator(mode="after")
+    def calle_y_esquinas_distintas(self) -> Self:
+        if not _distintos([self.calle, *self.esquinas]):
+            raise ValueError("La calle y las esquinas tienen que ser distintas entre sí.")
+        return self
+
+
 class Sugerencia(Ficha):
     """Lo que propone el sistema. El operador todavía no tocó nada."""
+
+    direccion_alternativa: DireccionAlternativa | None = None
 
     @model_validator(mode="after")
     def es_del_sistema(self) -> Self:

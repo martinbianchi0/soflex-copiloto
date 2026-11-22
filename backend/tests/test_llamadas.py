@@ -144,7 +144,7 @@ def test_los_origenes_y_las_citas_sobreviven_al_grafo_al_disco_y_al_reinicio(
     assert al_final.consultar_historial(llamada_id) == historial
     al_final.cerrar()
 
-    assert guardada == sugerencia_completa
+    assert guardada == {**sugerencia_completa, "direccion_alternativa": None}
     assert carta["ubicacion"]["calle"] == sugerencia_completa["ubicacion"]["calle"]
     assert carta["ubicacion"]["esquinas"] == sugerencia_completa["ubicacion"]["esquinas"]
     assert carta["ubicacion"]["altura"] == {"origen": "operador", "valor": 1548}
