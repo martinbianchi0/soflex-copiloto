@@ -1,6 +1,7 @@
 """La lógica del flujo de una llamada, en funciones comunes. Acá no se importa el grafo."""
 
 from datetime import datetime
+from typing import Literal, NotRequired, TypedDict
 
 from copiloto import catalogo, dataset, tipo, ubicacion
 from copiloto.catalogo import Pregunta, Protocolo, SubtipoInvalido
@@ -22,6 +23,25 @@ from copiloto.esquemas import (
 from copiloto.turnos import tramos_del_llamante
 
 
+class _CitaPlana(TypedDict):
+    turno: int
+    texto: str
+
+
+class _DatoPlano(TypedDict):
+    origen: Literal["dicho", "inferido", "operador", "falta"]
+    valor: NotRequired[object]
+    cita: NotRequired[_CitaPlana]
+    fuente: NotRequired[str]
+
+
+class _Respuesta(TypedDict):
+    id: str
+    pregunta: str
+    respondida: bool
+    cita: NotRequired[_CitaPlana]
+
+
 class FaltanDatos(ValueError):
     """La carta no se puede derivar: faltan datos obligatorios."""
 
@@ -39,7 +59,7 @@ def analizar(turnos: list[Turno]) -> Sugerencia:
     clave, y el resto queda para el operador.
     """
     lugar = ubicacion.interpretar(turnos)
-    propuesta: dict = {
+    propuesta: dict[str, object] = {
         "ubicacion": lugar.ubicacion,
         "prioridad": {"origen": "falta"},
         "avisos": lugar.avisos,
@@ -49,6 +69,7 @@ def analizar(turnos: list[Turno]) -> Sugerencia:
         propuesta["tipo_hecho"] = {"origen": "inferido", "valor": categoria, "fuente": "reglas"}
         return Sugerencia.model_validate(propuesta)
     protocolo = catalogo.cargar().protocolo(conocida.categoria, conocida.subtipo)
+    assert protocolo is not None  # La llamada conocida siempre trae un subtipo del catálogo.
     for campo in ("categoria", "subtipo", "prioridad"):
         dato = {"origen": "inferido", "valor": getattr(conocida, campo), "fuente": "dataset"}
         propuesta["tipo_hecho" if campo == "categoria" else campo] = dato
@@ -59,9 +80,9 @@ def analizar(turnos: list[Turno]) -> Sugerencia:
     return Sugerencia.model_validate(propuesta)
 
 
-def _respuesta(pregunta: Pregunta, fragmento: str | None, turnos: list[Turno]) -> dict:
+def _respuesta(pregunta: Pregunta, fragmento: str | None, turnos: list[Turno]) -> _Respuesta:
     """La pregunta, respondida si el fragmento anotado está en algo que dijo el llamante."""
-    item = {"id": pregunta.id, "pregunta": pregunta.texto, "respondida": False}
+    item: _Respuesta = {"id": pregunta.id, "pregunta": pregunta.texto, "respondida": False}
     if fragmento is None:
         return item
     for n, turno in enumerate(turnos):
@@ -94,7 +115,7 @@ def quitar_lo_que_nadie_dijo(sugerencia: Sugerencia, turnos: list[Turno]) -> Sug
     """
     descartes: list[str] = []
 
-    def revisar(dato: dict, nombre: str, reemplazo: dict | None = None) -> dict:
+    def revisar(dato: _DatoPlano, nombre: str, reemplazo: _DatoPlano | None = None) -> _DatoPlano:
         if dato["origen"] != "dicho" or _lo_dijo_el_llamante(Cita(**dato["cita"]), turnos):
             return dato
         descartes.append(nombre)
@@ -107,7 +128,11 @@ def quitar_lo_que_nadie_dijo(sugerencia: Sugerencia, turnos: list[Turno]) -> Sug
     esquinas = [revisar(esquina, "una esquina") for esquina in lugar["esquinas"]]
     lugar["esquinas"] = [esquina for esquina in esquinas if esquina["origen"] != "falta"]
     # El tipo de hecho no puede faltar: sin respaldo, vuelve a "sin determinar".
-    sin_determinar = {"origen": "inferido", "valor": Categoria.NO_DETERMINADA, "fuente": "reglas"}
+    sin_determinar: _DatoPlano = {
+        "origen": "inferido",
+        "valor": Categoria.NO_DETERMINADA,
+        "fuente": "reglas",
+    }
     plana["tipo_hecho"] = revisar(plana["tipo_hecho"], "el tipo de hecho", sin_determinar)
     plana["subtipo"] = revisar(plana["subtipo"], "el subtipo")
     plana["prioridad"] = revisar(plana["prioridad"], "la prioridad")
@@ -189,8 +214,10 @@ def ajustar_al_catalogo(sugerencia: Sugerencia) -> Sugerencia:
     preguntas y las instrucciones son siempre las del protocolo, con su texto.
     """
     subtipo, avisos = sugerencia.subtipo.model_dump(), list(sugerencia.avisos)
+    categoria = valor_de(sugerencia.tipo_hecho)
+    assert categoria is not None  # Una sugerencia validada siempre tiene categoría.
     try:
-        protocolo = catalogo.cargar().protocolo(sugerencia.tipo_hecho.valor, subtipo.get("valor"))
+        protocolo = catalogo.cargar().protocolo(categoria, subtipo.get("valor"))
     except SubtipoInvalido:
         protocolo, subtipo = None, {"origen": "falta"}
         mensaje = "Se descartó el subtipo: no está en el catálogo o es de otra categoría."
@@ -213,7 +240,9 @@ def _mismo(sugerido: object, nuevo: object) -> bool:
     return sugerido == nuevo
 
 
-def _resolver(sugerido: Dato, nuevo: object, si_no_manda: bool = False) -> dict:
+def _resolver[T](
+    sugerido: Dato[T], nuevo: T | None, si_no_manda: bool = False
+) -> dict[str, object]:
     """El dato que queda en la carta: el sugerido si el operador no lo cambió; si no, el suyo.
 
     `si_no_manda` es para los campos sueltos, donde no mandar nada es dejar lo sugerido. En la
@@ -224,7 +253,7 @@ def _resolver(sugerido: Dato, nuevo: object, si_no_manda: bool = False) -> dict:
     return {"origen": "operador", "valor": nuevo}
 
 
-def _resolver_esquina(sugeridas: list[Dato], nombre: str) -> dict:
+def _resolver_esquina(sugeridas: list[Dato[str]], nombre: str) -> dict[str, object]:
     for sugerida in sugeridas:
         if _mismo(valor_de(sugerida), nombre):
             return sugerida.model_dump()

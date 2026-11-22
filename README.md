@@ -31,6 +31,7 @@ El estado de las llamadas se guarda en un volumen de Docker: una llamada que que
 
 ```bash
 cd backend && uv run pytest          # tests del backend
+cd backend && uv run ruff check . && uv run mypy src   # estilo y tipos
 cd backend && uv run uvicorn copiloto.main:app --reload
 cd frontend && pnpm install && pnpm dev   # panel con recarga, apuntando a la API local
 ```

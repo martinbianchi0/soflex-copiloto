@@ -36,7 +36,9 @@ def _relato(turnos: list[Turno]) -> str | None:
 @cache
 def _conocidas() -> dict[str, LlamadaConocida]:
     datos = resources.files("copiloto").joinpath("datos")
-    with datos.joinpath(catalogo.ARCHIVO).open("r", encoding="utf-8-sig", newline="") as abierto:
+    archivo = datos.joinpath(catalogo.ARCHIVO)
+    # La firma tipada de Traversable.open omite newline, que el recurso admite en modo texto.
+    with archivo.open("r", encoding="utf-8-sig", newline="") as abierto:  # type: ignore[call-overload]
         filas = list(csv.DictReader(io.StringIO(abierto.read(), newline="")))
     anotadas: dict[str, str] = json.loads(datos.joinpath(RESPUESTAS).read_text(encoding="utf-8"))
     conocidas: dict[str, LlamadaConocida] = {}

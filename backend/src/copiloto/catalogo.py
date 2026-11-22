@@ -148,5 +148,6 @@ def cargar() -> Catalogo:
     archivo = resources.files("copiloto").joinpath("datos", ARCHIVO)
     # El archivo puede venir con la marca de orden de bytes que agregan algunas planillas. Los
     # saltos de línea se leen sin traducir, para no tocar los que haya dentro de un texto.
-    with archivo.open("r", encoding="utf-8-sig", newline="") as abierto:
+    # La firma tipada de Traversable.open omite newline, que el recurso admite en modo texto.
+    with archivo.open("r", encoding="utf-8-sig", newline="") as abierto:  # type: ignore[call-overload]
         return leer(abierto.read())

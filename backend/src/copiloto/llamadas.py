@@ -7,16 +7,18 @@ llamada que quedó esperando al operador se puede derivar aunque el servicio se 
 import sqlite3
 import threading
 import uuid
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 
+from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.types import Command
 from pydantic import ValidationError
 
 from copiloto import flujo
 from copiloto.esquemas import Ajustes, Llamada, Turno
-from copiloto.grafo import construir
+from copiloto.grafo import Estado, construir
 from copiloto.turnos import separar_hablantes
 
 
@@ -32,7 +34,7 @@ class LlamadaIlegible(RuntimeError):
     """Lo guardado no cumple las reglas de esta versión del servicio."""
 
 
-def _hilo(llamada_id: str) -> dict:
+def _hilo(llamada_id: str) -> RunnableConfig:
     return {"configurable": {"thread_id": llamada_id}}
 
 
@@ -75,13 +77,14 @@ class Llamadas:
             # Se comprueba con los mismos datos planos que después recibe el nodo.
             planos = ajustes.model_dump(mode="json", exclude_unset=True)
             ahora = datetime.now(UTC)
+            assert llamada.sugerencia is not None  # La llamada ya está esperando al operador.
             flujo.derivar(llamada_id, llamada.sugerencia, Ajustes.model_validate(planos), ahora)
             # Los ajustes van envueltos: LangGraph lee un diccionario vacío suelto como "no se
             # contesta ninguna pausa", y una derivación sin cambios dejaría la llamada esperando.
             self._avanzar(Command(resume={"ajustes": planos}), llamada_id)
             return self._leer(llamada_id)
 
-    def _avanzar(self, entrada: dict | Command | None, llamada_id: str) -> None:
+    def _avanzar(self, entrada: Estado | Command[str] | None, llamada_id: str) -> None:
         # `sync`: cada nodo queda guardado en disco antes de que empiece el siguiente.
         self._grafo.invoke(entrada, _hilo(llamada_id), durability="sync")
 
@@ -102,14 +105,15 @@ class Llamadas:
 
     def _leer(self, llamada_id: str) -> Llamada:
         foto = self._grafo.get_state(_hilo(llamada_id))
-        if not foto.values:
+        valores: Mapping[str, object] = foto.values
+        if not valores:
             raise LlamadaInexistente(llamada_id)
-        carta = foto.values.get("carta")
+        carta = valores.get("carta")
         # El estado sale de lo que hay guardado, no de qué nodo sigue: una llamada sólo cuenta
         # como derivada si tiene su carta.
         if carta is not None:
             estado = "derivada"
-        elif foto.next == ("esperar_operador",) and "ajustes" not in foto.values:
+        elif foto.next == ("esperar_operador",) and "ajustes" not in valores:
             estado = "esperando_operador"
         else:
             estado = "en_proceso"
@@ -119,8 +123,8 @@ class Llamadas:
                 {
                     "llamada_id": llamada_id,
                     "estado": estado,
-                    "turnos": foto.values["turnos"],
-                    "sugerencia": foto.values.get("sugerencia"),
+                    "turnos": valores["turnos"],
+                    "sugerencia": valores.get("sugerencia"),
                     "carta": carta,
                 }
             )

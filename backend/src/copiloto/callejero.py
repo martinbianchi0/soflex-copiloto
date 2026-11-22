@@ -166,7 +166,8 @@ class Callejero:
 
     def _cargar(self, ruta_csv: Traversable) -> None:
         nombres_de_mapa: dict[str, Counter[str]] = defaultdict(Counter)
-        with ruta_csv.open("r", encoding="utf-8", newline="") as archivo:
+        # La firma tipada de Traversable.open omite newline, que el recurso admite en modo texto.
+        with ruta_csv.open("r", encoding="utf-8", newline="") as archivo:  # type: ignore[call-overload]
             for fila in csv.DictReader(archivo):
                 nombre = fila["nomoficial"]
                 if nombre_mapa := fila["nom_mapa"].strip():
