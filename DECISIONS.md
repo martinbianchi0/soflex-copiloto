@@ -30,14 +30,14 @@ Qué se eligió, por qué y qué se dejó afuera.
 
 ## El catálogo de protocolos
 
-- **Las preguntas y las instrucciones salen de un catálogo, no se redactan.** El sistema elige un protocolo por su identificador y muestra su texto tal cual. Una instrucción de pre-arribo mal redactada puede hacer daño: si en "no retirar el casco" de un motociclista se pierde el "no", la instrucción se invierte. Por eso el servicio nunca escribe una.
+- **Las preguntas y las instrucciones salen de un catálogo, no se redactan.** El sistema elige un protocolo por su identificador y muestra su texto tal cual. Una instrucción de pre-arribo mal redactada puede hacer daño: si al reescribir "BAJO NINGUNA CIRCUNSTANCIA retire el casco del motociclista" se pierde la negación, la instrucción se invierte. Por eso el servicio nunca escribe una.
 - **El catálogo se arma del dataset provisto, al arrancar.** Cada fila da un protocolo: el subtipo de hecho, sus tres preguntas obligatorias y su instrucción de pre-arribo. Son 30, uno por subtipo, repartidos en las 6 categorías. Si el archivo no tiene la forma esperada (columnas que faltan o se repiten, filas con celdas de más o de menos, un registro repetido o incompleto), el servicio no arranca.
 - **Los identificadores salen del número de registro del dataset** (`SFX-REC-2026-005` da el protocolo `SFX-005`, sus preguntas `SFX-005-Q1` a `Q3` y su instrucción `SFX-005-I1`). Así cada texto que ve el operador se puede rastrear hasta su fila.
-- **El protocolo son las preguntas obligatorias.** El dataset trae otras dos columnas de preguntas (las respondidas en el relato y las pendientes), pero describen esa llamada puntual: algunas nombran sus calles o sus detalles, y de las 90 obligatorias sólo 1 aparece también ahí. No son un protocolo reutilizable; sirven de referencia para medir qué preguntas detecta el sistema como respondidas.
+- **El protocolo son las preguntas obligatorias.** El dataset trae otras dos columnas de preguntas (las respondidas en el relato y las pendientes), pero describen esa llamada puntual: algunas nombran sus calles o sus detalles, y de las 90 obligatorias sólo 1 aparece también ahí. No son un protocolo reutilizable y, como casi no nombran las obligatorias, tampoco sirven para medir cuáles responde el relato.
 - **El tipo de hecho tiene dos niveles: categoría y subtipo.** La categoría siempre está; el subtipo es opcional y es el que trae el protocolo. Un subtipo de otra categoría se rechaza.
 - **Sin subtipo no se muestra el protocolo de un subtipo parecido.** El dataset no trae protocolos por categoría: mientras el hecho no tenga subtipo, la carta sale sin checklist ni instrucciones, y lo deja a la vista.
 - **El checklist y las instrucciones son siempre los del subtipo, con el texto del catálogo.** Los arma el servicio a partir del identificador, tanto en la sugerencia (antes de guardarla) como en la carta. Un subtipo sugerido que el catálogo no respalda se descarta, y la sugerencia lo avisa. Si el operador cambia el subtipo, del anterior no se arrastra nada: ni las respuestas ni sus citas.
-- **El contenido no está validado por una autoridad médica ni operativa.** Viene del dataset provisto. En un sistema real, el catálogo lo aprueba y lo versiona quien es responsable del protocolo.
+- **El contenido no está validado por una autoridad médica ni operativa.** Viene del dataset provisto, que es sintético. En un sistema real, el catálogo lo aprueba y lo versiona quien es responsable del protocolo.
 
 ## El criterio de prioridad
 

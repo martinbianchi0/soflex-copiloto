@@ -18,7 +18,7 @@ El estado de las llamadas se guarda en un volumen de Docker: una llamada que que
 
 - `backend/`: la API (FastAPI) y el recorrido de la llamada (LangGraph, con el estado en SQLite).
 - `frontend/`: el panel (React, Vite y TypeScript). Se compila y lo sirve el mismo backend.
-- `backend/src/copiloto/datos/`: el dataset provisto. De ahí sale el catálogo de protocolos: preguntas e instrucciones de pre-arribo por subtipo de hecho. Su contenido no está validado por una autoridad médica ni operativa.
+- `backend/src/copiloto/datos/`: el dataset provisto, con 30 llamadas sintéticas. De ahí sale el catálogo de protocolos: preguntas e instrucciones de pre-arribo por subtipo de hecho. Su contenido no está validado por una autoridad médica ni operativa.
 - `backend/src/copiloto/ubicacion.py` y `callejero.py`: la lectura de la dirección y su contraste con el callejero.
 - `backend/src/copiloto/criterio.py`: el criterio de prioridad P1 a P4, que el panel muestra junto a la prioridad.
 - `DECISIONS.md`: qué se eligió y por qué.
