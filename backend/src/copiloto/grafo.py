@@ -18,10 +18,10 @@ class Estado(TypedDict, total=False):
     """Lo que se sabe de una llamada. Cada nodo devuelve sólo las claves que cambia."""
 
     llamada_id: str
-    turnos: list[dict]
-    sugerencia: dict
-    ajustes: dict
-    carta: dict
+    turnos: list[dict[str, object]]
+    sugerencia: dict[str, object]
+    ajustes: dict[str, object]
+    carta: dict[str, object]
 
 
 def analizar(estado: Estado) -> Estado:
@@ -36,7 +36,7 @@ def analizar(estado: Estado) -> Estado:
 def esperar_operador(estado: Estado) -> Estado:
     # interrupt() guarda el estado y corta la ejecución. Al retomar, este nodo corre de nuevo desde
     # el principio e interrupt() devuelve lo que mandó el operador: por eso acá no se hace nada más.
-    respuesta = interrupt({"sugerencia": estado["sugerencia"]})
+    respuesta: Estado = interrupt({"sugerencia": estado["sugerencia"]})
     return {"ajustes": respuesta["ajustes"]}
 
 
@@ -50,11 +50,12 @@ def derivar(estado: Estado) -> Estado:
     return {"carta": carta.model_dump(mode="json")}
 
 
-def construir() -> StateGraph:
-    grafo = StateGraph(Estado)
-    grafo.add_node("analizar", analizar)
-    grafo.add_node("esperar_operador", esperar_operador)
-    grafo.add_node("derivar", derivar)
+def construir() -> StateGraph[Estado]:
+    grafo: StateGraph[Estado] = StateGraph(Estado)
+    # Las sobrecargas piden un parámetro llamado «state», pero el grafo lo pasa por posición.
+    grafo.add_node("analizar", analizar)  # type: ignore[call-overload]
+    grafo.add_node("esperar_operador", esperar_operador)  # type: ignore[call-overload]
+    grafo.add_node("derivar", derivar)  # type: ignore[call-overload]
     grafo.add_edge(START, "analizar")
     grafo.add_edge("analizar", "esperar_operador")
     grafo.add_edge("esperar_operador", "derivar")

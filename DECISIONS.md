@@ -5,6 +5,7 @@ Qué se eligió, por qué y qué se dejó afuera.
 ## Base del servicio
 
 - **Python 3.13 con FastAPI, y las dependencias con uv.** Para comparar nombres de calles se usa `rapidfuzz`. `uv.lock` se versiona: la imagen y cualquier máquina instalan exactamente las mismas versiones.
+- **Tipos estrictos en el backend.** `mypy` en modo estricto, con el complemento de Pydantic, sobre `src/` (los tests quedan fuera). Las pocas excepciones son por firmas de librerías que no contemplan este uso, y cada una dice cuál.
 - **La configuración sale sólo de variables de entorno.** `.env` no se versiona; `.env.example` documenta las variables que se pueden cambiar. Sin `.env`, el servicio levanta en modo `mock`, que no necesita red ni claves.
 - **Un valor inválido corta el arranque.** `LLM_PROVIDER` se valida al iniciar: un proveedor mal escrito falla en el momento, no en la primera llamada.
 

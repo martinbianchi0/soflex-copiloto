@@ -3,7 +3,7 @@
 import re
 import unicodedata
 from enum import StrEnum
-from typing import Annotated, Literal, Self
+from typing import Annotated, Literal, Protocol, Self
 
 from pydantic import (
     AfterValidator,
@@ -153,8 +153,15 @@ type Dato[T] = Annotated[
 ]
 
 
-def valor_de(dato: Dicho | Inferido | DelOperador | Falta):
-    return getattr(dato, "valor", None)
+class _ConValor[T](Protocol):
+    @property
+    def valor(self) -> T | None: ...
+
+
+def valor_de[T](dato: _ConValor[T] | Falta) -> T | None:
+    if isinstance(dato, Falta):
+        return None
+    return dato.valor
 
 
 # ---------- Lo que se sabe del hecho ----------
@@ -172,9 +179,12 @@ class Ubicacion(Esquema):
 
     @model_validator(mode="after")
     def esquinas_con_nombre_y_distintas(self) -> Self:
-        nombres = [valor_de(esquina) for esquina in self.esquinas]
-        if None in nombres:
-            raise ValueError("Una esquina sin nombre no va en la lista.")
+        nombres: list[str] = []
+        for esquina in self.esquinas:
+            nombre = valor_de(esquina)
+            if nombre is None:
+                raise ValueError("Una esquina sin nombre no va en la lista.")
+            nombres.append(nombre)
         calle = valor_de(self.calle)
         if not _distintos(nombres + ([calle] if calle else [])):
             raise ValueError("La calle y las esquinas tienen que ser distintas entre sí.")
@@ -228,7 +238,7 @@ class Ficha(Esquema):
                 raise ValueError(f"Hay una {nombre} repetida.")
         return self
 
-    def datos(self) -> dict[str, Dicho | Inferido | DelOperador | Falta]:
+    def datos(self) -> dict[str, Dato[str] | Dato[int] | Dato[Categoria] | Dato[Prioridad]]:
         esquinas = {f"esquinas.{n}": esquina for n, esquina in enumerate(self.ubicacion.esquinas)}
         return {
             "calle": self.ubicacion.calle,

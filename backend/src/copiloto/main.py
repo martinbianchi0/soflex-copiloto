@@ -1,5 +1,6 @@
 """La aplicación web: la API vive bajo `/api` y, si está compilado, el panel se sirve en `/`."""
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -24,7 +25,7 @@ def crear_app(configuracion: Configuracion | None = None) -> FastAPI:
     configuracion = configuracion or Configuracion()
 
     @asynccontextmanager
-    async def ciclo_de_vida(app: FastAPI):
+    async def ciclo_de_vida(app: FastAPI) -> AsyncIterator[None]:
         # Los datos se leen al arrancar: si alguno no sirve, el servicio no levanta, en vez de
         # fallar en la primera llamada.
         catalogo.cargar()
@@ -45,6 +46,10 @@ def crear_app(configuracion: Configuracion | None = None) -> FastAPI:
 
 def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
     api = FastAPI(title="Copiloto para Operadores de Sala")
+
+    def llamadas() -> Llamadas:
+        servicio: Llamadas = app.state.llamadas
+        return servicio
 
     @api.exception_handler(LlamadaInexistente)
     def llamada_inexistente(request: Request, error: LlamadaInexistente) -> JSONResponse:
@@ -93,15 +98,15 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
 
     @api.post("/llamadas", status_code=201)
     def iniciar_llamada(nueva: NuevaLlamada) -> Llamada:
-        return app.state.llamadas.iniciar(nueva.turnos)
+        return llamadas().iniciar(nueva.turnos)
 
     @api.get("/llamadas/{llamada_id}")
     def consultar_llamada(llamada_id: str) -> Llamada:
-        return app.state.llamadas.consultar(llamada_id)
+        return llamadas().consultar(llamada_id)
 
     @api.post("/llamadas/{llamada_id}/derivar")
     def derivar_llamada(llamada_id: str, derivacion: Derivacion) -> Llamada:
-        return app.state.llamadas.derivar(llamada_id, derivacion.ajustes)
+        return llamadas().derivar(llamada_id, derivacion.ajustes)
 
     return api
 
