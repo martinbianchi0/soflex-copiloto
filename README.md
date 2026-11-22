@@ -39,6 +39,18 @@ La ubicación la siguen leyendo las reglas y aparece al instante; lo que propone
 
 Cuando las reglas avisan que la dirección no cierra, el modelo la lee de nuevo. Para probarlo: cargar el ejemplo *Auto con humo · el llamante se corrige al dar la dirección* y analizar. Las reglas se quedan con la primera altura que dijo el llamante y avisan que no cierra con la esquina; arriba de la sugerencia aparece "El modelo leyó otra dirección", con la altura corregida y el botón "Usar esta dirección". Usarla es una corrección del operador: la carta la lleva con ese origen.
 
+## Trazas de cada llamada (opcional)
+
+Para revisar qué se le pidió al modelo en una llamada, qué contestó y cuánto tardó, el servicio puede mandar trazas a un [Langfuse](https://langfuse.com) propio. Está apagado por defecto: sin las dos claves, el servicio no importa la librería ni abre ninguna conexión.
+
+1. Tener un Langfuse corriendo (se levanta aparte, con el `docker compose` de su documentación) y un proyecto con su par de claves.
+2. En el `.env`: `LANGFUSE_PUBLIC_KEY` y `LANGFUSE_SECRET_KEY`. Por defecto apunta al de la misma máquina, en el puerto 3000; se cambia con `LANGFUSE_BASE_URL`.
+3. Levantar con `docker compose up --build`.
+
+Cada llamada queda como una sesión, con una traza por operación (el alta, cada turno sumado, el análisis del modelo y la derivación) y, dentro del análisis, cada pedido al modelo con su entrada, su salida y su duración.
+
+Las trazas llevan el texto de la llamada y lo que entra y sale de cada paso: la sugerencia, los datos dictados y la carta. Por eso se piensa para un Langfuse propio, y este repositorio no levanta uno.
+
 ## Cuánto acierta
 
 Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo camino que el panel. Corridas repetidas dieron las mismas propuestas en las 62 llamadas (el pedido va con temperatura 0 y semilla fija), en una Mac M5 con 16 GB y Ollama 0.40.16. Los tiempos son los de la corrida guardada, hecha con el equipo a batería y en modo de bajo consumo; la anterior, con el equipo enchufado y antes de sumar la segunda lectura de la dirección, dio medianas de 4,8 y 5,7 segundos. El detalle por llamada está en `evaluacion/`, y la lectura de estos números, en `DECISIONS.md`.
@@ -120,7 +132,6 @@ cd backend && uv run python herramientas/evaluar_turnos.py --proveedor ollama --
 - **Entrada en vivo.** Hoy el operador escribe cada turno, o se reproduce un ejemplo; lo siguiente sería recibirlos a medida que se transcribe la llamada.
 - **Que el aviso de otra llamada del mismo lugar compare por distancia.** Hoy compara calle, altura y esquinas, y una calle que el operador escribió con otro nombre no coincide.
 - **Coordenadas en la carta, además de calle y altura**, y contraste con el servicio de direcciones de la Ciudad cuando hay red. Hoy el punto del plano se interpola sobre la cuadra y no se guarda.
-- **Trazas de cada pedido al modelo** (qué se le mandó, qué devolvió, cuánto tardó), para revisar un caso sin volver a correrlo.
 - **Tests del panel en un navegador real.** Los que hay corren sobre un DOM simulado, con la API simulada a partir de respuestas reales del servicio: prueban qué pide y qué muestra el panel, no la disposición ni los estilos.
 - **Probarlo con un lector de pantalla y en Linux.** Los anuncios y el foco están pensados para un lector de pantalla, pero no se probaron con uno, y el modo con modelo no se probó en Linux.
 
@@ -134,6 +145,7 @@ cd backend && uv run python herramientas/evaluar_turnos.py --proveedor ollama --
 - `backend/src/copiloto/duplicados.py`: el aviso de otra llamada reciente del mismo lugar.
 - `backend/src/copiloto/mapa.py`: el plano de la cuadra para confirmar la dirección.
 - `backend/src/copiloto/interprete.py` y `modelo.py`: los pedidos al modelo local y la verificación de lo que devuelve.
+- `backend/src/copiloto/trazas.py`: las trazas opcionales en Langfuse.
 - `backend/src/copiloto/segunda_lectura.py`: la dirección que propone el modelo cuando las reglas avisan, comprobada contra el callejero.
 - `backend/herramientas/evaluar.py`, `evaluar_turnos.py`, `evaluar_direccion.py` y `evaluacion/`: las mediciones de lo que propone el servicio y su detalle por llamada.
 - `backend/herramientas/capturar_respuestas.py` y `frontend/src/pruebas/respuestas/`: respuestas reales del servicio, que usan los tests del panel.

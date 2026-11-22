@@ -7,10 +7,11 @@ llamada que quedó esperando al operador se puede derivar aunque el servicio se 
 import sqlite3
 import threading
 import uuid
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 
+from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.types import Command, StateSnapshot
@@ -52,6 +53,8 @@ class Llamadas:
         modelo: Modelo | None = None,
         espera_s: float = ESPERA_DEL_MODELO_S,
         reloj: Callable[[], datetime] = lambda: datetime.now(UTC),
+        *,
+        callbacks: Sequence[BaseCallbackHandler] | None = None,
     ) -> None:
         ruta.parent.mkdir(parents=True, exist_ok=True)
         # Los pedidos llegan desde varios hilos: SqliteSaver ordena el acceso a la conexión.
@@ -59,6 +62,7 @@ class Llamadas:
         self._grafo = construir(modelo, espera_s).compile(checkpointer=SqliteSaver(self._conexion))
         self._ubicaciones_recientes = UbicacionesRecientes(ruta)
         self._reloj = reloj
+        self._callbacks = tuple(callbacks) if callbacks else ()
         self._pausa_tras_las_reglas = ["analizar"] if modelo is not None else None
         self._analizando = threading.Lock()
         self._analisis_en_curso: str | None = None
@@ -77,7 +81,10 @@ class Llamadas:
         # Se guarda ya partida en turnos: las citas señalan cada turno por su posición.
         planos = [turno.model_dump(mode="json") for turno in separar_hablantes(turnos)]
         self._avanzar(
-            {"llamada_id": llamada_id, "turnos": planos}, llamada_id, self._pausa_tras_las_reglas
+            {"llamada_id": llamada_id, "turnos": planos},
+            llamada_id,
+            self._pausa_tras_las_reglas,
+            operacion="alta",
         )
         llamada = self._leer(llamada_id)
         self._ubicaciones_recientes.actualizar(llamada, recibida_en)
@@ -93,7 +100,7 @@ class Llamadas:
                     return llamada
                 self._analisis_en_curso = llamada_id
             try:
-                self._avanzar(None, llamada_id)
+                self._avanzar(None, llamada_id, operacion="analisis_del_modelo")
                 llamada = self._leer(llamada_id)
                 self._ubicaciones_recientes.actualizar(llamada)
                 return llamada
@@ -150,6 +157,7 @@ class Llamadas:
                 Command(resume={"turno": turno.model_dump(mode="json")}),
                 llamada_id,
                 self._pausa_tras_las_reglas,
+                operacion="turno_sumado",
             )
             llamada = self._leer(llamada_id)
             self._ubicaciones_recientes.actualizar(llamada)
@@ -178,7 +186,7 @@ class Llamadas:
             )
             # Los ajustes van envueltos: LangGraph lee un diccionario vacío suelto como "no se
             # contesta ninguna pausa", y una derivación sin cambios dejaría la llamada esperando.
-            self._avanzar(Command(resume={"ajustes": planos}), llamada_id)
+            self._avanzar(Command(resume={"ajustes": planos}), llamada_id, operacion="derivacion")
             llamada = self._leer(llamada_id)
             self._ubicaciones_recientes.actualizar(llamada)
             return llamada
@@ -188,18 +196,25 @@ class Llamadas:
         entrada: Estado | Command[str] | None,
         llamada_id: str,
         parar_despues: list[str] | None = None,
+        *,
+        operacion: str,
     ) -> None:
+        configuracion = _hilo(llamada_id)
+        if self._callbacks:
+            configuracion["callbacks"] = list(self._callbacks)
+            configuracion["metadata"] = {"langfuse_session_id": llamada_id}
+            configuracion["run_name"] = operacion
         # `sync`: cada nodo queda guardado en disco antes de que empiece el siguiente.
-        self._grafo.invoke(
-            entrada, _hilo(llamada_id), durability="sync", interrupt_after=parar_despues
-        )
+        self._grafo.invoke(entrada, configuracion, durability="sync", interrupt_after=parar_despues)
 
     def _terminar_lo_que_quedo_a_medias(self, llamada_id: str) -> Llamada:
         """Retoma el análisis o arma la carta si el servicio se cortó entre nodos."""
         llamada = self._leer(llamada_id)
         if llamada.estado == "en_proceso":
             try:
-                self._avanzar(None, llamada_id, self._pausa_tras_las_reglas)
+                self._avanzar(
+                    None, llamada_id, self._pausa_tras_las_reglas, operacion="retomar_llamada"
+                )
             except ValidationError as error:
                 # Lo que quedó guardado (por ejemplo, los ajustes) es de otra versión del servicio.
                 raise LlamadaIlegible(llamada_id) from error
