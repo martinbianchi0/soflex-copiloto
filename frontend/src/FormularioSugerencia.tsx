@@ -195,7 +195,7 @@ export default function FormularioSugerencia({
       // Volver a como estaba no es un cambio del operador: la pregunta recupera su origen y su cita.
       if (respondida === sugerida.respondida) marcas.delete(id)
       else marcas.set(id, { id, respondida, cita })
-      return { ...actual, editados: new Set([...actual.editados, 'categoria', 'subtipo']), marcas }
+      return { ...actual, marcas }
     })
   }
 

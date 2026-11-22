@@ -181,10 +181,15 @@ describe('Al llegar otra sugerencia', () => {
     ]))
   })
 
-  test('las marcas se vacían cuando se sugiere otro subtipo y el operador no había fijado uno', () => {
+  test('mientras haya una pregunta marcada, el subtipo no cambia aunque se sugiera otro', () => {
     const borrador = conPreguntaDesmarcada(iniciarBorrador(corrientes, catalogo))
-    const sugerencia = conSubtipo(corrientes, 'SFX-002')
-    expect(actualizarBorrador(borrador, sugerencia, catalogo).marcas).toEqual(new Map())
+    const { campos, marcas } = actualizarBorrador(borrador, conSubtipo(corrientes, 'SFX-002'), catalogo)
+    expect({ subtipo: campos.subtipo, marcas }).toEqual({ subtipo: 'SFX-001', marcas: borrador.marcas })
+  })
+
+  test('sin preguntas marcadas ni un subtipo elegido, el subtipo sigue al sugerido', () => {
+    const borrador = iniciarBorrador(corrientes, catalogo)
+    expect(actualizarBorrador(borrador, conSubtipo(corrientes, 'SFX-002'), catalogo).campos.subtipo).toBe('SFX-002')
   })
 
   test('las marcas se vacían si el catálogo no admite el subtipo en la categoría elegida', () => {
@@ -202,7 +207,7 @@ describe('Al llegar otra sugerencia', () => {
     ])
   })
 
-  test('el borrador recibido queda intacto al perder un subtipo con preguntas marcadas', () => {
+  test('el borrador recibido queda intacto cuando llega otra sugerencia', () => {
     const borrador = conPreguntaDesmarcada(editar(iniciarBorrador(corrientes, catalogo), 'prioridad', 'P2'))
     const anterior = structuredClone(borrador)
     actualizarBorrador(borrador, sanJuanConAltura, catalogo)

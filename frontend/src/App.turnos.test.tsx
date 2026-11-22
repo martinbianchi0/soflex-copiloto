@@ -7,17 +7,18 @@ import './pruebas/dom'
 import { respuestas } from './pruebas/respuestas'
 import { contestar, contestacionPendiente, simularServicio } from './pruebas/servicio'
 
-const { llamadaPorTurnos, llamadaPorTurnosConAltura } = respuestas
+const { llamadaPorTurnos, llamadaPorTurnosConAltura, llamadaDelDataset } = respuestas
 const identificador = llamadaPorTurnos.llamada_id
 const sumaDeTurno = `POST /api/llamadas/${identificador}/turnos`
 
-function abrirLlamada() {
+function abrirLlamada(llamada = llamadaPorTurnos) {
+  const identificador = llamada.llamada_id
   const servicio = simularServicio()
   servicio.responder('GET /api/health', respuestas.salud)
   servicio.responder('GET /api/catalogo', respuestas.catalogo)
   servicio.responder('GET /api/ejemplos', respuestas.ejemplos)
   servicio.responder('POST /api/mapa', respuestas.plano)
-  servicio.responder(`GET /api/llamadas/${identificador}`, llamadaPorTurnos)
+  servicio.responder(`GET /api/llamadas/${identificador}`, llamada)
   // Variante sin duplicados para la llamada por turnos.
   const duplicados = structuredClone(respuestas.duplicadosSinOtra)
   duplicados.llamada_id = identificador
@@ -178,5 +179,52 @@ describe('Sumar lo que se dijo después', () => {
 
     expect(screen.getByText('Se sumó un turno. Sugerencia actualizada.')).toBeTruthy()
     expect(document.activeElement).toBe(transcripcion)
+  })
+})
+
+describe('El protocolo cuando llega otra sugerencia', () => {
+  const sumaAlDataset = `POST /api/llamadas/${llamadaDelDataset.llamada_id}/turnos`
+  const [, preguntaGas] = respuestas.catalogo.protocolos[0].preguntas
+  // En modo mock la ficha de una llamada del dataset no cambia: la sugerencia con otro subtipo,
+  // como la que puede dar el modelo al sumar un turno, se arma acá.
+  const conOtroSubtipo = structuredClone(llamadaDelDataset)
+  if (conOtroSubtipo.sugerencia) {
+    conOtroSubtipo.sugerencia.subtipo = { origen: 'inferido', valor: 'SFX-002', fuente: 'modelo' }
+    conOtroSubtipo.sugerencia.checklist = []
+  }
+
+  async function sumarUnTurno(operador: ReturnType<typeof userEvent.setup>) {
+    await operador.type(textoDelTurno(), 'Llamante: Es el contenedor de la vereda.')
+    await operador.click(screen.getByRole('button', { name: 'Sumar a la llamada' }))
+    await screen.findByText('Se sumó un turno. Sugerencia actualizada.')
+  }
+
+  function campoSubtipo() {
+    return screen.getByRole<HTMLSelectElement>('combobox', { name: 'Subtipo (opcional)' })
+  }
+
+  test('Con una pregunta marcada, el subtipo no cambia aunque se sugiera otro', async () => {
+    const servicio = abrirLlamada(llamadaDelDataset)
+    servicio.responder(sumaAlDataset, conOtroSubtipo)
+    const operador = userEvent.setup()
+
+    await operador.click(await screen.findByRole('checkbox', { name: preguntaGas.texto, checked: false }))
+    await sumarUnTurno(operador)
+
+    expect(campoSubtipo().value).toBe('SFX-001')
+    expect(screen.getByRole('checkbox', { name: preguntaGas.texto, checked: true })).toBeTruthy()
+  })
+
+  test('Una pregunta tildada y vuelta a destildar no fija el subtipo', async () => {
+    const servicio = abrirLlamada(llamadaDelDataset)
+    servicio.responder(sumaAlDataset, conOtroSubtipo)
+    const operador = userEvent.setup()
+
+    const pregunta = await screen.findByRole('checkbox', { name: preguntaGas.texto, checked: false })
+    await operador.click(pregunta)
+    await operador.click(pregunta)
+    await sumarUnTurno(operador)
+
+    expect(campoSubtipo().value).toBe('SFX-002')
   })
 })
