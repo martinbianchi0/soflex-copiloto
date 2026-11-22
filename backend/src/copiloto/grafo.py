@@ -11,7 +11,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 
 from copiloto import flujo
-from copiloto.esquemas import Ajustes, Sugerencia, Turno, citas_que_no_estan
+from copiloto.esquemas import Ajustes, Sugerencia, Turno
 
 
 class Estado(TypedDict, total=False):
@@ -26,12 +26,10 @@ class Estado(TypedDict, total=False):
 
 def analizar(estado: Estado) -> Estado:
     turnos = [Turno.model_validate(turno) for turno in estado["turnos"]]
-    sugerencia = flujo.ajustar_al_catalogo(flujo.analizar(turnos))
-    # Se comprueba antes de guardar: una sugerencia con una cita que nadie dijo no llega al disco.
-    if ausentes := citas_que_no_estan(sugerencia, turnos):
-        raise ValueError(
-            f"La sugerencia cita algo que no está en la llamada: {ausentes[0].texto!r}"
-        )
+    # Antes de guardar: lo que cita algo que nadie dijo se descarta, y lo que no está en el
+    # catálogo también. Lo que llega al disco es sólo lo que se puede respaldar.
+    sugerencia = flujo.quitar_lo_que_nadie_dijo(flujo.analizar(turnos), turnos)
+    sugerencia = flujo.ajustar_al_catalogo(sugerencia)
     return {"sugerencia": sugerencia.model_dump(mode="json")}
 
 

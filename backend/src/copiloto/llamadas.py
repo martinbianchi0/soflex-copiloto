@@ -17,6 +17,7 @@ from pydantic import ValidationError
 from copiloto import flujo
 from copiloto.esquemas import Ajustes, Llamada, Turno
 from copiloto.grafo import construir
+from copiloto.turnos import separar_hablantes
 
 
 class LlamadaInexistente(LookupError):
@@ -51,7 +52,8 @@ class Llamadas:
     def iniciar(self, turnos: list[Turno]) -> Llamada:
         """Analiza la llamada y la deja esperando al operador."""
         llamada_id = uuid.uuid4().hex
-        planos = [turno.model_dump(mode="json") for turno in turnos]
+        # Se guarda ya partida en turnos: las citas señalan cada turno por su posición.
+        planos = [turno.model_dump(mode="json") for turno in separar_hablantes(turnos)]
         self._avanzar({"llamada_id": llamada_id, "turnos": planos}, llamada_id)
         return self._leer(llamada_id)
 

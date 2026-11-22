@@ -51,6 +51,37 @@ TITULOS = {
 }
 CONECTORES = {"DE", "DEL", "LA", "LAS", "LOS", "EL", "Y"}
 CONECTORES_DE_MAPA = {"de", "del", "la", "las", "los", "y"}
+# Palabras de cortesía o de corrección que suenan parecido a una calle ("perdón" y "Perón") pero no
+# nombran ninguna. Sólo valen como calle si coinciden exactas con un nombre del callejero.
+MULETILLAS = {"PERDON", "DISCULPE", "DISCULPA", "DISCULPEN", "DISCULPAME", "GRACIAS", "PERMISO"}
+GENERICOS = {
+    "AUTOPISTA",
+    "AV",
+    "BARR",
+    "BARRIO",
+    "BLVD",
+    "BOULEVARD",
+    "BV",
+    "BVD",
+    "C",
+    "CALLE",
+    "CL",
+    "DIAG",
+    "DIAGONAL",
+    "EST",
+    "ESTAC",
+    "ESTACION",
+    "PARQ",
+    "PARQUE",
+    "PASAJE",
+    "PLAZA",
+    "PLZ",
+    "PQ",
+    "PRESIDENTE",
+    "PSJE",
+    "PUENTE",
+    "PZ",
+}
 
 
 def normalizar(texto: str) -> str:
@@ -217,8 +248,12 @@ class Callejero:
                     encontrados[c.nombre] = c
 
         sumar(self._claves.get(consulta, []))
-        fon = clave_fonetica(consulta)
+        if not encontrados and all(
+            t in GENERICOS or t in CONECTORES or t in MULETILLAS for t in tokens
+        ):
+            return []
         if not encontrados:
+            fon = clave_fonetica(consulta)
             sumar(self._claves_fon.get(fon, []))
         if not encontrados and len(tokens) == 1 and len(consulta) > 3:
             # 'VELASCO' -> 'RAMIREZ DE VELASCO, JUAN'. Vale poco: lo confirma el cruce con la otra calle.

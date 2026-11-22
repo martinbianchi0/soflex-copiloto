@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { nombresTiposHecho, textoOrigen, valorDato } from './api'
 import type { Ajustes, Catalogo, Criterio, Dato, DetalleValidacion, Prioridad, Sugerencia, TipoHecho } from './api'
+import AvisosSugerencia from './AvisosSugerencia'
 import DetallesSugerencia from './DetallesSugerencia'
 
 type Propiedades = {
@@ -37,7 +38,7 @@ function CampoSugerido({ nombre, etiqueta, dato, opcional, children: dibujarCont
       </div>
       <div>
         {dibujarControl({ id: nombre, name: nombre, 'aria-describedby': descripcion })}
-        {dato.origen === 'dicho' && <small id={cita} className="cita">«{dato.cita.texto}»</small>}
+        {dato.origen === 'dicho' && <small id={cita} className="cita">Turno {dato.cita.turno + 1} · «{dato.cita.texto}»</small>}
       </div>
     </div>
   )
@@ -134,6 +135,7 @@ export default function FormularioSugerencia({
     <form className="panel" onSubmit={enviar} noValidate>
       <fieldset disabled={bloqueado}>
         <legend>Sugerencia</legend>
+        <AvisosSugerencia avisos={sugerencia.avisos} />
         <div className="direccion">
           <CampoSugerido nombre="calle" etiqueta="Calle" dato={ubicacion.calle}>
             {(control) => <input {...control} defaultValue={calleSugerida} required />}

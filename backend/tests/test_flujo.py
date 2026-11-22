@@ -1,14 +1,15 @@
 from datetime import UTC, datetime
 
 import pytest
-from conftest import TURNOS
+from conftest import FILAS_DATASET, TEXTO, TEXTO_SIN_DATOS, TURNOS
 
 from copiloto import catalogo, flujo
 from copiloto.catalogo import SubtipoInvalido
-from copiloto.esquemas import Ajustes, Sugerencia, Turno
+from copiloto.esquemas import Ajustes, Categoria, Cita, Falta, Inferido, Sugerencia, Turno
 
 AHORA = datetime(2026, 11, 22, 3, 0, tzinfo=UTC)
 COMPLETA = {"calle": "Av. Corrientes", "altura": 1540, "esquinas": ["Montevideo", "Paraná"]}
+TEXTO_NUEVO = "Chocaron dos autos en Av. Corrientes."
 
 
 def derivar(sugerencia: dict, ajustes: dict) -> dict:
@@ -19,11 +20,111 @@ def derivar(sugerencia: dict, ajustes: dict) -> dict:
 
 
 def test_analizar_no_afirma_nada_que_no_haya_leido():
-    sugerencia = flujo.analizar([Turno(**turno) for turno in TURNOS])
+    sugerencia = flujo.analizar([Turno(texto=TEXTO_SIN_DATOS)])
 
     assert sugerencia.faltantes() == ["calle", "prioridad"]
-    assert sugerencia.tipo_hecho.valor == "NO_DETERMINADA"
-    assert sugerencia.citas() == []
+    assert sugerencia.tipo_hecho == Inferido[Categoria](
+        valor=Categoria.NO_DETERMINADA, fuente="reglas"
+    )
+    assert sugerencia.ubicacion.calle == sugerencia.ubicacion.altura == Falta()
+    assert sugerencia.subtipo == sugerencia.prioridad == Falta()
+    assert sugerencia.ubicacion.esquinas == sugerencia.checklist == sugerencia.citas() == []
+
+
+def test_analizar_una_llamada_del_dataset_sugiere_su_protocolo_y_cita_sus_respuestas():
+    turnos = [
+        Turno(hablante="operador", texto="911 emergencias, ¿dónde es su urgencia?"),
+        Turno(hablante="llamante", texto=TEXTO),
+    ]
+
+    sugerencia = flujo.analizar(turnos)
+
+    assert sugerencia.ubicacion.calle.valor == "Av. Corrientes"
+    assert sugerencia.ubicacion.calle.cita == Cita(turno=1, texto="Av. Corrientes")
+    assert sugerencia.ubicacion.altura.valor == 1540
+    assert sugerencia.ubicacion.altura.cita == Cita(turno=1, texto="1540")
+    assert sugerencia.tipo_hecho == Inferido[Categoria](
+        valor=Categoria.INCENDIO_RESCATE, fuente="dataset"
+    )
+    assert sugerencia.subtipo.model_dump() == {
+        "origen": "inferido",
+        "valor": "SFX-001",
+        "fuente": "dataset",
+    }
+    assert sugerencia.prioridad.model_dump(mode="json") == {
+        "origen": "inferido",
+        "valor": "P1",
+        "fuente": "dataset",
+    }
+    esperado = pendientes("SFX-001")
+    esperado[0].update(respondida=True, cita={"turno": 1, "texto": "adentro quedó el cocinero"})
+    assert [item.model_dump() for item in sugerencia.checklist] == esperado
+
+
+def test_analizar_un_texto_nuevo_sugiere_la_ubicacion_y_solo_la_categoria():
+    turnos = [
+        Turno(hablante="operador", texto="¿Hay un incendio, llamas y humo en Av. San Juan 800?"),
+        Turno(hablante="llamante", texto=TEXTO_NUEVO),
+    ]
+
+    sugerencia = flujo.analizar(turnos)
+
+    assert sugerencia.ubicacion.calle.valor == "Av. Corrientes"
+    assert sugerencia.ubicacion.calle.cita == Cita(turno=1, texto="Av. Corrientes")
+    assert sugerencia.ubicacion.altura == Falta()
+    assert sugerencia.ubicacion.esquinas == []
+    assert [aviso.codigo for aviso in sugerencia.avisos] == ["falta_altura"]
+    assert sugerencia.tipo_hecho == Inferido[Categoria](
+        valor=Categoria.ACCIDENTE_VIAL, fuente="reglas"
+    )
+    assert sugerencia.subtipo == sugerencia.prioridad == Falta()
+    assert sugerencia.checklist == sugerencia.instrucciones == []
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        pytest.param(fila["transcripcion_cruda"], id=subtipo)
+        for subtipo, fila in FILAS_DATASET.items()
+    ]
+    + [pytest.param(TEXTO_NUEVO, id="texto_nuevo"), pytest.param(TEXTO_SIN_DATOS, id="sin_datos")],
+)
+def test_analizar_no_produce_datos_con_origen_operador(texto):
+    sugerencia = flujo.analizar([Turno(texto=texto)])
+
+    assert all(dato.origen != "operador" for dato in sugerencia.datos().values())
+
+
+def test_se_descarta_cada_dato_sin_cita_respaldada_y_se_avisa(sugerencia_completa):
+    cita_falsa = {"turno": 0, "texto": "Alguien vio una sirena azul."}
+    ubicacion = sugerencia_completa["ubicacion"]
+    respuesta = sugerencia_completa["checklist"][0]
+    for dato in (ubicacion["calle"], ubicacion["altura"], ubicacion["esquinas"][0], respuesta):
+        dato["cita"] = cita_falsa
+    for campo, valor in (("tipo_hecho", "INCENDIO_RESCATE"), ("prioridad", "P1")):
+        sugerencia_completa[campo] = {"origen": "dicho", "valor": valor, "cita": cita_falsa}
+    sugerencia = Sugerencia.model_validate(sugerencia_completa)
+
+    revisada = flujo.quitar_lo_que_nadie_dijo(sugerencia, [Turno(**turno) for turno in TURNOS])
+
+    assert revisada.ubicacion.calle == revisada.ubicacion.altura == revisada.prioridad == Falta()
+    assert revisada.ubicacion.esquinas == sugerencia.ubicacion.esquinas[1:]
+    assert revisada.tipo_hecho == Inferido[Categoria](
+        valor=Categoria.NO_DETERMINADA, fuente="reglas"
+    )
+    assert revisada.subtipo == sugerencia.subtipo
+    assert revisada.checklist[0].model_dump() == {**respuesta, "respondida": False, "cita": None}
+    assert revisada.checklist[1:] == sugerencia.checklist[1:]
+    assert [aviso.codigo for aviso in revisada.avisos] == ["dato_descartado"] * 6
+    for campo in ("calle", "altura", "esquina", "tipo de hecho", "prioridad", "respuesta"):
+        assert sum(campo in aviso.mensaje for aviso in revisada.avisos) == 1
+
+
+def test_si_todas_las_citas_estan_respaldadas_se_conserva_la_sugerencia(sugerencia_completa):
+    sugerencia = Sugerencia.model_validate(sugerencia_completa)
+    turnos = [Turno(**turno) for turno in TURNOS]
+
+    assert flujo.quitar_lo_que_nadie_dijo(sugerencia, turnos) == sugerencia
 
 
 def test_lo_que_el_operador_no_toca_conserva_su_origen_y_su_cita(sugerencia_completa):
@@ -97,7 +198,7 @@ def test_sin_los_datos_obligatorios_no_hay_carta(sugerencia_completa):
         derivar(sugerencia_completa, {})
     assert error.value.campos == ["prioridad"]
 
-    sin_nada = flujo.analizar([Turno(**turno) for turno in TURNOS]).model_dump(mode="json")
+    sin_nada = flujo.analizar([Turno(texto=TEXTO_SIN_DATOS)]).model_dump(mode="json")
     with pytest.raises(flujo.FaltanDatos) as error:
         derivar(sin_nada, {"tipo_hecho": {"categoria": "ACCIDENTE_VIAL", "subtipo": None}})
     assert error.value.campos == ["calle", "prioridad"]
@@ -141,7 +242,7 @@ def pendientes(subtipo: str) -> list[dict]:
 
 
 def test_si_el_operador_elige_el_subtipo_la_carta_lleva_su_protocolo_textual():
-    sin_nada = flujo.analizar([Turno(**turno) for turno in TURNOS]).model_dump(mode="json")
+    sin_nada = flujo.analizar([Turno(texto=TEXTO_SIN_DATOS)]).model_dump(mode="json")
     ajustes = {
         "prioridad": "P1",
         "ubicacion": {"calle": "Av. Rivadavia", "altura": None, "esquinas": []},
@@ -296,3 +397,63 @@ def test_un_subtipo_sugerido_que_el_catalogo_no_respalda_queda_como_faltante(
     assert ajustada["checklist"] == []
     assert ajustada["instrucciones"] == []
     assert ajustada["ubicacion"] == sugerencia_completa["ubicacion"]
+    (aviso,) = ajustada["avisos"]
+    assert aviso["codigo"] == "dato_descartado"
+    assert "subtipo" in aviso["mensaje"]
+
+
+def test_lo_que_dice_el_operador_no_se_interpreta_con_las_marcas_en_mayusculas():
+    turnos = [
+        Turno(texto="OPERADOR: Hay un incendio en Av. Corrientes 1540. LLAMANTE: Hola, hola.")
+    ]
+
+    sugerencia = flujo.analizar(turnos)
+
+    assert sugerencia.ubicacion.calle.origen == "falta"
+    assert sugerencia.ubicacion.altura.origen == "falta"
+    assert sugerencia.tipo_hecho.valor == "NO_DETERMINADA"
+
+
+def test_una_cita_que_solo_esta_en_lo_que_dijo_el_operador_no_respalda_nada():
+    turnos = [
+        Turno(hablante="operador", texto="¿Es en Av. Corrientes 1540?"),
+        Turno(hablante="llamante", texto="No sé, estoy perdido."),
+    ]
+    calle = {
+        "origen": "dicho",
+        "valor": "Av. Corrientes",
+        "cita": {"turno": 0, "texto": "Corrientes"},
+    }
+    sugerencia = Sugerencia.model_validate(
+        {
+            "ubicacion": {"calle": calle, "altura": {"origen": "falta"}, "esquinas": []},
+            "tipo_hecho": {"origen": "inferido", "valor": "NO_DETERMINADA", "fuente": "reglas"},
+            "prioridad": {"origen": "falta"},
+        }
+    )
+
+    filtrada = flujo.quitar_lo_que_nadie_dijo(sugerencia, turnos)
+
+    assert filtrada.ubicacion.calle.origen == "falta"
+    assert [aviso.codigo for aviso in filtrada.avisos] == ["dato_descartado"]
+
+
+def test_la_respuesta_anotada_se_cita_en_el_turno_del_llamante_aunque_el_operador_la_repita():
+    turnos = [
+        Turno(hablante="operador", texto="¿Me dice que adentro quedó el cocinero?"),
+        Turno(hablante="llamante", texto=TEXTO),
+    ]
+
+    sugerencia = flujo.analizar(turnos)
+
+    respondidas = [item for item in sugerencia.checklist if item.respondida]
+    assert [item.cita.turno for item in respondidas] == [1]
+
+
+def test_lo_que_esta_antes_de_la_primera_marca_no_es_evidencia():
+    turnos = [Turno(texto="Incendio en Av. Corrientes 1540. Llamante: Hola, ¿me escuchan?")]
+
+    sugerencia = flujo.analizar(turnos)
+
+    assert sugerencia.ubicacion.calle.origen == "falta"
+    assert sugerencia.tipo_hecho.valor == "NO_DETERMINADA"

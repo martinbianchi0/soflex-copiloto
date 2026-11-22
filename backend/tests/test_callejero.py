@@ -34,6 +34,38 @@ def test_buscar_candidatos(consulta, esperados):
     assert cargar().candidatos(normalizar(consulta)) == esperados
 
 
+@pytest.mark.parametrize(
+    "consulta",
+    [
+        "Pasaje",
+        "Pje.",
+        "Calle",
+        "Avda.",
+        "Avenida",
+        "Boulevard",
+        "Bv.",
+        "Autopista",
+        "Au.",
+        "Diagonal",
+        "Diag.",
+        "Puente",
+        "Pte.",
+        "Plz.",
+        "Parque",
+        "Parq.",
+        "Barrio",
+        "Estación",
+        "Est.",
+    ],
+)
+def test_un_generico_solo_no_produce_coincidencias_parciales(consulta):
+    assert cargar().candidatos(normalizar(consulta)) == []
+
+
+def test_plaza_puede_ser_el_nombre_exacto_de_una_calle():
+    assert Candidato("PLAZA", 98, "exacto") in cargar().candidatos("PLAZA")
+
+
 def test_entrecalles_de_corrientes_a_la_altura_1540():
     assert cargar().entrecalles("CORRIENTES AV.", 1540) == ["PARANA", "MONTEVIDEO"]
 

@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-from conftest import TURNOS
+from conftest import TEXTO_SIN_DATOS, TURNOS
 
 from copiloto import flujo
 from copiloto.esquemas import Ajustes, Sugerencia, Turno
@@ -37,7 +37,7 @@ def test_iniciar_deja_la_llamada_esperando_al_operador(llamadas):
 
     assert llamada.estado == "esperando_operador"
     assert llamada.turnos == turnos()
-    assert llamada.sugerencia == flujo.analizar(turnos())
+    assert llamada.sugerencia == flujo.ajustar_al_catalogo(flujo.analizar(turnos()))
     assert llamada.carta is None
 
 
@@ -54,7 +54,7 @@ def test_derivar_arma_la_carta_con_los_ajustes_del_operador(llamadas):
 
 
 def test_si_falta_un_dato_obligatorio_no_se_deriva_y_la_llamada_sigue_esperando(llamadas):
-    llamada_id = llamadas.iniciar(turnos()).llamada_id
+    llamada_id = llamadas.iniciar(turnos(TEXTO_SIN_DATOS)).llamada_id
 
     with pytest.raises(FaltanDatos) as error:
         llamadas.derivar(llamada_id, ajustes(prioridad="P2"))
@@ -176,7 +176,7 @@ def test_si_se_corta_al_armar_la_carta_se_termina_con_los_ajustes_ya_aceptados(r
     assert llamada.carta.prioridad.valor == "P2"
 
 
-def test_una_sugerencia_con_una_cita_que_nadie_dijo_no_se_guarda(llamadas, monkeypatch):
+def test_una_llamada_se_guarda_con_un_aviso_si_se_descarta_una_cita_falsa(llamadas, monkeypatch):
     def inventa(_turnos):
         calle = {"origen": "dicho", "valor": "Rivadavia", "cita": {"turno": 0, "texto": "al 9999"}}
         ubicacion = {"calle": calle, "altura": {"origen": "falta"}, "esquinas": []}
@@ -187,5 +187,11 @@ def test_una_sugerencia_con_una_cita_que_nadie_dijo_no_se_guarda(llamadas, monke
 
     monkeypatch.setattr(flujo, "analizar", inventa)
 
-    with pytest.raises(ValueError, match="no está en la llamada"):
-        llamadas.iniciar(turnos())
+    llamada = llamadas.iniciar(turnos())
+
+    assert llamada.estado == "esperando_operador"
+    assert llamada.sugerencia.ubicacion.calle.model_dump() == {"origen": "falta"}
+    (aviso,) = llamada.sugerencia.avisos
+    assert aviso.codigo == "dato_descartado"
+    assert "calle" in aviso.mensaje
+    assert llamadas.consultar(llamada.llamada_id) == llamada

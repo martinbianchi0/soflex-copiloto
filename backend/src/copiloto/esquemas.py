@@ -52,6 +52,7 @@ TextoLargo = Annotated[
 TextoDeTurno = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=20_000)
 ]
+MAXIMO_DE_LA_LLAMADA = 50_000
 # Tiene que ser un entero de verdad: ni "1540" ni 1540.0.
 Altura = Annotated[int, Field(ge=1, le=99_999, strict=True)]
 
@@ -277,6 +278,9 @@ class Sugerencia(Ficha):
             )
         if self.tipo_hecho.origen == "falta":
             raise ValueError("El tipo de hecho nunca falta: si no se reconoce, es NO_DETERMINADA.")
+        # El sistema no da por respondida una pregunta sin mostrar dónde se respondió.
+        if any(item.respondida and item.cita is None for item in self.checklist):
+            raise ValueError("Una respuesta que propone el sistema lleva su cita.")
         return self
 
 
@@ -325,6 +329,16 @@ class Llamada(Esquema):
 
 class NuevaLlamada(Esquema):
     turnos: list[Turno] = Field(min_length=1, max_length=500)
+
+    @model_validator(mode="after")
+    def de_un_largo_razonable(self) -> Self:
+        # Una llamada de diez minutos son unos 10.000 caracteres. El tope acota lo que tarda el
+        # análisis, que tiene que responder mientras el operador sigue atendiendo.
+        if sum(len(turno.texto) for turno in self.turnos) > MAXIMO_DE_LA_LLAMADA:
+            raise ValueError(
+                f"La transcripción completa puede tener hasta {MAXIMO_DE_LA_LLAMADA} caracteres."
+            )
+        return self
 
 
 class UbicacionAjustada(Esquema):
