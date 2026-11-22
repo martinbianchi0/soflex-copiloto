@@ -62,7 +62,7 @@ export default function CartaLlamada({ carta, catalogo }: { carta: Carta; catalo
         <dt>Derivación</dt>
         <dd><time dateTime={carta.derivada_en}>{new Date(carta.derivada_en).toLocaleString('es-AR', { hourCycle: 'h23' })}</time></dd>
       </dl>
-      <Instrucciones instrucciones={carta.instrucciones} />
+      <Instrucciones instrucciones={carta.instrucciones} titulo="Instrucciones de pre-arribo del protocolo" />
       {carta.checklist.length > 0 && (
         <section className="detalles-sugerencia">
           <h3>Preguntas del protocolo</h3>
