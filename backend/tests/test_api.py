@@ -7,9 +7,10 @@ from conftest import DATOS_EMPAQUETADOS, FILAS_DATASET, REFERENCIA, TEXTO, TURNO
 from fastapi.testclient import TestClient
 
 from copiloto import ejemplos, flujo
-from copiloto.esquemas import Sugerencia
+from copiloto.esquemas import Sugerencia, Turno
 from copiloto.llamadas import _hilo
 from copiloto.main import crear_app
+from copiloto.turnos import separar_hablantes
 
 LLAMADA = {"turnos": TURNOS}
 UBICACION = {"calle": "Av. Corrientes", "altura": 1540, "esquinas": ["Montevideo", "Paraná"]}
@@ -750,13 +751,16 @@ def test_los_ejemplos_se_cargan_al_arrancar(configuracion, monkeypatch):
         assert cargas
 
 
-def test_la_api_entrega_los_treinta_ejemplos_del_dataset_y_los_cuatro_nuevos(cliente):
+def test_la_api_entrega_los_treinta_ejemplos_del_dataset_y_los_cinco_nuevos(cliente):
     respuesta = cliente.get("/api/ejemplos")
 
     assert respuesta.status_code == 200
     publicados = respuesta.json()
-    por_id = {ejemplo["id"]: ejemplo for ejemplo in publicados}
-    assert len(publicados) == len(por_id) == 34
+    por_id = {
+        ejemplo["id"]: {campo: valor for campo, valor in ejemplo.items() if campo != "turnos"}
+        for ejemplo in publicados
+    }
+    assert len(publicados) == len(por_id) == 35
     assert por_id == {
         **{
             subtipo: {
@@ -772,6 +776,17 @@ def test_la_api_entrega_los_treinta_ejemplos_del_dataset_y_los_cuatro_nuevos(cli
             for ejemplo_id, ejemplo in EJEMPLOS_NUEVOS.items()
         },
     }
+
+
+def test_los_ejemplos_traen_los_turnos_separados_por_hablante(cliente):
+    publicados = cliente.get("/api/ejemplos").json()
+
+    for ejemplo in publicados:
+        separados = separar_hablantes([Turno(texto=ejemplo["texto"])])
+        assert ejemplo["turnos"] == [turno.model_dump() for turno in separados], ejemplo["id"]
+
+    nueva = next(ejemplo for ejemplo in publicados if ejemplo["id"] == "nueva-5")
+    assert len(nueva["turnos"]) == 10
 
 
 def iniciar_ejemplo(cliente, ejemplo_id):
@@ -795,3 +810,14 @@ def test_cada_ejemplo_nuevo_se_da_de_alta_sin_subtipo(cliente, ejemplo_id):
     sugerencia = iniciar_ejemplo(cliente, ejemplo_id)
 
     assert sugerencia["subtipo"] == {"origen": "falta"}
+
+
+def test_el_ejemplo_del_choque_con_moto_toma_la_altura_de_la_respuesta(cliente):
+    ubicacion = iniciar_ejemplo(cliente, "nueva-5")["ubicacion"]
+
+    assert ubicacion["calle"]["valor"] == "Av. San Juan"
+    assert ubicacion["altura"] == {
+        "origen": "dicho",
+        "valor": 2100,
+        "cita": {"turno": 3, "texto": "2100"},
+    }
