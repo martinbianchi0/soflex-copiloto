@@ -1,27 +1,43 @@
 import type { Sugerencia } from './api'
+import Instrucciones from './Instrucciones'
 
 export default function DetallesSugerencia({
-  checklist, instrucciones,
-}: Pick<Sugerencia, 'checklist' | 'instrucciones'>) {
+  checklist, instrucciones, errores, bloqueado, alMarcar,
+}: Pick<Sugerencia, 'checklist' | 'instrucciones'> & {
+  errores: string[]
+  bloqueado: boolean
+  alMarcar: (id: string) => void
+}) {
+  const error = errores.length > 0 ? 'error-checklist' : undefined
   return (
     <>
-      {checklist.length > 0 && (
-        <section className="detalles-sugerencia">
-          <h3>Preguntas del protocolo</h3>
-          <ul>
-            {checklist.map(({ id, pregunta, respondida, cita }) => (
-              <li key={id}>
-                {pregunta} <strong>{respondida ? 'Respondida' : 'Pendiente'}</strong>
-                {cita && <small className="cita">Turno {cita.turno + 1} · «{cita.texto}»</small>}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      {instrucciones.length > 0 && (
-        <section className="detalles-sugerencia">
-          <h3>Instrucciones de pre-arribo (leer textual)</h3>
-          <ul className="instrucciones">{instrucciones.map(({ id, texto }) => <li key={id}>{texto}</li>)}</ul>
+      <Instrucciones instrucciones={instrucciones} />
+      {(checklist.length > 0 || error) && (
+        <section className="detalles-sugerencia" aria-labelledby="titulo-checklist" aria-describedby={error}
+          aria-invalid={error ? true : undefined} tabIndex={error ? -1 : undefined}>
+          <h3 id="titulo-checklist">Preguntas del protocolo</h3>
+          {error && <p id={error} className="error-campo">{errores.join(' ')}</p>}
+          {checklist.length > 0 && (
+            <fieldset className="checklist" disabled={bloqueado} aria-labelledby="titulo-checklist" aria-describedby={error}>
+              {checklist.map(({ id, pregunta, respondida, cita, del_operador }) => {
+                const control = `pregunta-${id}`
+                const detalle = del_operador
+                  ? (respondida ? 'marcada por vos' : 'desmarcada por vos')
+                  : cita && `Turno ${cita.turno + 1} · «${cita.texto}»`
+
+                return (
+                  <div key={id} className="pregunta">
+                    <input id={control} type="checkbox" checked={respondida} onChange={() => alMarcar(id)}
+                      aria-describedby={detalle ? `${control}-detalle` : undefined} />
+                    <div>
+                      <label htmlFor={control}>{pregunta}</label>
+                      {detalle && <small id={`${control}-detalle`} className="cita">{detalle}</small>}
+                    </div>
+                  </div>
+                )
+              })}
+            </fieldset>
+          )}
         </section>
       )}
     </>

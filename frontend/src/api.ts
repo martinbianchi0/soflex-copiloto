@@ -43,8 +43,10 @@ type UbicacionAjustada = {
   esquinas: string[]
 }
 
-type Pregunta = { id: string; pregunta: string; respondida: boolean; cita: Cita | null }
+export type Pregunta = { id: string; pregunta: string; respondida: boolean; cita: Cita | null; del_operador: boolean }
 type TextoProtocolo = { id: string; texto: string }
+
+export type Ejemplo = { id: string; titulo: string; origen: 'dataset' | 'nueva'; texto: string }
 
 export type Protocolo = {
   id: string
@@ -71,14 +73,16 @@ type Ficha = {
   prioridad: Dato<Prioridad>
   checklist: Pregunta[]
   instrucciones: TextoProtocolo[]
+  avisos: Aviso[]
 }
 
-export type Sugerencia = Ficha & { avisos: Aviso[] }
+export type Sugerencia = Ficha
 
 export type Ajustes = {
   ubicacion?: UbicacionAjustada
   tipo_hecho?: { categoria: TipoHecho; subtipo: string | null }
   prioridad?: Prioridad
+  checklist?: Pick<Pregunta, 'id' | 'respondida'>[]
 }
 
 export type Carta = Ficha & {
@@ -86,9 +90,11 @@ export type Carta = Ficha & {
   derivada_en: string
 }
 
+export type Turno = { texto: string; hablante: 'operador' | 'llamante' | null }
+
 export type Llamada = {
   llamada_id: string
-  turnos: { texto: string; hablante: 'operador' | 'llamante' | null }[]
+  turnos: Turno[]
 } & (
   | { estado: 'en_proceso'; sugerencia: Sugerencia | null; carta: null }
   | { estado: 'esperando_operador'; sugerencia: Sugerencia; carta: null }
@@ -131,6 +137,10 @@ export function consultarSalud(senal: AbortSignal) {
 
 export function consultarCatalogo(senal: AbortSignal) {
   return pedir<Catalogo>('/catalogo', senal)
+}
+
+export function consultarEjemplos(senal: AbortSignal) {
+  return pedir<Ejemplo[]>('/ejemplos', senal)
 }
 
 export function crearLlamada(texto: string, senal: AbortSignal) {

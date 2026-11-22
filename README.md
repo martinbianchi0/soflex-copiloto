@@ -2,7 +2,7 @@
 
 Prototipo que asiste al operador de una sala de emergencias: lee la transcripción de una llamada, propone ubicación, tipo de hecho y prioridad, y el operador revisa, ajusta y deriva la Carta de Llamada.
 
-**Estado:** funciona el modo `mock`, que interpreta la llamada con reglas, sin red ni modelo. Propone la ubicación contrastada con el callejero de la Ciudad, con la cita de lo que dijo el llamante y avisos cuando la dirección no cierra. Si la llamada es una de las 30 del dataset, propone además el tipo, el subtipo, la prioridad y las preguntas del protocolo que el relato ya responde. Para un texto nuevo propone la categoría por palabras clave y el resto lo completa el operador. Todavía no hay un modo con modelo: `LLM_PROVIDER` acepta sólo `mock`.
+**Estado:** funciona el modo `mock`, que interpreta la llamada con reglas, sin red ni modelo. Propone la ubicación contrastada con el callejero de la Ciudad, con la cita de lo que dijo el llamante y avisos cuando la dirección no cierra. Si la llamada es una de las 30 del dataset, propone además el tipo, el subtipo, la prioridad y las preguntas del protocolo que el relato ya responde. Para un texto nuevo propone la categoría por palabras clave y el resto lo completa el operador. El operador marca las preguntas del protocolo, y la carta lleva lo que quedó sin confirmar con el llamante. El panel trae llamadas de ejemplo para cargar.
 
 ## Cómo levantarlo
 

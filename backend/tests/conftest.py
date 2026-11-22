@@ -63,18 +63,21 @@ _SUGERENCIA_COMPLETA = {
             "pregunta": "¿Hay personas atrapadas en el interior?",
             "respondida": True,
             "cita": {"turno": 0, "texto": "adentro quedó el cocinero"},
+            "del_operador": False,
         },
         {
             "id": "SFX-001-Q2",
             "pregunta": "¿Hay garrafas o cañería de gas activa?",
             "respondida": False,
             "cita": None,
+            "del_operador": False,
         },
         {
             "id": "SFX-001-Q3",
             "pregunta": "¿Hay inmuebles linderos afectados?",
             "respondida": False,
             "cita": None,
+            "del_operador": False,
         },
     ],
     "instrucciones": [
@@ -84,6 +87,7 @@ _SUGERENCIA_COMPLETA = {
             "vereda de enfrente y cortar el tránsito vehicular preventivamente.",
         }
     ],
+    "avisos": [],
 }
 
 

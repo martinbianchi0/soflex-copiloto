@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 import pytest
 from conftest import FILAS_DATASET, TEXTO, TEXTO_SIN_DATOS, TURNOS
 
-from copiloto import catalogo, flujo
+from copiloto import catalogo, flujo, ubicacion
 from copiloto.catalogo import SubtipoInvalido
 from copiloto.esquemas import Ajustes, Categoria, Cita, Falta, Inferido, Sugerencia, Turno
 
@@ -225,6 +225,37 @@ def test_corregir_una_enie_es_un_cambio(sugerencia_completa):
     assert carta["ubicacion"]["calle"] == {"origen": "operador", "valor": "Canada"}
 
 
+@pytest.mark.parametrize(
+    ("ubicacion", "conserva_avisos"),
+    [
+        pytest.param(None, True, id="sin_ajuste_de_ubicacion"),
+        pytest.param(COMPLETA, True, id="misma_ubicacion"),
+        pytest.param({**COMPLETA, "calle": "Av. Córdoba"}, False, id="otra_calle"),
+        pytest.param({**COMPLETA, "altura": 1548}, False, id="otra_altura"),
+        pytest.param({**COMPLETA, "esquinas": ["Montevideo", "Uruguay"]}, False, id="otra_esquina"),
+    ],
+)
+def test_la_carta_lleva_los_avisos_de_ubicacion_si_esta_queda_igual(
+    sugerencia_completa, ubicacion, conserva_avisos
+):
+    avisos_de_ubicacion = [
+        {"codigo": "direccion_no_cierra", "mensaje": "La altura no coincide con la esquina."},
+        {"codigo": "cruce_sin_confirmar", "mensaje": "Confirmar si la esquina es Montevideo."},
+    ]
+    sugerencia_completa["avisos"] = [
+        avisos_de_ubicacion[0],
+        {"codigo": "dato_descartado", "mensaje": "Se descartó la respuesta a una pregunta."},
+        avisos_de_ubicacion[1],
+    ]
+    ajustes = {"prioridad": "P1"}
+    if ubicacion is not None:
+        ajustes["ubicacion"] = ubicacion
+
+    carta = derivar(sugerencia_completa, ajustes)
+
+    assert carta["avisos"] == (avisos_de_ubicacion if conserva_avisos else [])
+
+
 # ---------- El subtipo, el checklist y las instrucciones ----------
 
 
@@ -236,9 +267,82 @@ def protocolo(subtipo: str) -> dict:
 
 def pendientes(subtipo: str) -> list[dict]:
     return [
-        {"id": q["id"], "pregunta": q["texto"], "respondida": False, "cita": None}
+        {
+            "id": q["id"],
+            "pregunta": q["texto"],
+            "respondida": False,
+            "cita": None,
+            "del_operador": False,
+        }
         for q in protocolo(subtipo)["preguntas"]
     ]
+
+
+@pytest.mark.parametrize(
+    ("marcas", "cambios"),
+    [
+        pytest.param([{"id": "SFX-001-Q1", "respondida": True}], {}, id="confirmar_q1"),
+        pytest.param([{"id": "SFX-001-Q1", "respondida": False}], {0: False}, id="desmarcar_q1"),
+        pytest.param([{"id": "SFX-001-Q2", "respondida": True}], {1: True}, id="marcar_q2"),
+        pytest.param(
+            [{"id": "SFX-001-Q2", "respondida": True}, {"id": "SFX-001-Q1", "respondida": False}],
+            {0: False, 1: True},
+            id="marcar_y_desmarcar",
+        ),
+    ],
+)
+def test_al_derivar_se_aplican_los_cambios_del_operador_al_checklist(
+    sugerencia_completa, marcas, cambios
+):
+    carta = derivar(sugerencia_completa, {"prioridad": "P1", "checklist": marcas})
+
+    esperado = [pregunta.copy() for pregunta in sugerencia_completa["checklist"]]
+    for indice, respondida in cambios.items():
+        esperado[indice].update(respondida=respondida, cita=None, del_operador=True)
+    assert carta["checklist"] == esperado
+
+
+def test_si_el_operador_cambia_el_subtipo_puede_marcar_una_pregunta_del_nuevo(sugerencia_completa):
+    elegido = {"categoria": "INCENDIO_RESCATE", "subtipo": "SFX-002"}
+    marcas = [{"id": "SFX-002-Q1", "respondida": True}]
+
+    carta = derivar(
+        sugerencia_completa, {"prioridad": "P1", "tipo_hecho": elegido, "checklist": marcas}
+    )
+
+    esperado = pendientes("SFX-002")
+    esperado[0].update(respondida=True, del_operador=True)
+    assert carta["subtipo"] == {"origen": "operador", "valor": "SFX-002"}
+    assert carta["checklist"] == esperado
+
+
+@pytest.mark.parametrize(
+    ("tipo", "pregunta"),
+    [
+        pytest.param(None, "SFX-002-Q1", id="de_otro_protocolo"),
+        pytest.param(
+            {"categoria": "INCENDIO_RESCATE", "subtipo": "SFX-002"},
+            "SFX-001-Q1",
+            id="del_protocolo_anterior",
+        ),
+        pytest.param(
+            {"categoria": "INCENDIO_RESCATE", "subtipo": None},
+            "SFX-001-Q1",
+            id="sin_subtipo",
+        ),
+    ],
+)
+def test_no_se_puede_marcar_una_pregunta_ajena_al_protocolo_de_la_carta(
+    sugerencia_completa, tipo, pregunta
+):
+    ajustes = {"prioridad": "P1", "checklist": [{"id": pregunta, "respondida": True}]}
+    if tipo is not None:
+        ajustes["tipo_hecho"] = tipo
+
+    with pytest.raises(flujo.MarcaInvalida) as error:
+        derivar(sugerencia_completa, ajustes)
+
+    assert error.value.preguntas == [pregunta]
 
 
 def test_si_el_operador_elige_el_subtipo_la_carta_lleva_su_protocolo_textual():
@@ -364,7 +468,7 @@ def ajustar(sugerencia: dict) -> dict:
 
 
 def test_una_sugerencia_que_ya_sigue_al_catalogo_no_cambia(sugerencia_completa):
-    assert ajustar(sugerencia_completa) == {**sugerencia_completa, "avisos": []}
+    assert ajustar(sugerencia_completa) == sugerencia_completa
 
 
 def test_de_una_sugerencia_se_quita_lo_que_no_es_del_catalogo(sugerencia_completa):
@@ -457,3 +561,76 @@ def test_lo_que_esta_antes_de_la_primera_marca_no_es_evidencia():
 
     assert sugerencia.ubicacion.calle.origen == "falta"
     assert sugerencia.tipo_hecho.valor == "NO_DETERMINADA"
+
+
+BILLINGHURST = "Hay un ascensor trabado en Billinghurst 1845."
+
+
+def _con_entrecalles() -> dict:
+    sugerencia = flujo.analizar([Turno(texto=BILLINGHURST)]).model_dump()
+    assert [e["fuente"] for e in sugerencia["ubicacion"]["esquinas"]] == ["callejero"] * 2
+    return sugerencia
+
+
+def _ajustes(sugerencia: dict, **cambios: object) -> dict:
+    ubicacion = sugerencia["ubicacion"]
+    actual = {
+        "calle": ubicacion["calle"]["valor"],
+        "altura": ubicacion["altura"]["valor"],
+        "esquinas": [esquina["valor"] for esquina in ubicacion["esquinas"]],
+    }
+    return {"ubicacion": {**actual, **cambios}, "prioridad": "P2"}
+
+
+def test_derivar_conserva_las_entrecalles_si_la_altura_nueva_es_de_la_misma_cuadra():
+    sugerencia = _con_entrecalles()
+
+    carta = derivar(sugerencia, _ajustes(sugerencia, altura=1850))
+
+    assert carta["ubicacion"]["altura"] == {"origen": "operador", "valor": 1850}
+    assert carta["ubicacion"]["esquinas"] == sugerencia["ubicacion"]["esquinas"]
+    assert carta["avisos"] == []
+
+
+@pytest.mark.parametrize(
+    "cambios",
+    [
+        {"altura": 300},
+        {"altura": None},
+        {"calle": "Av. Rivadavia"},
+        {"calle": "Una calle que no existe"},
+    ],
+    ids=["otra cuadra", "sin altura", "otra calle", "calle desconocida"],
+)
+def test_derivar_quita_las_entrecalles_del_callejero_si_son_de_otra_direccion(cambios: dict):
+    sugerencia = _con_entrecalles()
+
+    carta = derivar(sugerencia, _ajustes(sugerencia, **cambios))
+
+    assert carta["ubicacion"]["esquinas"] == []
+    assert [aviso["codigo"] for aviso in carta["avisos"]] == ["cruce_sin_confirmar"]
+
+
+def test_derivar_no_quita_las_esquinas_que_dijo_el_llamante_ni_las_del_operador():
+    sugerencia = flujo.analizar(
+        [Turno(texto="Chocaron en Billinghurst 1845, esquina Arenales.")]
+    ).model_dump()
+    dicha = sugerencia["ubicacion"]["esquinas"][0]
+    assert dicha["origen"] == "dicho"
+
+    ajustes = _ajustes(sugerencia, altura=300, esquinas=[dicha["valor"], "Lavalle"])
+    carta = derivar(sugerencia, ajustes)
+
+    assert carta["ubicacion"]["esquinas"] == [dicha, {"origen": "operador", "valor": "Lavalle"}]
+
+
+def test_las_entrecalles_sugeridas_se_vuelven_a_encontrar_con_la_calle_como_se_muestra():
+    comprobadas = 0
+    for fila in FILAS_DATASET.values():
+        lugar = flujo.analizar([Turno(texto=fila["transcripcion_cruda"])]).ubicacion
+        inferidas = {esquina.valor for esquina in lugar.esquinas if isinstance(esquina, Inferido)}
+        if inferidas:
+            comprobadas += 1
+            assert inferidas <= set(ubicacion.entrecalles_de(lugar.calle.valor, lugar.altura.valor))
+
+    assert comprobadas == 12

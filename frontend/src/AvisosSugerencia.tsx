@@ -1,6 +1,6 @@
 import type { Aviso } from './api'
 
-function GrupoAvisos({ titulo, avisos }: { titulo: string; avisos: Aviso[] }) {
+export function GrupoAvisos({ titulo, avisos }: { titulo: string; avisos: Aviso[] }) {
   if (avisos.length === 0) return null
 
   return (

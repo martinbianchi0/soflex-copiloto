@@ -1,7 +1,7 @@
 """La lógica del flujo de una llamada, en funciones comunes. Acá no se importa el grafo."""
 
 from datetime import datetime
-from typing import Literal, NotRequired, TypedDict
+from typing import Any, Literal, NotRequired, TypedDict
 
 from copiloto import catalogo, dataset, tipo, ubicacion
 from copiloto.catalogo import Pregunta, Protocolo, SubtipoInvalido
@@ -14,8 +14,10 @@ from copiloto.esquemas import (
     Dato,
     Ficha,
     ItemChecklist,
+    MarcaChecklist,
     Sugerencia,
     Turno,
+    Ubicacion,
     cita_esta_en,
     texto_plano,
     valor_de,
@@ -48,6 +50,14 @@ class FaltanDatos(ValueError):
     def __init__(self, campos: list[str]) -> None:
         self.campos = campos
         super().__init__(f"Para derivar falta completar: {', '.join(campos)}.")
+
+
+class MarcaInvalida(ValueError):
+    """Se marcó una pregunta que no es del protocolo que queda en la carta."""
+
+    def __init__(self, preguntas: list[str]) -> None:
+        self.preguntas = preguntas
+        super().__init__(f"No son preguntas del protocolo de esta carta: {', '.join(preguntas)}.")
 
 
 def analizar(turnos: list[Turno]) -> Sugerencia:
@@ -161,6 +171,9 @@ def derivar(llamada_id: str, sugerencia: Sugerencia, ajustes: Ajustes, ahora: da
             "altura": _resolver(sugerencia.ubicacion.altura, nueva.altura),
             "esquinas": [_resolver_esquina(sugeridas, nombre) for nombre in nueva.esquinas],
         }
+    vigentes = _esquinas_vigentes(sugerencia.ubicacion, ubicacion)
+    se_quitaron_esquinas = len(vigentes) < len(ubicacion["esquinas"])
+    ubicacion["esquinas"] = vigentes
     tipo_hecho, subtipo = sugerencia.tipo_hecho.model_dump(), sugerencia.subtipo.model_dump()
     sugerido = valor_de(sugerencia.subtipo)
     if (tipo := ajustes.tipo_hecho) is not None:
@@ -172,14 +185,24 @@ def derivar(llamada_id: str, sugerencia: Sugerencia, ajustes: Ajustes, ahora: da
     # operador lo cambió, del anterior no se arrastra nada: ni las respuestas ni sus citas.
     protocolo = catalogo.cargar().protocolo(tipo_hecho["valor"], subtipo.get("valor"))
     previo = sugerencia.checklist if subtipo.get("valor") == sugerido else []
+    # Un aviso sobre la dirección viaja en la carta sólo si el operador la dejó como estaba: si la
+    # corrigió, se da por atendido. Lo que el sistema descartó no es asunto de quien despacha.
+    sin_confirmar = [
+        aviso
+        for aviso in sugerencia.avisos
+        if aviso.codigo != "dato_descartado" and ubicacion == sugerencia.ubicacion.model_dump()
+    ]
+    if se_quitaron_esquinas:
+        sin_confirmar.append(_ESQUINAS_DE_OTRA_DIRECCION)
     ficha = Ficha.model_validate(
         {
             "ubicacion": ubicacion,
             "tipo_hecho": tipo_hecho,
             "subtipo": subtipo,
             "prioridad": _resolver(sugerencia.prioridad, ajustes.prioridad, si_no_manda=True),
-            "checklist": checklist_de(protocolo, previo),
+            "checklist": _marcar(checklist_de(protocolo, previo), ajustes.checklist or []),
             "instrucciones": protocolo.instrucciones if protocolo else [],
+            "avisos": sin_confirmar,
         }
     )
     if faltan := ficha.faltantes():
@@ -187,6 +210,25 @@ def derivar(llamada_id: str, sugerencia: Sugerencia, ajustes: Ajustes, ahora: da
     return Carta.model_validate(
         {**ficha.model_dump(), "llamada_id": llamada_id, "derivada_en": ahora}
     )
+
+
+def _marcar(checklist: list[ItemChecklist], marcas: list[MarcaChecklist]) -> list[ItemChecklist]:
+    """El checklist con lo que marcó el operador por encima.
+
+    Confirmar lo que el sistema ya había detectado no cambia nada: la respuesta conserva su cita.
+    Marcar una pendiente, o desmarcar una detectada, pasa a ser una decisión del operador.
+    """
+    marcadas = {marca.id: marca.respondida for marca in marcas}
+    if ajenas := sorted(set(marcadas) - {item.id for item in checklist}):
+        raise MarcaInvalida(ajenas)
+    return [
+        item
+        if marcadas.get(item.id, item.respondida) == item.respondida
+        else ItemChecklist(
+            id=item.id, pregunta=item.pregunta, respondida=marcadas[item.id], del_operador=True
+        )
+        for item in checklist
+    ]
 
 
 def checklist_de(protocolo: Protocolo | None, previo: list[ItemChecklist]) -> list[ItemChecklist]:
@@ -231,6 +273,32 @@ def ajustar_al_catalogo(sugerencia: Sugerencia) -> Sugerencia:
             "instrucciones": protocolo.instrucciones if protocolo else [],
         }
     )
+
+
+_ESQUINAS_DE_OTRA_DIRECCION = Aviso(
+    codigo="cruce_sin_confirmar",
+    mensaje="Faltan las entrecalles: las que se habían propuesto eran de la dirección anterior.",
+)
+
+
+def _esquinas_vigentes(sugerida: Ubicacion, nueva: dict[str, Any]) -> list[dict[str, object]]:
+    """Las esquinas que siguen valiendo para la dirección que queda en la carta.
+
+    Una entrecalle que completó el callejero vale para la calle y la altura con las que se
+    calculó. Si el operador cambia alguna de las dos y deja esa entrecalle, se vuelve a comprobar:
+    queda sólo si el callejero la sigue dando para la dirección nueva.
+    """
+    esquinas: list[dict[str, object]] = nueva["esquinas"]
+    if all(nueva[dato] == getattr(sugerida, dato).model_dump() for dato in ("calle", "altura")):
+        return esquinas
+    calle, altura = nueva["calle"].get("valor"), nueva["altura"].get("valor")
+    del_callejero = ubicacion.entrecalles_de(calle, altura) if calle and altura else []
+    return [
+        esquina
+        for esquina in esquinas
+        if esquina.get("fuente") != "callejero"
+        or any(_mismo(esquina["valor"], cruce) for cruce in del_callejero)
+    ]
 
 
 def _mismo(sugerido: object, nuevo: object) -> bool:

@@ -199,11 +199,17 @@ class ItemChecklist(Esquema):
     respondida: bool
     # Dónde se respondió, cuando lo detecta el sistema.
     cita: Cita | None = None
+    # La marcó o la desmarcó el operador. Su palabra no necesita cita.
+    del_operador: bool = False
 
     @model_validator(mode="after")
-    def la_cita_es_de_una_respuesta(self) -> Self:
+    def con_respaldo(self) -> Self:
         if self.cita is not None and not self.respondida:
             raise ValueError("Una pregunta pendiente no lleva cita.")
+        if self.cita is not None and self.del_operador:
+            raise ValueError("Lo que marca el operador no lleva cita.")
+        if self.respondida and self.cita is None and not self.del_operador:
+            raise ValueError("Una pregunta respondida lleva su cita, o la marcó el operador.")
         return self
 
 
@@ -217,6 +223,20 @@ class Instruccion(Esquema):
 OBLIGATORIOS_PARA_DERIVAR = ("calle", "tipo_hecho", "prioridad")
 
 
+class Aviso(Esquema):
+    """Algo que conviene confirmar con el llamante. En la carta: lo que quedó sin confirmar."""
+
+    codigo: Literal[
+        "sin_calle",
+        "falta_altura",
+        "calle_ambigua",
+        "direccion_no_cierra",
+        "cruce_sin_confirmar",
+        "dato_descartado",
+    ]
+    mensaje: TextoLargo
+
+
 class Ficha(Esquema):
     """Lo que se sabe del hecho. Es la base de la sugerencia del sistema y de la carta."""
 
@@ -227,6 +247,7 @@ class Ficha(Esquema):
     prioridad: Dato[Prioridad]
     checklist: list[ItemChecklist] = Field(default_factory=list)
     instrucciones: list[Instruccion] = Field(default_factory=list)
+    avisos: list[Aviso] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def sin_preguntas_ni_instrucciones_repetidas(self) -> Self:
@@ -260,24 +281,8 @@ class Ficha(Esquema):
         return [campo for campo in OBLIGATORIOS_PARA_DERIVAR if valor_de(datos[campo]) is None]
 
 
-class Aviso(Esquema):
-    """Algo de la sugerencia que conviene confirmar con el llamante antes de derivar."""
-
-    codigo: Literal[
-        "sin_calle",
-        "falta_altura",
-        "calle_ambigua",
-        "direccion_no_cierra",
-        "cruce_sin_confirmar",
-        "dato_descartado",
-    ]
-    mensaje: TextoLargo
-
-
 class Sugerencia(Ficha):
     """Lo que propone el sistema. El operador todavía no tocó nada."""
-
-    avisos: list[Aviso] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def es_del_sistema(self) -> Self:
@@ -288,9 +293,8 @@ class Sugerencia(Ficha):
             )
         if self.tipo_hecho.origen == "falta":
             raise ValueError("El tipo de hecho nunca falta: si no se reconoce, es NO_DETERMINADA.")
-        # El sistema no da por respondida una pregunta sin mostrar dónde se respondió.
-        if any(item.respondida and item.cita is None for item in self.checklist):
-            raise ValueError("Una respuesta que propone el sistema lleva su cita.")
+        if any(item.del_operador for item in self.checklist):
+            raise ValueError("Una sugerencia no trae preguntas marcadas por el operador.")
         return self
 
 
@@ -372,12 +376,28 @@ class TipoAjustado(Esquema):
     subtipo: Texto | None
 
 
+class MarcaChecklist(Esquema):
+    """Una pregunta del protocolo que el operador marca como respondida o como pendiente."""
+
+    id: Texto
+    respondida: bool
+
+
 class Ajustes(Esquema):
     """Lo que el operador cambia de la sugerencia. Lo que no manda queda como estaba."""
 
     ubicacion: UbicacionAjustada | None = None
     tipo_hecho: TipoAjustado | None = None
     prioridad: Prioridad | None = None
+    # Sólo las preguntas que el operador marcó o desmarcó.
+    checklist: list[MarcaChecklist] | None = Field(default=None, max_length=50)
+
+    @model_validator(mode="after")
+    def sin_marcas_repetidas(self) -> Self:
+        ids = [marca.id for marca in self.checklist or []]
+        if len(set(ids)) != len(ids):
+            raise ValueError("Cada pregunta se marca una sola vez.")
+        return self
 
     @model_validator(mode="after")
     def sin_campos_vacios(self) -> Self:
