@@ -9,6 +9,7 @@ búsqueda, y el origen de esos datos lo dice.
 import csv
 import io
 import json
+from collections.abc import Iterator
 from functools import cache
 from importlib import resources
 
@@ -27,19 +28,28 @@ class LlamadaConocida(Esquema):
     respuestas: dict[str, Texto]
 
 
-def _tramos(turnos: list[Turno]) -> list[str]:
-    return [tramo for turno in turnos for tramo in tramos_del_llamante(turno)]
+def _tramos(turnos: list[Turno]) -> Iterator[tuple[int, str]]:
+    for numero, turno in enumerate(turnos):
+        for tramo in tramos_del_llamante(turno):
+            yield numero, tramo
+
+
+def primer_tramo(turnos: list[Turno]) -> tuple[int, str] | None:
+    """El relato del llamante con su texto e índice originales."""
+    return next(_tramos(turnos), None)
 
 
 def _relato(turnos: list[Turno]) -> str | None:
     """Lo primero que dijo el llamante, de un tirón. Sólo se emparejan los espacios."""
-    tramos = _tramos(turnos)
-    return " ".join(tramos[0].split()) if tramos else None
+    primero = primer_tramo(turnos)
+    return " ".join(primero[1].split()) if primero else None
 
 
 def se_dijo_algo_mas(turnos: list[Turno]) -> bool:
     """Si el llamante siguió hablando después de su relato."""
-    return len(_tramos(turnos)) > 1
+    tramos = _tramos(turnos)
+    next(tramos, None)
+    return next(tramos, None) is not None
 
 
 @cache

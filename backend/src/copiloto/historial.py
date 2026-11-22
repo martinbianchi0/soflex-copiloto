@@ -87,7 +87,11 @@ def _detalle(
             assert isinstance(turnos, list)
             if nodo == "__start__":
                 return "recibida", f"Llamada recibida, con {_cantidad(len(turnos), 'turno')}."
-            return "turno_agregado", f"Se sumó un turno a la llamada: ahora tiene {len(turnos)}."
+            previos = anterior["turnos"]
+            assert isinstance(previos, list)
+            nuevos = len(turnos) - len(previos)
+            agregado = "sumó un turno" if nuevos == 1 else f"sumaron {nuevos} turnos"
+            return "turno_agregado", f"Se {agregado} a la llamada: ahora tiene {len(turnos)}."
         case "analizar":
             sugerencia = Sugerencia.model_validate(punto.valores.get("sugerencia"))
             return "sugerencia_reglas", f"Sugerencia de las reglas, {_avisos(sugerencia)}."

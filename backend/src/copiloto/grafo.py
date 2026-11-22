@@ -40,10 +40,9 @@ class _RespuestaOperador(TypedDict, total=False):
 def analizar(estado: Estado, *, con_modelo: bool = False) -> Estado:
     turnos = [Turno.model_validate(turno) for turno in estado["turnos"]]
     sugerencia = flujo.analizar_base(turnos) if con_modelo else flujo.analizar(turnos)
-    if not con_modelo:
-        sugerencia = flujo.avisar_cambio_de_prioridad(sugerencia, _prioridad_previa(estado))
+    previa = None if con_modelo else _prioridad_previa(estado)
     return {
-        **_preparar_sugerencia(sugerencia, turnos),
+        **_preparar_sugerencia(sugerencia, turnos, previa),
         "turnos_analizados": len(turnos),
         "falta_el_modelo": con_modelo,
     }
@@ -61,8 +60,10 @@ def consultar_modelo(estado: Estado, *, modelo: Modelo | None, espera_s: float) 
     else:
         base = Sugerencia.model_validate(estado["sugerencia"])
         sugerencia = flujo.analizar_con_modelo(turnos, base, modelo, espera_s)
-    sugerencia = flujo.avisar_cambio_de_prioridad(sugerencia, _prioridad_previa(estado))
-    return {**_preparar_sugerencia(sugerencia, turnos), "falta_el_modelo": False}
+    return {
+        **_preparar_sugerencia(sugerencia, turnos, _prioridad_previa(estado)),
+        "falta_el_modelo": False,
+    }
 
 
 def _prioridad_previa(estado: Estado) -> Prioridad | None:
@@ -70,11 +71,14 @@ def _prioridad_previa(estado: Estado) -> Prioridad | None:
     return Prioridad(previa) if previa else None
 
 
-def _preparar_sugerencia(sugerencia: Sugerencia, turnos: list[Turno]) -> Estado:
+def _preparar_sugerencia(
+    sugerencia: Sugerencia, turnos: list[Turno], prioridad_previa: Prioridad | None
+) -> Estado:
     # Antes de guardar: lo que cita algo que nadie dijo se descarta, y lo que no está en el
     # catálogo también. Lo que llega al disco es sólo lo que se puede respaldar.
     sugerencia = flujo.quitar_lo_que_nadie_dijo(sugerencia, turnos)
     sugerencia = flujo.ajustar_al_catalogo(sugerencia)
+    sugerencia = flujo.avisar_cambio_de_prioridad(sugerencia, prioridad_previa)
     return {"sugerencia": sugerencia.model_dump(mode="json")}
 
 

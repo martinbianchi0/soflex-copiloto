@@ -2,6 +2,7 @@
 
 import re
 import unicodedata
+from bisect import bisect_left
 from collections.abc import Iterator
 from dataclasses import dataclass, replace
 from functools import cache
@@ -159,12 +160,32 @@ NUMERO_CON_FORMATO = re.compile(
 CIERRE_DE_FRASE = re.compile(r"[^\S\n]*[.!?…\n]")
 CORTE_ENTRE_PALABRAS = re.compile(r"[,.;:!?…\n]")
 ANTES_DE_ALTURA = {"AL", "ALTURA", "NUMERO", "NRO", "N"}
-PREGUNTA_POR_ALTURA = re.compile(r"\b(?:ALTURA|NUMERACION|QUE NUMERO|A QUE NUMERO)\b")
-FRASE_DEL_OPERADOR = re.compile(r"¿[^¿?¡!.\n]*\??|[^¿?¡!.\n;]+\??")
-PEDIDO_DE_ALTURA = re.compile(
-    r"^(?:(?:A QUE|QUE|CUAL ES|DECIME|DIGAME|INDIQUE|INDICAME|ME DECIS|ME DICE)\b"
-    r"|(?:LA )?(?:ALTURA|NUMERACION)$)"
+FRASE_DEL_OPERADOR = re.compile(r"¿[^¿?¡!\n]*\??|(?:\b(?:AV|NRO)\.|[^¿?¡!.\n;])+\??", re.IGNORECASE)
+PEDIDO_VERBAL = r"(?:DECIME|DIGAME|INDIQUE|INDICAME|ME DECIS|ME DICE)"
+OTRO_PEDIDO = re.compile(rf"^(?:{PEDIDO_VERBAL}|A QUE|QUE|CUAL ES|CUANT[OA]S?|DONDE|CUANDO)\b")
+PREGUNTA_POR_ALTURA = re.compile(
+    rf"(?:{PEDIDO_VERBAL} )?"
+    r"(?:(?:A QUE|QUE|CUAL ES) )?(?:LA |EL )?(?:ALTURA|NUMERACION|NUMERO)"
+    r"(?: (?:DE|EN) (?P<calle>.+)| (?:ES|ESTA|ESTAN|TIENE))?"
 )
+CALLE_YA_DICHA = {"LA CALLE", "ESA CALLE", "ESTA CALLE", "LA DIRECCION"}
+CONFIRMACION_DE_ALTURA = re.compile(r"AL [0-9]+(?: [0-9]{3})?")
+CONTINUACION_DE_ALTURA = re.compile(r"(?:MAS O MENOS|APROXIMADAMENTE|APROXIMADO|Y PICO)")
+OTRA_CIFRA_U_HORA = re.compile(
+    r"(?:(?:(?:Y|O) (?:AL )?)?[0-9]+|Y (?:MEDIA|CUARTO)|DE LA (?:TARDE|NOCHE|MANANA))\b"
+)
+ETIQUETA_DEL_NUMERO = re.compile(r"(?:(?:ES|SON) )?(?:(?:EL|LA|MI|SU) )?(\w+)")
+OTROS_NUMEROS = SE_CUENTAN | {
+    "AMBULANCIA",
+    "AMBULANCIAS",
+    "TELEFONO",
+    "CELULAR",
+    "EDAD",
+    "H",
+    "HS",
+    "AM",
+    "PM",
+}
 INICIO_DE_RESPUESTA = ANTES_DE_ALTURA | {
     "",
     "NUMERACION",
@@ -243,14 +264,23 @@ class _Token:
     fin: _Posicion
 
 
-def _pregunta_por_altura(texto: str) -> bool:
+def _calles_preguntadas(texto: str) -> list[str] | None:
+    """Las calles nombradas en una pregunta por la altura. Una lista vacía deja la calle implícita."""
+    calles: list[str] = []
+    hubo_pedido = False
     for frase in FRASE_DEL_OPERADOR.findall(texto):
+        frase = frase.strip()
         palabras = normalizar(frase)
-        if PREGUNTA_POR_ALTURA.search(palabras) and (
-            frase.startswith("¿") or frase.endswith("?") or PEDIDO_DE_ALTURA.match(palabras)
-        ):
-            return True
-    return False
+        pregunta = frase.startswith("¿") or frase.endswith("?") or OTRO_PEDIDO.match(palabras)
+        pedido = PREGUNTA_POR_ALTURA.fullmatch(palabras)
+        if pedido:
+            hubo_pedido = True
+            calle = pedido["calle"]
+            if calle and calle not in CALLE_YA_DICHA:
+                calles.append(calle.removeprefix("LA CALLE ").removeprefix("CALLE "))
+        elif pregunta and not (hubo_pedido and CONFIRMACION_DE_ALTURA.fullmatch(palabras)):
+            return None
+    return calles if hubo_pedido else None
 
 
 def _bloques_del_llamante(turno: Turno) -> Iterator[tuple[int, int]]:
@@ -521,37 +551,46 @@ class _Resolvedor:
                 nombre, alternativas = self._elegir(candidatos, es_av)
                 yield _Direccion(mencion, nombre, alternativas, dicha, i, existe)
 
-    def _alturas_preguntadas(self) -> Iterator[Dicho[Altura]]:
-        for inicio, tramo in enumerate(self.tramos):
+    def _alturas_preguntadas(self, limite: int) -> Iterator[tuple[Dicho[Altura], list[str]]]:
+        for inicio, tramo in enumerate(self.tramos[:limite]):
             if inicio != tramo.start or self.tokens[inicio].inicio.bloque != 0:
                 continue
             numero_turno = self.tokens[inicio].inicio.turno
             if numero_turno == 0:
                 continue
             anterior = self.turnos[numero_turno - 1]
-            if anterior.hablante != "operador" or not _pregunta_por_altura(anterior.texto):
+            if anterior.hablante != "operador":
+                continue
+            calles = _calles_preguntadas(anterior.texto)
+            if calles is None:
                 continue
             # La respuesta a la pregunta empieza con el número o una fórmula como «al 1540».
             for i in range(inicio, min(inicio + 5, tramo.stop)):
                 if " ".join(self.palabras[inicio:i]) in INICIO_DE_RESPUESTA and (
-                    (altura := self._altura_en(i)) is not None and not self._es_hora(i, tramo)
+                    (altura := self._altura_en(i)) is not None and self._termina_la_altura(i, tramo)
                 ):
-                    yield altura
+                    yield altura, calles
                     break
 
-    def _es_hora(self, i: int, tramo: range) -> bool:
-        despues = self.palabras[i + 1 : min(i + 4, tramo.stop)]
-        return bool(despues) and (
-            despues[0] in {"H", "HS", "AM", "PM"}
-            or despues[:2] == ["Y", "MEDIA"]
-            or (despues[:2] == ["DE", "LA"] and despues[-1] in {"TARDE", "NOCHE", "MANANA"})
-            or (despues[0].isdigit() and self._separador(i, i + 1).strip() in {".", ":"})
+    def _termina_la_altura(self, i: int, tramo: range) -> bool:
+        if i + 1 not in tramo:
+            return True
+        despues = " ".join(self.palabras[i + 1 : tramo.stop])
+        if OTRA_CIFRA_U_HORA.match(despues):
+            return False
+        # Una aclaración puede decir qué era el número, incluso después de una coma.
+        etiqueta = ETIQUETA_DEL_NUMERO.match(despues)
+        if etiqueta and etiqueta[1] in OTROS_NUMEROS:
+            return False
+        return bool(
+            re.search(r"[,.;!?…\n]", self._separador(i, i + 1))
+            or CONTINUACION_DE_ALTURA.fullmatch(despues)
         )
 
-    def _calles_para_altura_preguntada(self) -> Iterator[_Mencion]:
+    def _calles_para_altura_preguntada(self, limite: int) -> Iterator[_Mencion]:
         """Busca calles dichas sin altura, incluso en «hay un choque en Corrientes»."""
         fin = -1
-        for i, palabra in enumerate(self.palabras):
+        for i, palabra in enumerate(self.palabras[:limite]):
             if i <= fin:
                 continue
             tramo = self.tramos[i]
@@ -582,37 +621,45 @@ class _Resolvedor:
                 fin = mencion.fin
                 yield mencion
 
-    def _direccion_preguntada(
+    def _direcciones_preguntadas(
         self,
-        principal: _Mencion,
-        calle: str,
         calles_dichas: list[_Mencion],
-        cruces_marcados: list[_Mencion],
-        respuestas: list[Dicho[Altura]],
-    ) -> _Direccion | None:
+        respuestas: list[tuple[Dicho[Altura], list[str]]],
+        limite: int,
+    ) -> Iterator[_Direccion]:
+        if not calles_dichas or self._en_esquina(limite):
+            return
+        principal = calles_dichas[0]
+        es_av = normalizar(principal.cita.texto).split()[0] in {"AV", "AVENIDA"}
+        calle, alternativas = self._elegir(principal.candidatos, es_av)
+        if alternativas:
+            return
         if any(calle not in {c.nombre for c in mencion.candidatos} for mencion in calles_dichas):
-            return None
+            return
         if any(
             c.nombre != calle and self.alturas_en_esquina(calle, c.nombre)
-            for mencion in cruces_marcados
+            for mencion in self._cruces_marcados(principal.fin, limite)
             for c in mencion.candidatos
         ):
-            return None
-        calle_reconocida = any(
-            c.nombre == calle and c.como in ("exacto", "apellido") for c in principal.candidatos
-        )
-        for altura in respuestas:
+            return
+        for altura, calles in respuestas:
             if altura.cita.turno <= principal.cita.turno:
                 continue
+            if any(
+                not any(
+                    c.nombre == calle and c.como in ("exacto", "apellido")
+                    for c in self.candidatos(nombre, difuso=False)
+                )
+                for nombre in calles
+            ):
+                continue
             existe = bool(self.cj.tramos_en(calle, altura.valor))
-            if calle_reconocida or (altura.valor >= 100 and existe):
-                return _Direccion(principal, calle, [], altura, principal.fin, existe)
-        return None
+            yield _Direccion(principal, calle, [], altura, principal.fin, existe)
 
-    def _en_esquina(self) -> tuple[_Mencion, str, _Mencion, str] | None:
+    def _en_esquina(self, limite: int | None = None) -> tuple[_Mencion, str, _Mencion, str] | None:
         entre = -1
         y_de_entre = None
-        for i, palabra in enumerate(self.palabras):
+        for i, palabra in enumerate(self.palabras[:limite]):
             if palabra == "ENTRE":
                 entre, y_de_entre = i, self._y_de_entre(i)
             if palabra not in ("Y", "E"):
@@ -685,8 +732,8 @@ class _Resolvedor:
         except ValueError:
             return None
 
-    def _cruces_marcados(self, fin_direccion: int) -> Iterator[_Mencion]:
-        for i, palabra in enumerate(self.palabras):
+    def _cruces_marcados(self, fin_direccion: int, hasta: int | None = None) -> Iterator[_Mencion]:
+        for i, palabra in enumerate(self.palabras[:hasta]):
             if palabra == "ENTRE":
                 limite = self.tramos[i].stop
                 j = self._y_de_entre(i)
@@ -718,13 +765,33 @@ class _Resolvedor:
         cruces: list[tuple[_Mencion, str]] = []
         por_marca = False
         direcciones = list(self._direcciones())
+        # Una dirección de corrido ya dicha no se reescribe con una respuesta que viene después.
+        # Las respuestas anteriores sí entran en la comparación con las direcciones posteriores.
+        limite = (
+            bisect_left(self.tokens, direcciones[0].altura.cita.turno, key=lambda t: t.inicio.turno)
+            if direcciones
+            else len(self.tokens)
+        )
+        respuestas = list(self._alturas_preguntadas(limite))
+        calles_dichas = list(self._calles_para_altura_preguntada(limite)) if respuestas else []
+        preguntadas = list(self._direcciones_preguntadas(calles_dichas, respuestas, limite))
+        conflicto = None
+        if preguntadas:
+            primera = preguntadas[0]
+            distinta = next((otra for otra in preguntadas if not primera.coincide_con(otra)), None)
+            if distinta:
+                conflicto = (primera, distinta)
+            else:
+                direcciones.insert(0, primera)
         direccion = next(
             (direccion for direccion in direcciones if direccion.existe),
             direcciones[0] if direcciones else None,
         )
-        preguntadas = list(self._alturas_preguntadas()) if direccion is None else []
-        calles_dichas = list(self._calles_para_altura_preguntada()) if preguntadas else []
-        if direccion:
+        if conflicto:
+            direccion = None
+            primera = conflicto[0]
+            principal, calle, fin_direccion = primera.mencion, primera.calle, primera.fin
+        elif direccion:
             principal, calle = direccion.mencion, direccion.calle
             alternativas, altura, fin_direccion = (
                 direccion.alternativas,
@@ -766,15 +833,7 @@ class _Resolvedor:
                 if cruce:
                     mencionados.append(cruce)
 
-        if preguntadas and not cruces and not alternativas:
-            direccion = self._direccion_preguntada(
-                principal, calle, calles_dichas, mencionados, preguntadas
-            )
-            if direccion:
-                altura = direccion.altura
-
         avisos: list[Aviso] = []
-        dos_direcciones = False
         altura_dicha = altura.valor if isinstance(altura, Dicho) else None
         entrecalles = []
         calle_visible = self.cj.nombre_para_mostrar(calle)
@@ -793,21 +852,24 @@ class _Resolvedor:
                 )
             otra = next((otra for otra in direcciones if not direccion.coincide_con(otra)), None)
             if otra:
-                dos_direcciones = True
-                otra_calle = self.cj.nombre_para_mostrar(otra.calle)
-                avisos.append(
-                    Aviso(
-                        codigo="direccion_no_cierra",
-                        mensaje=(
-                            f"Se mencionaron {calle_visible} {direccion.altura.valor} y "
-                            f"{otra_calle} {otra.altura.valor}. "
-                            "Confirmá con el llamante cuál es la dirección."
-                        ),
-                    )
+                conflicto = (direccion, otra)
+        if conflicto:
+            primera, segunda = conflicto
+            calle_primera = self.cj.nombre_para_mostrar(primera.calle)
+            calle_segunda = self.cj.nombre_para_mostrar(segunda.calle)
+            avisos.append(
+                Aviso(
+                    codigo="direccion_no_cierra",
+                    mensaje=(
+                        f"Se mencionaron {calle_primera} {primera.altura.valor} y "
+                        f"{calle_segunda} {segunda.altura.valor}. "
+                        "Confirmá con el llamante cuál es la dirección."
+                    ),
                 )
+            )
         no_confirmados: set[str] = set()
         # Con dos direcciones en el relato no se sabe cuál completar: no se infiere nada.
-        hay_conflicto = dos_direcciones
+        hay_conflicto = conflicto is not None
         for mencion in mencionados:
             cruza = next(
                 (
@@ -853,7 +915,7 @@ class _Resolvedor:
         esquinas = self._esquinas(
             principal, calle_visible, cruces, [] if hay_conflicto else entrecalles
         )
-        if altura_dicha is None and not esquinas:
+        if altura_dicha is None and not esquinas and conflicto is None:
             avisos.append(
                 Aviso(
                     codigo="falta_altura",
