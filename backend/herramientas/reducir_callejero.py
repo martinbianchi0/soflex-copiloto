@@ -34,19 +34,25 @@ COLUMNAS = (
 COORDENADAS = re.compile(r"(-?\d+\.\d+) (-?\d+\.\d+)")
 
 
-def _nodo(x: str, y: str, nodos: dict[tuple[int, int], int]) -> int:
+def _nodo(
+    x: str, y: str, nodos: dict[tuple[int, int], int], coordenadas: list[tuple[float, float]] | None
+) -> int:
     """Agrupa extremos a unos 3 m de distancia, en el orden del archivo oficial."""
-    cx, cy = round(float(x) / 3e-5), round(float(y) / 3e-5)
+    lon, lat = float(x), float(y)
+    cx, cy = round(lon / 3e-5), round(lat / 3e-5)
     for dx in (-1, 0, 1):
         for dy in (-1, 0, 1):
             if (cx + dx, cy + dy) in nodos:
                 return nodos[cx + dx, cy + dy]
     nodos[cx, cy] = len(nodos)
+    if coordenadas is not None:
+        coordenadas.append((lon, lat))
     return nodos[cx, cy]
 
 
-def reducir(origen: Path, salida: Path) -> None:
+def reducir(origen: Path, salida: Path, salida_nodos: Path | None = None) -> None:
     nodos: dict[tuple[int, int], int] = {}
+    coordenadas: list[tuple[float, float]] | None = [] if salida_nodos is not None else None
     with (
         origen.open(encoding="utf-8-sig", newline="") as entrada,
         salida.open("w", encoding="utf-8", newline="") as destino,
@@ -63,14 +69,22 @@ def reducir(origen: Path, salida: Path) -> None:
                 continue
             puntos = COORDENADAS.findall(fila["geometry"])
             if len(puntos) >= 2:
-                inicio = _nodo(*puntos[0], nodos)
-                fin = _nodo(*puntos[-1], nodos)
+                inicio = _nodo(*puntos[0], nodos, coordenadas)
+                fin = _nodo(*puntos[-1], nodos, coordenadas)
                 escritor.writerow([*(fila[columna] for columna in COLUMNAS), inicio, fin])
+    if salida_nodos is not None and coordenadas is not None:
+        with salida_nodos.open("w", encoding="utf-8", newline="") as destino:
+            escritor = csv.writer(destino, lineterminator="\n")
+            escritor.writerow(("nodo", "lon", "lat"))
+            escritor.writerows(
+                (nodo, f"{lon:.6f}", f"{lat:.6f}") for nodo, (lon, lat) in enumerate(coordenadas)
+            )
 
 
 if __name__ == "__main__":
     argumentos = argparse.ArgumentParser(description="Reduce el callejero oficial de CABA.")
     argumentos.add_argument("callejero_oficial", type=Path)
     argumentos.add_argument("salida", type=Path)
+    argumentos.add_argument("--nodos", type=Path, help="Escribe las coordenadas de los nodos.")
     opciones = argumentos.parse_args()
-    reducir(opciones.callejero_oficial, opciones.salida)
+    reducir(opciones.callejero_oficial, opciones.salida, opciones.nodos)

@@ -7,6 +7,7 @@ import type { CamposSugerencia } from './borradorSugerencia'
 import AvisosSugerencia from './AvisosSugerencia'
 import DatosDictados from './DatosDictados'
 import DetallesSugerencia from './DetallesSugerencia'
+import MiniMapa from './MiniMapa'
 import PrioridadEtiqueta from './PrioridadEtiqueta'
 import Transcripcion from './Transcripcion'
 import { campoSugerencia } from './validacion'
@@ -285,6 +286,7 @@ export default function FormularioSugerencia({
             </CampoSugerido>
             {errorEsquinas && <p id={errorEsquinas} className="error-campo">{erroresEsquinas.join(' ')}</p>}
           </div>
+          <MiniMapa calle={calle} altura={altura} esquinas={[esquinaUno, esquinaDos]} />
           <DatosDictados datos={sugerencia.datos_dictados} edicion={{ quitados: dictadosQuitados, alMarcar: marcarDictado }} />
           <div className="hecho">
             <CampoSugerido nombre="tipo_hecho" etiqueta="Tipo de hecho" dato={datos.tipo_hecho} errores={erroresDe('tipo_hecho')}>

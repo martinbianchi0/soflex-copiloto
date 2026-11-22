@@ -2,7 +2,7 @@
 
 Prototipo que asiste al operador de una sala de emergencias: lee la transcripción de una llamada, propone ubicación, tipo de hecho y prioridad, y el operador revisa, ajusta y deriva la Carta de Llamada.
 
-**Estado:** funcionan los dos modos. En `mock`, sin red ni modelo, las reglas proponen la ubicación contrastada con el callejero de la Ciudad, con la cita de lo que dijo el llamante y avisos cuando la dirección no cierra; para un texto nuevo proponen además la categoría por palabras clave, y si la llamada es una de las 30 del dataset, su tipo, su subtipo, su prioridad y las preguntas del protocolo que el relato ya responde. Con un modelo local, la ubicación sigue saliendo de las reglas y el modelo propone el tipo de hecho, la prioridad con la cita que la justifica y posibles respuestas a las preguntas del protocolo, que el operador confirma. En los dos modos el operador revisa, marca el protocolo, suma lo que el llamante dice después (la sugerencia se actualiza sin pisar lo que ya corrigió) y deriva la carta. Si el llamante dicta una patente o un teléfono, también van a la carta, y si los dicta a medias el panel avisa para pedir que los repita. Si en la media hora anterior o posterior entró otra llamada del mismo lugar, el panel lo avisa. La carta lleva lo que quedó sin confirmar con el llamante y el historial de la llamada: qué propuso el sistema, cuándo, y qué cambió el operador. El panel trae llamadas de ejemplo para cargar.
+**Estado:** funcionan los dos modos. En `mock`, sin red ni modelo, las reglas proponen la ubicación contrastada con el callejero de la Ciudad, con la cita de lo que dijo el llamante y avisos cuando la dirección no cierra; para un texto nuevo proponen además la categoría por palabras clave, y si la llamada es una de las 30 del dataset, su tipo, su subtipo, su prioridad y las preguntas del protocolo que el relato ya responde. Con un modelo local, la ubicación sigue saliendo de las reglas y el modelo propone el tipo de hecho, la prioridad con la cita que la justifica y posibles respuestas a las preguntas del protocolo, que el operador confirma. En los dos modos el operador revisa, marca el protocolo, suma lo que el llamante dice después (la sugerencia se actualiza sin pisar lo que ya corrigió) y deriva la carta. Si el llamante dicta una patente o un teléfono, también van a la carta, y si los dicta a medias el panel avisa para pedir que los repita. Si en la media hora anterior o posterior entró otra llamada del mismo lugar, el panel lo avisa. Debajo de la dirección hay un plano chico de la cuadra, dibujado con el callejero y sin red, que sigue lo que el operador corrige. La carta lleva lo que quedó sin confirmar con el llamante y el historial de la llamada: qué propuso el sistema, cuándo, y qué cambió el operador. El panel trae llamadas de ejemplo para cargar.
 
 ## Cómo levantarlo
 
@@ -13,6 +13,8 @@ docker compose up --build
 El panel queda en <http://localhost:8000>. Hace falta Docker con Compose 2.24 o más nuevo. No hace falta `.env`: sin configuración corre en modo `mock`, que no usa red ni claves. Las variables que se pueden cambiar están en `.env.example`.
 
 Para probarlo: en "Cargar un ejemplo", elegir *Choque con moto · la llamada llega de a un intercambio*, tildar "Reproducir de a un intercambio" y apretar "Analizar llamada". La llamada llega de a poco: la altura aparece cuando el operador la pregunta. Mientras tanto se puede corregir la sugerencia, elegir el subtipo para marcar su protocolo y derivar; lo que el operador cambia no se pisa.
+
+Al corregir la calle, la altura o una esquina de la sugerencia, el plano de abajo se actualiza: muestra dónde cae la dirección y qué calles la cruzan.
 
 Cargar dos veces el mismo ejemplo muestra, en la segunda, el aviso "Otra llamada del mismo lugar": las dos tienen la misma dirección y entraron con poca diferencia.
 
@@ -75,7 +77,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 - **Patentes y teléfonos como llegan de un reconocimiento de voz:** deletreados o con los números en palabras. Hoy se leen escritos con letras y cifras.
 - **Entrada en vivo.** Hoy el operador escribe cada turno, o se reproduce un ejemplo; lo siguiente sería recibirlos a medida que se transcribe la llamada.
 - **Que el aviso de otra llamada del mismo lugar compare por distancia.** Hoy compara calle, altura y esquinas, y una calle que el operador escribió con otro nombre no coincide.
-- **Coordenadas además de calle y altura**, y contraste con el servicio de direcciones de la Ciudad cuando hay red.
+- **Coordenadas en la carta, además de calle y altura**, y contraste con el servicio de direcciones de la Ciudad cuando hay red. Hoy el punto del plano se interpola sobre la cuadra y no se guarda.
 - **Trazas de cada pedido al modelo** (qué se le mandó, qué devolvió, cuánto tardó), para revisar un caso sin volver a correrlo.
 - **Tests automáticos del panel.** El backend tiene los suyos; el panel no tiene.
 - **Probarlo con un lector de pantalla y en Linux.** Los anuncios y el foco están pensados para un lector de pantalla, pero no se probaron con uno, y el modo con modelo no se probó en Linux.
@@ -88,6 +90,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 - `backend/src/copiloto/ubicacion.py` y `callejero.py`: la lectura de la dirección y su contraste con el callejero.
 - `backend/src/copiloto/dictados.py`: la patente y el teléfono que dicta el llamante.
 - `backend/src/copiloto/duplicados.py`: el aviso de otra llamada reciente del mismo lugar.
+- `backend/src/copiloto/mapa.py`: el plano de la cuadra para confirmar la dirección.
 - `backend/src/copiloto/interprete.py` y `modelo.py`: los pedidos al modelo local y la verificación de lo que devuelve.
 - `backend/herramientas/evaluar.py` y `evaluacion/`: la medición de lo que propone el servicio y su detalle por llamada.
 - `backend/src/copiloto/criterio.py`: el criterio de prioridad P1 a P4, que el panel muestra junto a la prioridad.
@@ -95,7 +98,9 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 
 ## Datos de terceros
 
-`backend/src/copiloto/datos/callejero_caba.csv` es una versión reducida del [Callejero de la Ciudad de Buenos Aires](https://data.buenosaires.gob.ar/dataset/calles), publicado por el Gobierno de la Ciudad en BA Data con licencia [CC BY 2.5 AR](https://creativecommons.org/licenses/by/2.5/ar/). Se usó el archivo `callejero.csv` descargado el 20/11/2026. Se quitaron la geometría y las columnas que no se usan; se descartaron los tramos sin nombre oficial y los de tipos que no sirven para dar una dirección; y a cada tramo se le agregó un número de nodo por extremo, agrupando los extremos que quedan a unos 3 m. La reducción se regenera con `backend/herramientas/reducir_callejero.py`.
+`backend/src/copiloto/datos/callejero_caba.csv` es una versión reducida del [Callejero de la Ciudad de Buenos Aires](https://data.buenosaires.gob.ar/dataset/calles), publicado por el Gobierno de la Ciudad en BA Data con licencia [CC BY 2.5 AR](https://creativecommons.org/licenses/by/2.5/ar/). Se usó el archivo `callejero.csv` descargado el 20/11/2026. Se quitaron la geometría y las columnas que no se usan; se descartaron los tramos sin nombre oficial y los de tipos que no sirven para dar una dirección; y a cada tramo se le agregó un número de nodo por extremo, agrupando los extremos que quedan a unos 3 m. La reducción se regenera con `backend/herramientas/reducir_callejero.py`. `callejero_nodos.csv`, en la misma carpeta, sale del mismo archivo y de la misma corrida (opción `--nodos`): de la geometría conserva sólo la longitud y la latitud de cada nodo, la del primer extremo de su grupo, con seis decimales.
+
+`backend/tests/datos/puntos_de_referencia.json` trae 13 direcciones con la coordenada que devolvió el normalizador de direcciones de [USIG](https://usig.buenosaires.gob.ar/apis/) (Gobierno de la Ciudad), consultado el 22/11/2026. Se usan sólo en un test, para comprobar el punto del plano; el test no consulta el servicio.
 
 ## Desarrollo
 

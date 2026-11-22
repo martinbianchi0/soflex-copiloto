@@ -1,4 +1,5 @@
 :root {
+  --acento: #1c4d77;
   font: 100%/1.45 system-ui, sans-serif;
   color: #182735;
   background: #f0f3f6;
@@ -96,6 +97,40 @@ legend {
 .direccion, .esquinas, .hecho { display: grid; gap: 0.75rem; }
 .hecho { align-items: start; }
 
+.mini-mapa {
+  --fondo-plano: #edf4fb;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  inline-size: min(100%, 24rem);
+  block-size: 260px;
+  margin: 0;
+  border: 1px solid #aebbc8;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background: var(--fondo-plano);
+}
+
+.mini-mapa svg { display: block; inline-size: 100%; block-size: 100%; }
+.mini-mapa p { align-self: center; }
+.mini-mapa p, .mini-mapa figcaption { padding: 0.375rem 0.625rem; font-size: 0.875rem; }
+.mini-mapa figcaption { background: #fff; border-block-start: 1px solid #aebbc8; }
+.mini-mapa-cuadra, .mini-mapa-punto { vector-effect: non-scaling-stroke; }
+.mini-mapa-cuadra { stroke: #6f8295; stroke-width: 1.5; stroke-linecap: round; }
+.mini-mapa-cuadra.principal { stroke: var(--acento); stroke-width: 3.5; }
+.mini-mapa-rotulo, .mini-mapa-referencia text {
+  fill: currentColor;
+  text-anchor: middle;
+  font-size: 0.75rem;
+  paint-order: stroke;
+  stroke: var(--fondo-plano);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+.mini-mapa-rotulo.principal, .mini-mapa-referencia { color: var(--acento); font-weight: 700; }
+.mini-mapa-referencia path { fill: none; stroke: currentColor; stroke-width: 1.5; }
+.mini-mapa-punto { fill: none; stroke: var(--acento); stroke-width: 2; }
+.mini-mapa-punto.exacto { fill: var(--acento); stroke: var(--fondo-plano); }
+
 label {
   display: block;
   min-inline-size: 0;
@@ -172,10 +207,10 @@ input:not([type="checkbox"]):disabled, select:disabled, textarea:disabled, texta
 button {
   min-block-size: 2.75rem;
   padding: 0.5rem 0.875rem;
-  border: 1px solid #1c4d77;
+  border: 1px solid var(--acento);
   border-radius: 0.25rem;
   color: #fff;
-  background: #1c4d77;
+  background: var(--acento);
   cursor: pointer;
   font-weight: 650;
 }

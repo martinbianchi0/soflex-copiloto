@@ -140,6 +140,23 @@ export type PosibleDuplicado = {
 
 export type Duplicados = { llamada_id: string; recibida_en: string | null; posibles: PosibleDuplicado[] }
 
+export type PedidoDePlano = {
+  calle: string
+  altura: number | null
+  esquinas: string[]
+}
+
+export type CuadraDelPlano = {
+  nombre: string
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+  principal: boolean
+}
+
+export type Plano = { radio_m: number; exacto: boolean; leyenda: string; cuadras: CuadraDelPlano[] }
+
 export type Salud = { status: string; llm_provider: string; modelo: string | null }
 export type DetalleValidacion = { loc: (string | number)[]; msg: string }
 
@@ -183,6 +200,10 @@ export function consultarCatalogo(senal: AbortSignal) {
 
 export function consultarEjemplos(senal: AbortSignal) {
   return pedir<Ejemplo[]>('/ejemplos', senal)
+}
+
+export function consultarPlano(pedido: PedidoDePlano, senal: AbortSignal) {
+  return enviar<Plano>('/mapa', senal, pedido)
 }
 
 export function crearLlamada(texto: string, senal: AbortSignal) {

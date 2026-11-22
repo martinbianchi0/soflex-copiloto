@@ -383,6 +383,31 @@ class Duplicados(Esquema):
     posibles: list[PosibleDuplicado]
 
 
+# ---------- Plano para confirmar la dirección ----------
+
+
+class PedidoDePlano(Esquema):
+    calle: Texto
+    altura: Altura | None
+    esquinas: list[Texto] = Field(max_length=2)
+
+
+class CuadraDelPlano(Esquema):
+    nombre: str
+    x1: float
+    y1: float
+    x2: float
+    y2: float
+    principal: bool
+
+
+class Plano(Esquema):
+    radio_m: int
+    exacto: bool
+    leyenda: str
+    cuadras: list[CuadraDelPlano]
+
+
 # ---------- El historial de la llamada ----------
 
 
