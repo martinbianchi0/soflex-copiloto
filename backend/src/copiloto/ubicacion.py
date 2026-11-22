@@ -775,6 +775,33 @@ class _Resolvedor:
         return esquinas
 
 
+def entrecalles_de(calle: str, altura: int) -> list[str]:
+    """Las entrecalles que el callejero da para una dirección ya escrita, como se muestran.
+
+    Ninguna si el texto no nombra una sola calle con esa altura: sin esa certeza no se afirma nada.
+    """
+    callejero = cargar()
+    candidatos = callejero.candidatos(normalizar(calle), difuso=False)
+    # Un mismo nombre puede ser una calle y una avenida: decide cuál tiene esa altura y, si las
+    # dos la tienen, cuál se llama exactamente así.
+    nombres = [
+        candidato.nombre
+        for candidato in candidatos
+        if candidato.puntaje == candidatos[0].puntaje
+        and callejero.cuadras(candidato.nombre, altura)
+    ]
+    if len(nombres) > 1:
+        nombres = [
+            nombre
+            for nombre in nombres
+            if texto_plano(callejero.nombre_para_mostrar(nombre)) == texto_plano(calle)
+        ]
+    if len(nombres) != 1:
+        return []
+    cruces = callejero.entrecalles(nombres[0], altura)
+    return [callejero.nombre_para_mostrar(cruce) for cruce in cruces]
+
+
 def interpretar(turnos: list[Turno]) -> Interpretacion:
     """Reconoce la dirección y conserva una cita literal por cada dato dicho."""
     return _Resolvedor(turnos, cargar()).resolver()

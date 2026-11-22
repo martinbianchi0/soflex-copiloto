@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 import pytest
 from conftest import FILAS_DATASET, TEXTO, TEXTO_SIN_DATOS, TURNOS
 
-from copiloto import catalogo, flujo
+from copiloto import catalogo, flujo, ubicacion
 from copiloto.catalogo import SubtipoInvalido
 from copiloto.esquemas import Ajustes, Categoria, Cita, Falta, Inferido, Sugerencia, Turno
 
@@ -561,3 +561,76 @@ def test_lo_que_esta_antes_de_la_primera_marca_no_es_evidencia():
 
     assert sugerencia.ubicacion.calle.origen == "falta"
     assert sugerencia.tipo_hecho.valor == "NO_DETERMINADA"
+
+
+BILLINGHURST = "Hay un ascensor trabado en Billinghurst 1845."
+
+
+def _con_entrecalles() -> dict:
+    sugerencia = flujo.analizar([Turno(texto=BILLINGHURST)]).model_dump()
+    assert [e["fuente"] for e in sugerencia["ubicacion"]["esquinas"]] == ["callejero"] * 2
+    return sugerencia
+
+
+def _ajustes(sugerencia: dict, **cambios: object) -> dict:
+    ubicacion = sugerencia["ubicacion"]
+    actual = {
+        "calle": ubicacion["calle"]["valor"],
+        "altura": ubicacion["altura"]["valor"],
+        "esquinas": [esquina["valor"] for esquina in ubicacion["esquinas"]],
+    }
+    return {"ubicacion": {**actual, **cambios}, "prioridad": "P2"}
+
+
+def test_derivar_conserva_las_entrecalles_si_la_altura_nueva_es_de_la_misma_cuadra():
+    sugerencia = _con_entrecalles()
+
+    carta = derivar(sugerencia, _ajustes(sugerencia, altura=1850))
+
+    assert carta["ubicacion"]["altura"] == {"origen": "operador", "valor": 1850}
+    assert carta["ubicacion"]["esquinas"] == sugerencia["ubicacion"]["esquinas"]
+    assert carta["avisos"] == []
+
+
+@pytest.mark.parametrize(
+    "cambios",
+    [
+        {"altura": 300},
+        {"altura": None},
+        {"calle": "Av. Rivadavia"},
+        {"calle": "Una calle que no existe"},
+    ],
+    ids=["otra cuadra", "sin altura", "otra calle", "calle desconocida"],
+)
+def test_derivar_quita_las_entrecalles_del_callejero_si_son_de_otra_direccion(cambios: dict):
+    sugerencia = _con_entrecalles()
+
+    carta = derivar(sugerencia, _ajustes(sugerencia, **cambios))
+
+    assert carta["ubicacion"]["esquinas"] == []
+    assert [aviso["codigo"] for aviso in carta["avisos"]] == ["cruce_sin_confirmar"]
+
+
+def test_derivar_no_quita_las_esquinas_que_dijo_el_llamante_ni_las_del_operador():
+    sugerencia = flujo.analizar(
+        [Turno(texto="Chocaron en Billinghurst 1845, esquina Arenales.")]
+    ).model_dump()
+    dicha = sugerencia["ubicacion"]["esquinas"][0]
+    assert dicha["origen"] == "dicho"
+
+    ajustes = _ajustes(sugerencia, altura=300, esquinas=[dicha["valor"], "Lavalle"])
+    carta = derivar(sugerencia, ajustes)
+
+    assert carta["ubicacion"]["esquinas"] == [dicha, {"origen": "operador", "valor": "Lavalle"}]
+
+
+def test_las_entrecalles_sugeridas_se_vuelven_a_encontrar_con_la_calle_como_se_muestra():
+    comprobadas = 0
+    for fila in FILAS_DATASET.values():
+        lugar = flujo.analizar([Turno(texto=fila["transcripcion_cruda"])]).ubicacion
+        inferidas = {esquina.valor for esquina in lugar.esquinas if isinstance(esquina, Inferido)}
+        if inferidas:
+            comprobadas += 1
+            assert inferidas <= set(ubicacion.entrecalles_de(lugar.calle.valor, lugar.altura.valor))
+
+    assert comprobadas == 12
