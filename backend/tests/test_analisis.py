@@ -35,7 +35,7 @@ CHECKLIST = json.dumps(
 def aviso_rescate(motivo):
     return Aviso(
         codigo="modelo_no_disponible",
-        mensaje=f"El modelo no respondió ({motivo}): esta sugerencia sale de las reglas.",
+        mensaje=f"No hay sugerencia del modelo ({motivo}): esta sale de las reglas.",
     )
 
 
@@ -754,7 +754,7 @@ def test_en_mock_el_alta_ya_espera_al_operador_y_completar_no_cambia_la_llamada(
         pytest.param([CLASIFICACION, CHECKLIST], "Sugerencia del modelo, sin avisos.", id="modelo"),
         pytest.param(
             [ModeloNoDisponible("el modelo no respondió a tiempo")],
-            "El modelo no respondió: quedó la sugerencia de las reglas.",
+            "No hubo sugerencia del modelo: quedó la de las reglas.",
             id="rescate",
         ),
     ],

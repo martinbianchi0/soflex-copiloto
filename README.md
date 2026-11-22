@@ -29,6 +29,8 @@ Por defecto corre en modo `mock`. Para que un modelo proponga el tipo de hecho, 
 2. Crear un `.env` junto a `docker-compose.yml` con `LLM_PROVIDER=ollama` (las demás variables están en `.env.example`).
 3. Levantar con `docker compose up --build`. El encabezado del panel muestra el modo y el modelo.
 
+El modelo no viene con el repositorio: lo baja Ollama, y se distribuye con licencia Apache 2.0 (`ollama show qwen3.5:4b-q4_K_M --license`).
+
 Ollama corre en la máquina y no en el contenedor, para usar la aceleración del equipo; el contenedor lo alcanza en `host.docker.internal:11434`. En Linux, Ollama escucha sólo en `127.0.0.1` y el contenedor no lo alcanza: hay que hacerlo escuchar también en la interfaz de Docker (por ejemplo, `OLLAMA_HOST=0.0.0.0`, con un firewall que no lo exponga a la red, porque la API de Ollama no pide autenticación). En Linux no se probó.
 
 La ubicación la siguen leyendo las reglas y aparece al instante; lo que propone el modelo llega unos segundos después. Si el modelo no responde, el panel lo avisa, con el motivo, y muestra la sugerencia de las reglas.

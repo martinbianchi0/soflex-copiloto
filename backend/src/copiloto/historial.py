@@ -104,7 +104,7 @@ def _detalle(
             if getattr(sugerencia.tipo_hecho, "fuente", None) != "modelo":
                 return (
                     "sugerencia_modelo",
-                    "El modelo no respondió: quedó la sugerencia de las reglas.",
+                    "No hubo sugerencia del modelo: quedó la de las reglas.",
                 )
             return "sugerencia_modelo", f"Sugerencia del modelo, {_avisos(sugerencia)}."
         case "esperar_operador":

@@ -814,6 +814,23 @@ def test_cada_ejemplo_nuevo_se_da_de_alta_sin_subtipo(cliente, ejemplo_id):
     assert sugerencia["subtipo"] == {"origen": "falta"}
 
 
+@pytest.mark.parametrize(
+    "ejemplo_id, avisos",
+    [
+        ("nueva-1", []),
+        ("nueva-2", ["calle_ambigua", "falta_altura"]),
+        ("nueva-3", ["direccion_no_cierra"]),
+        ("nueva-4", []),
+        ("nueva-5", []),
+        ("nueva-6", []),
+    ],
+)
+def test_cada_ejemplo_nuevo_da_los_avisos_que_se_esperan_de_el(cliente, ejemplo_id, avisos):
+    sugerencia = iniciar_ejemplo(cliente, ejemplo_id)
+
+    assert sorted({aviso["codigo"] for aviso in sugerencia["avisos"]}) == avisos
+
+
 def test_el_ejemplo_del_choque_con_moto_toma_la_altura_de_la_respuesta(cliente):
     ubicacion = iniciar_ejemplo(cliente, "nueva-5")["ubicacion"]
 

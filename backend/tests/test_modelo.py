@@ -84,7 +84,7 @@ def test_los_errores_del_cliente_se_informan_y_registran(monkeypatch, caplog, er
     turnos = [Turno(texto="Hay humo en Av. Corrientes al 1540.")]
     sugerencia = flujo.analizar_con_modelo(turnos, flujo.analizar_base(turnos), modelo, 60)
     assert sugerencia.avisos[-1].mensaje == (
-        f"El modelo no respondió ({motivo}): esta sugerencia sale de las reglas."
+        f"No hay sugerencia del modelo ({motivo}): esta sale de las reglas."
     )
     (aviso,) = caplog.records
     assert aviso.levelname == "WARNING"
