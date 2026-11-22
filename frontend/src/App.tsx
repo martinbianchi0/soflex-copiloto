@@ -13,7 +13,7 @@ import { campoSugerencia, nombrarCampo } from './validacion'
 const errorConexion = 'No se pudo conectar con el servicio.'
 const gruposEjemplos = [
   { origen: 'dataset', etiqueta: 'Llamadas del dataset' },
-  { origen: 'nueva', etiqueta: 'Llamadas nuevas' },
+  { origen: 'nueva', etiqueta: 'Otros ejemplos' },
 ] as const
 
 type Reproduccion = { intercambios: string[]; recibidos: number }
@@ -143,6 +143,7 @@ function App() {
     cargarCatalogo(control.signal)
     consultarEjemplos(control.signal).then(
       (respuesta) => { if (!control.signal.aborted) setEjemplos(respuesta) },
+      // Sin ejemplos el panel sirve igual: el selector no aparece y la llamada se escribe.
       () => {},
     )
     return () => control.abort()
