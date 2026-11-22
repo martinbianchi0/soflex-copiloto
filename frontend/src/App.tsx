@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { analizarLlamada, consultarCatalogo, consultarDuplicados, consultarEjemplos, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi, sumarTurno } from './api'
+import { analizarLlamada, consultarCatalogo, consultarDuplicados, consultarEjemplos, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi, sumarTurno, valorDato } from './api'
 import type { Ajustes, Aviso, Catalogo, DetalleValidacion, Ejemplo, Llamada, PosibleDuplicado, Turno } from './api'
 import AvisoDuplicados from './AvisoDuplicados'
 import CartaLlamada from './CartaLlamada'
@@ -17,12 +17,24 @@ const gruposEjemplos = [
 ] as const
 
 type Reproduccion = { intercambios: string[]; recibidos: number }
+type LlamadaAbierta = Extract<Llamada, { estado: 'analizando' | 'esperando_operador' }>
 type EstadoDuplicados = {
   llamadaId: string
+  lugar: string
   recibidaEn: string | null
   posibles: PosibleDuplicado[]
-  firma: string
-  anuncia: boolean
+  anuncio: number
+}
+
+// Mientras la llamada está abierta puede entrar otra del mismo lugar.
+const REFRESCO_DE_DUPLICADOS_MS = 15_000
+
+function estaAbierta(llamada: Llamada | null): llamada is LlamadaAbierta {
+  return llamada?.estado === 'analizando' || llamada?.estado === 'esperando_operador'
+}
+
+function lugarDe({ sugerencia: { ubicacion } }: LlamadaAbierta) {
+  return JSON.stringify([valorDato(ubicacion.calle), valorDato(ubicacion.altura), ubicacion.esquinas.map(valorDato)])
 }
 
 function leerIdentificador() {
@@ -104,8 +116,10 @@ function App() {
     : ''
   const muestraSugerencia = analizando || llamada?.estado === 'esperando_operador'
   const muestraFormulario = muestraSugerencia && (analizando || huboAnalisis || Boolean(catalogo))
-  const duplicadosVisibles = muestraFormulario && duplicados?.llamadaId === llamada.llamada_id &&
-    duplicados.recibidaEn && duplicados.posibles.length > 0 ? duplicados : null
+  const idAbierta = estaAbierta(llamada) ? llamada.llamada_id : null
+  const lugarAbierto = estaAbierta(llamada) ? lugarDe(llamada) : null
+  const duplicadosVisibles = muestraFormulario && duplicados?.llamadaId === idAbierta &&
+    duplicados.lugar === lugarAbierto && duplicados.recibidaEn && duplicados.posibles.length > 0 ? duplicados : null
   const erroresGenerales = Array.isArray(error)
     ? error.filter((detalle) => !muestraFormulario || !campoSugerencia(detalle))
     : []
@@ -175,35 +189,44 @@ function App() {
     }
   }, [])
 
-  const mostrarLlamada = useCallback((recibida: Llamada | null) => {
+  const pedirDuplicados = useCallback((id: string, lugar: string) => {
     solicitudDuplicados.current?.abort()
-    solicitudDuplicados.current = null
-    setLlamada(recibida)
-    if (recibida?.estado !== 'analizando' && recibida?.estado !== 'esperando_operador') {
-      setDuplicados((anterior) => anterior?.anuncia ? { ...anterior, anuncia: false } : anterior)
-      return
-    }
-
-    const id = recibida.llamada_id
     const control = new AbortController()
     solicitudDuplicados.current = control
     consultarDuplicados(id, control.signal).then(
       ({ llamada_id, recibida_en: recibidaEn, posibles }) => {
         if (control.signal.aborted || llamada_id !== id) return
-        const firma = JSON.stringify(posibles)
-        setDuplicados((anterior) => ({
-          llamadaId: id, recibidaEn, posibles, firma,
-          anuncia: anterior?.llamadaId === id && anterior.firma === firma
-            ? anterior.anuncia : posibles.length > 0,
-        }))
+        setDuplicados((anterior) => {
+          const vigente = anterior?.llamadaId === id && anterior.lugar === lugar ? anterior : null
+          const conocidas = new Set(vigente?.posibles.map((posible) => posible.llamada_id))
+          const hayOtraNueva = posibles.some((posible) => !conocidas.has(posible.llamada_id))
+          // Se anuncia sólo cuando aparece una llamada que no estaba en la lista.
+          return { llamadaId: id, lugar, recibidaEn, posibles, anuncio: (vigente?.anuncio ?? 0) + (hayOtraNueva ? 1 : 0) }
+        })
       },
-      () => {
-        if (control.signal.aborted) return
-        setDuplicados((anterior) => anterior?.llamadaId === id
-          ? { ...anterior, posibles: [], anuncia: false } : null)
-      },
+      // Si la consulta falla queda lo que había: es un aviso, y la consulta siguiente lo actualiza.
+      () => {},
     )
   }, [])
+
+  const mostrarLlamada = useCallback((recibida: Llamada | null) => {
+    solicitudDuplicados.current?.abort()
+    solicitudDuplicados.current = null
+    setLlamada(recibida)
+    if (!estaAbierta(recibida)) return
+
+    const id = recibida.llamada_id
+    const lugar = lugarDe(recibida)
+    // El aviso de otra dirección no vale para esta: se quita sin esperar la respuesta.
+    setDuplicados((anterior) => anterior?.llamadaId === id && anterior.lugar === lugar ? anterior : null)
+    pedirDuplicados(id, lugar)
+  }, [pedirDuplicados])
+
+  useEffect(() => {
+    if (idAbierta === null || lugarAbierto === null) return
+    const refresco = window.setInterval(() => pedirDuplicados(idAbierta, lugarAbierto), REFRESCO_DE_DUPLICADOS_MS)
+    return () => window.clearInterval(refresco)
+  }, [idAbierta, lugarAbierto, pedirDuplicados])
 
   const recibirLlamada = useCallback(async (recibida: Llamada, senal: AbortSignal, origen: 'consulta' | 'alta' | 'turno' | 'intercambio' = 'consulta') => {
     if (senal.aborted) return
@@ -472,8 +495,8 @@ function App() {
           )}
         </div>
         <span className="solo-lectores" aria-atomic="true">
-          {duplicadosVisibles?.anuncia && (
-            <span key={duplicadosVisibles.firma}>Hay otra llamada reciente del mismo lugar.</span>
+          {duplicadosVisibles && (
+            <span key={duplicadosVisibles.anuncio}>Hay otra llamada reciente del mismo lugar.</span>
           )}
         </span>
       </div>
