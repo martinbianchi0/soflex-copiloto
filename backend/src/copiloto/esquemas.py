@@ -39,14 +39,16 @@ def _con_contenido(texto: str) -> str:
     return texto
 
 
+MAXIMO_DE_TEXTO = 200
+MAXIMO_DE_TEXTO_LARGO = 1_000
 Texto = Annotated[
     str,
-    StringConstraints(strip_whitespace=True, min_length=1, max_length=200),
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=MAXIMO_DE_TEXTO),
     AfterValidator(_con_contenido),
 ]
 TextoLargo = Annotated[
     str,
-    StringConstraints(strip_whitespace=True, min_length=1, max_length=1_000),
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=MAXIMO_DE_TEXTO_LARGO),
     AfterValidator(_con_contenido),
 ]
 TextoDeTurno = Annotated[
@@ -133,6 +135,7 @@ class Inferido[T](Esquema):
     valor: T
     # "dataset": la llamada es una de las del dataset provisto y el dato sale de su ficha.
     fuente: Literal["callejero", "reglas", "modelo", "dataset"]
+    cita: Cita | None = Field(default=None, exclude_if=lambda cita: cita is None)
 
 
 class DelOperador[T](Esquema):
@@ -233,6 +236,7 @@ class Aviso(Esquema):
         "direccion_no_cierra",
         "cruce_sin_confirmar",
         "dato_descartado",
+        "modelo_no_disponible",
     ]
     mensaje: TextoLargo
 
@@ -271,7 +275,11 @@ class Ficha(Esquema):
         }
 
     def citas(self) -> list[Cita]:
-        de_los_datos = [dato.cita for dato in self.datos().values() if isinstance(dato, Dicho)]
+        de_los_datos = [
+            dato.cita
+            for dato in self.datos().values()
+            if isinstance(dato, (Dicho, Inferido)) and dato.cita is not None
+        ]
         del_checklist = [item.cita for item in self.checklist if item.cita is not None]
         return de_los_datos + del_checklist
 
@@ -315,7 +323,7 @@ class Llamada(Esquema):
     """Una llamada con todo lo suyo: lo que se dijo, lo que se sugirió y, si se derivó, su carta."""
 
     llamada_id: Texto
-    estado: Literal["en_proceso", "esperando_operador", "derivada"]
+    estado: Literal["en_proceso", "analizando", "esperando_operador", "derivada"]
     turnos: list[Turno] = Field(min_length=1, max_length=500)
     sugerencia: Sugerencia | None
     carta: Carta | None

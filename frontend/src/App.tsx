@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { consultarCatalogo, consultarEjemplos, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi } from './api'
-import type { Ajustes, Catalogo, DetalleValidacion, Ejemplo, Llamada } from './api'
+import { analizarLlamada, consultarCatalogo, consultarEjemplos, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi } from './api'
+import type { Ajustes, Aviso, Catalogo, DetalleValidacion, Ejemplo, Llamada } from './api'
 import CartaLlamada from './CartaLlamada'
 import FormularioSugerencia from './FormularioSugerencia'
 import Transcripcion from './Transcripcion'
@@ -24,6 +24,24 @@ function cambiarUrl(identificador: string | null) {
   window.history.pushState(null, '', url)
 }
 
+function anunciarAvisos(avisos: Aviso[]) {
+  const pendientes = avisos.filter(({ codigo }) => codigo !== 'modelo_no_disponible').length
+  const mensajes = avisos.filter(({ codigo }) => codigo === 'modelo_no_disponible').map(({ mensaje }) => mensaje)
+  if (pendientes === 1) mensajes.push('La sugerencia tiene un aviso para revisar antes de derivar.')
+  if (pendientes > 1) mensajes.push(`La sugerencia tiene ${pendientes} avisos para revisar antes de derivar.`)
+  return mensajes.join(' ')
+}
+
+function anunciarResultado(llamada: Llamada, anunciarTodosLosAvisos = false) {
+  if (llamada.estado === 'derivada') return 'Carta de Llamada disponible.'
+  if (llamada.estado === 'en_proceso') return 'Llamada en proceso.'
+  if (llamada.estado !== 'esperando_operador') return ''
+
+  const avisos = anunciarTodosLosAvisos ? llamada.sugerencia.avisos
+    : llamada.sugerencia.avisos.filter(({ codigo }) => codigo === 'modelo_no_disponible')
+  return ['Sugerencia lista.', anunciarAvisos(avisos)].filter(Boolean).join(' ')
+}
+
 function App() {
   const [modo, setModo] = useState<string | null>()
   const [catalogo, setCatalogo] = useState<Catalogo | null>()
@@ -31,6 +49,7 @@ function App() {
   const [ejemploElegido, setEjemploElegido] = useState('')
   const [identificador, setIdentificador] = useState(leerIdentificador)
   const [llamada, setLlamada] = useState<Llamada | null>(null)
+  const [huboAnalisis, setHuboAnalisis] = useState(false)
   const [transcripcion, setTranscripcion] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState<string | DetalleValidacion[] | null>(null)
@@ -40,7 +59,11 @@ function App() {
   const regionAvisos = useRef<HTMLDivElement>(null)
   const bloqueado = ocupado || modo === undefined
   const analisisBloqueado = bloqueado || !catalogo
-  const muestraFormulario = llamada?.estado === 'esperando_operador' && Boolean(catalogo)
+  const analizando = llamada?.estado === 'analizando'
+  const analisisEnCurso = analizando && ocupado
+  const nuevaLlamadaBloqueada = bloqueado && !analizando
+  const muestraSugerencia = analizando || llamada?.estado === 'esperando_operador'
+  const muestraFormulario = muestraSugerencia && (analizando || huboAnalisis || Boolean(catalogo))
   const erroresGenerales = Array.isArray(error)
     ? error.filter((detalle) => !muestraFormulario || !campoSugerencia(detalle))
     : []
@@ -56,7 +79,9 @@ function App() {
   useEffect(() => {
     const control = new AbortController()
     consultarSalud(control.signal).then(
-      (salud) => { if (!control.signal.aborted) setModo(salud.llm_provider) },
+      ({ llm_provider: proveedor, modelo }) => {
+        if (!control.signal.aborted) setModo(modelo ? `${proveedor} · ${modelo}` : proveedor)
+      },
       () => { if (!control.signal.aborted) setModo(null) },
     )
     cargarCatalogo(control.signal)
@@ -102,6 +127,23 @@ function App() {
     }
   }, [])
 
+  const recibirLlamada = useCallback(async (recibida: Llamada, senal: AbortSignal, desdeAlta = false) => {
+    if (senal.aborted) return
+    setLlamada(recibida)
+    if (recibida.estado === 'analizando') {
+      setAnuncio(anunciarAvisos(recibida.sugerencia.avisos))
+      const definitiva = await analizarLlamada(recibida.llamada_id, senal)
+      if (senal.aborted) return
+      setLlamada(definitiva)
+      setHuboAnalisis(true)
+      setAnuncio(anunciarResultado(definitiva, true))
+    } else if (desdeAlta) {
+      setAnuncio(anunciarAvisos(recibida.sugerencia?.avisos ?? []) || 'Sugerencia lista.')
+    } else {
+      setAnuncio(anunciarResultado(recibida))
+    }
+  }, [])
+
   useEffect(() => {
     function abrirDesdeUrl() {
       solicitud.current?.abort()
@@ -109,16 +151,12 @@ function App() {
       const actual = leerIdentificador()
       setIdentificador(actual)
       setLlamada(null)
+      setHuboAnalisis(false)
       setTranscripcion('')
       setEjemploElegido('')
       if (actual) {
         void solicitar(async (senal) => {
-          const recuperada = await consultarLlamada(actual, senal)
-          if (senal.aborted) return
-          setLlamada(recuperada)
-          if (recuperada.estado === 'esperando_operador') setAnuncio('Sugerencia lista.')
-          if (recuperada.estado === 'derivada') setAnuncio('Carta de Llamada disponible.')
-          if (recuperada.estado === 'en_proceso') setAnuncio('Llamada en proceso.')
+          await recibirLlamada(await consultarLlamada(actual, senal), senal)
         })
       } else {
         setOcupado(false)
@@ -135,7 +173,7 @@ function App() {
       solicitud.current?.abort()
       solicitud.current = null
     }
-  }, [solicitar])
+  }, [recibirLlamada, solicitar])
 
   useEffect(() => {
     if (mostrarErrorArriba || aviso || modo === null || catalogo === null) {
@@ -159,19 +197,15 @@ function App() {
       if (senal.aborted) return
       cambiarUrl(creada.llamada_id)
       setIdentificador(creada.llamada_id)
-      setLlamada(creada)
       setTranscripcion('')
       setEjemploElegido('')
-      // Los avisos aparecen junto con el formulario: se anuncian acá para quien no ve la pantalla.
-      const porConfirmar = creada.sugerencia?.avisos.length ?? 0
-      if (porConfirmar > 0) {
-        setAnuncio(porConfirmar === 1
-          ? 'La sugerencia tiene un aviso para revisar antes de derivar.'
-          : `La sugerencia tiene ${porConfirmar} avisos para revisar antes de derivar.`)
-      } else {
-        setAnuncio('Sugerencia lista.')
-      }
+      await recibirLlamada(creada, senal, true)
     })
+  }
+
+  function reintentarAnalisis() {
+    if (llamada?.estado !== 'analizando') return
+    void solicitar((senal) => recibirLlamada(llamada, senal))
   }
 
   function derivar(ajustes: Ajustes) {
@@ -188,19 +222,28 @@ function App() {
       } catch (fallo) {
         if (senal.aborted) return
         if (!(fallo instanceof ErrorApi) || fallo.estado !== 409) throw fallo
-        setAviso('La llamada ya estaba derivada.')
         setLlamada(null)
         const actual = await consultarLlamada(id, senal)
-        if (!senal.aborted) setLlamada(actual)
+        if (senal.aborted) return
+        if (actual.estado === 'derivada') {
+          setLlamada(actual)
+          setAviso('La llamada ya estaba derivada.')
+        } else {
+          await recibirLlamada(actual, senal)
+        }
       }
     })
   }
 
   function nuevaLlamada() {
-    if (bloqueado || solicitud.current) return
+    if (nuevaLlamadaBloqueada || (!analizando && solicitud.current)) return
+    solicitud.current?.abort()
+    solicitud.current = null
+    setOcupado(false)
     cambiarUrl(null)
     setIdentificador(null)
     setLlamada(null)
+    setHuboAnalisis(false)
     setTranscripcion('')
     setEjemploElegido('')
     setError(null)
@@ -209,14 +252,16 @@ function App() {
   }
 
   return (
-    <main className={llamada?.estado === 'esperando_operador' ? 'vista-operador' : undefined}>
+    <main className={muestraSugerencia ? 'vista-operador' : undefined}>
       <header className="encabezado">
         <h1>Copiloto para Operadores de Sala</h1>
         <span className="modo">Modo: {modo === undefined ? 'consultando…' : modo ?? 'no disponible'}</span>
       </header>
 
-      <div className="avisos" ref={regionAvisos} aria-live="polite" aria-atomic="true">
-        <span className="solo-lectores">{ocupado
+      <div className="avisos" ref={regionAvisos} role={analisisEnCurso ? 'status' : undefined}
+        aria-live="polite" aria-atomic={!analisisEnCurso}>
+        {analisisEnCurso && <p className="aviso">El modelo está leyendo la llamada… La ubicación ya está leída.</p>}
+        <span className="solo-lectores">{ocupado && !analizando
           ? (llamada?.estado === 'esperando_operador' ? 'Derivando carta…' : identificador ? 'Consultando llamada…' : 'Analizando llamada…')
           : anuncio}</span>
         {aviso && <p className="aviso">{aviso}</p>}
@@ -237,7 +282,14 @@ function App() {
               </ul>
             )}
           </div>
-        ) : error && <p className="error">{error}</p>}
+        ) : error && (
+          <p className="error">
+            {error}
+            {analizando && !ocupado && (
+              <>{' '}<button type="button" className="secundario" onClick={reintentarAnalisis}>Reintentar el análisis</button></>
+            )}
+          </p>
+        )}
       </div>
 
       {!identificador && (
@@ -275,10 +327,12 @@ function App() {
         </form>
       )}
 
-      {llamada?.estado === 'esperando_operador' && (
-        catalogo ? (
-          <FormularioSugerencia key={llamada.llamada_id} turnos={llamada.turnos} sugerencia={llamada.sugerencia} catalogo={catalogo}
-            bloqueado={bloqueado} ocupado={ocupado} alDerivar={derivar} errores={Array.isArray(error) ? error : []}
+      {muestraSugerencia && (
+        muestraFormulario ? (
+          <FormularioSugerencia key={`${llamada.llamada_id}-${llamada.estado}-${Boolean(catalogo)}`}
+            turnos={llamada.turnos} sugerencia={llamada.sugerencia} catalogo={catalogo ?? null}
+            bloqueado={bloqueado || analizando || !catalogo} ocupado={ocupado && !analizando} nuevaLlamadaBloqueada={nuevaLlamadaBloqueada}
+            alDerivar={derivar} errores={Array.isArray(error) ? error : []}
             alCambiarProtocolo={setAnuncio} alValidar={setError} alEmpezar={nuevaLlamada} />
         ) : (
           <div className="panel-operador">
@@ -292,7 +346,7 @@ function App() {
         )
       )}
 
-      {identificador && llamada?.estado !== 'esperando_operador' && (
+      {identificador && !muestraSugerencia && (
         <section className="panel">
           {ocupado && <p role="status">Consultando la llamada…</p>}
           {llamada?.estado === 'en_proceso' && <h2>Llamada en proceso</h2>}

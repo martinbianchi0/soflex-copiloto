@@ -5,7 +5,16 @@ from conftest import FILAS_DATASET, TEXTO, TEXTO_SIN_DATOS, TURNOS
 
 from copiloto import catalogo, flujo, ubicacion
 from copiloto.catalogo import SubtipoInvalido
-from copiloto.esquemas import Ajustes, Categoria, Cita, Falta, Inferido, Sugerencia, Turno
+from copiloto.esquemas import (
+    Ajustes,
+    Categoria,
+    Cita,
+    Falta,
+    Inferido,
+    Prioridad,
+    Sugerencia,
+    Turno,
+)
 
 AHORA = datetime(2026, 11, 22, 3, 0, tzinfo=UTC)
 COMPLETA = {"calle": "Av. Corrientes", "altura": 1540, "esquinas": ["Montevideo", "Paraná"]}
@@ -125,6 +134,21 @@ def test_si_todas_las_citas_estan_respaldadas_se_conserva_la_sugerencia(sugerenc
     turnos = [Turno(**turno) for turno in TURNOS]
 
     assert flujo.quitar_lo_que_nadie_dijo(sugerencia, turnos) == sugerencia
+
+
+def test_de_un_inferido_se_quita_solo_la_cita_que_no_verifica(sugerencia_completa):
+    cita = Cita(turno=0, texto="Explotó una garrafa")
+    sugerencia_completa["prioridad"] = Inferido[Prioridad](
+        valor=Prioridad.P1, fuente="modelo", cita=cita
+    )
+    sugerencia = Sugerencia.model_validate(sugerencia_completa)
+
+    revisada = flujo.quitar_lo_que_nadie_dijo(sugerencia, [Turno(**turno) for turno in TURNOS])
+
+    assert cita in sugerencia.citas()
+    assert cita not in revisada.citas()
+    assert revisada.prioridad == Inferido[Prioridad](valor=Prioridad.P1, fuente="modelo")
+    assert revisada.avisos == sugerencia.avisos
 
 
 def test_lo_que_el_operador_no_toca_conserva_su_origen_y_su_cita(sugerencia_completa):
