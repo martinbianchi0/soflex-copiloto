@@ -15,11 +15,12 @@ type Propiedades = {
   sugerencia: Sugerencia
   catalogo: Catalogo | null
   analizando: boolean
-  bloqueado: boolean
+  derivacionBloqueada: boolean
+  edicionBloqueada: boolean
   ocupado: boolean
   nuevaLlamadaBloqueada: boolean
   errores: DetalleValidacion[]
-  formularioTurno: ReactNode
+  pieTranscripcion: ReactNode
   alCambiarProtocolo: (mensaje: string) => void
   alDerivar: (ajustes: Ajustes) => void
   alValidar: (errores: DetalleValidacion[]) => void
@@ -84,7 +85,8 @@ function CriterioPrioridad({ niveles, reglas }: Criterio) {
 }
 
 export default function FormularioSugerencia({
-  turnos, sugerencia: recibida, catalogo, analizando, bloqueado, ocupado, nuevaLlamadaBloqueada, errores, formularioTurno,
+  turnos, sugerencia: recibida, catalogo, analizando, derivacionBloqueada, edicionBloqueada, ocupado,
+  nuevaLlamadaBloqueada, errores, pieTranscripcion,
   alCambiarProtocolo, alDerivar, alValidar, alEmpezar,
 }: Propiedades) {
   const [borrador, setBorrador] = useState(() => iniciarBorrador(recibida, catalogo))
@@ -141,7 +143,7 @@ export default function FormularioSugerencia({
     }),
     ...checklist.flatMap(({ id, cita }) => cita ? [{ control: `pregunta-${id}`, cita }] : []),
   ]
-  const citaActiva = bloqueado ? undefined : citas.find(({ control }) => control === enFoco)?.cita
+  const citaActiva = edicionBloqueada ? undefined : citas.find(({ control }) => control === enFoco)?.cita
   const erroresDe = (campo: NonNullable<ReturnType<typeof campoSugerencia>>) => errores
     .filter((error) => campoSugerencia(error) === campo).map(({ msg }) => msg)
   const erroresEsquinas = erroresDe('esquinas')
@@ -151,17 +153,17 @@ export default function FormularioSugerencia({
   // falta ninguno, queda en la transcripción, que es lo primero que se revisa.
   const huboFocoInicial = useRef(false)
   useEffect(() => {
-    if (bloqueado || huboFocoInicial.current) return
+    if (edicionBloqueada || huboFocoInicial.current) return
     huboFocoInicial.current = true
     const primerFaltante = !calle ? 'calle' : !categoria || categoria === 'NO_DETERMINADA' ? 'tipo_hecho' : !prioridad ? 'prioridad' : null
     if (primerFaltante) document.getElementById(primerFaltante)?.focus()
-  }, [bloqueado, calle, categoria, prioridad])
+  }, [edicionBloqueada, calle, categoria, prioridad])
 
   useEffect(() => {
-    if (!bloqueado && errores.length > 0) {
+    if (!edicionBloqueada && errores.length > 0) {
       formulario.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
     }
-  }, [bloqueado, errores])
+  }, [edicionBloqueada, errores])
 
   function editar<Campo extends keyof CamposSugerencia>(campo: Campo, valor: CamposSugerencia[Campo]) {
     setBorrador((actual) => ({
@@ -192,7 +194,7 @@ export default function FormularioSugerencia({
 
   function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
-    if (bloqueado) return
+    if (derivacionBloqueada) return
 
     const esquinas = [esquinaUno, esquinaDos].filter((esquina) => esquina.trim())
     const pendientes: DetalleValidacion[] = []
@@ -242,11 +244,11 @@ export default function FormularioSugerencia({
     <div className="panel-operador">
       <div className="columna-transcripcion">
         <Transcripcion turnos={turnos} citas={citas.map(({ cita }) => cita)} citaActiva={citaActiva} />
-        {formularioTurno}
+        {pieTranscripcion}
       </div>
       <form className="panel" ref={formulario} onSubmit={enviar} onKeyDown={alTeclear} noValidate
         onFocus={(evento) => setEnFoco(evento.target.id)} onBlur={() => setEnFoco('')}>
-        <fieldset disabled={bloqueado}>
+        <fieldset disabled={edicionBloqueada}>
           <legend>Sugerencia</legend>
           <AvisosSugerencia avisos={sugerencia.avisos} />
           <div className="direccion">
@@ -316,9 +318,9 @@ export default function FormularioSugerencia({
           </p>
         )}
         <DetallesSugerencia checklist={checklist} instrucciones={protocolo?.instrucciones ?? (catalogo ? [] : sugerencia.instrucciones)}
-          errores={erroresDe('checklist')} bloqueado={bloqueado} alMarcar={marcarPregunta} />
+          errores={erroresDe('checklist')} bloqueado={edicionBloqueada} alMarcar={marcarPregunta} />
         <div className="acciones">
-          <button type="submit" disabled={bloqueado} aria-keyshortcuts="Control+Enter Meta+Enter">
+          <button type="submit" disabled={derivacionBloqueada} aria-keyshortcuts="Control+Enter Meta+Enter">
             {ocupado ? 'Derivando…' : 'Derivar Carta de Llamada'}
           </button>
           <small className="atajo"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></small>

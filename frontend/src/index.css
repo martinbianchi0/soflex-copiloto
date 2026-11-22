@@ -138,6 +138,16 @@ textarea { min-block-size: 7rem; resize: vertical; }
 .formulario-turno .error-campo { display: block; }
 input:not([type="checkbox"]):disabled, select:disabled, textarea:disabled, textarea:read-only { background: #edf1f5; color: #46596c; }
 .cargar-ejemplo { margin-block-end: 0.875rem; }
+.reproducir-ejemplo { margin-block-start: 0.75rem; }
+.estado-reproduccion {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.625rem;
+}
+.estado-reproduccion p { margin: 0; }
 
 :focus-visible { outline: 3px solid #005ab5; outline-offset: 2px; }
 
