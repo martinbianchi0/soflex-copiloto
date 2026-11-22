@@ -1,0 +1,15 @@
+# Nada de esto entra al contexto de la imagen.
+.git
+**/.env
+**/.env.*
+!**/.env.example
+
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/node_modules
+**/dist
+**/data
+**/*.sqlite*
+**/*.db*

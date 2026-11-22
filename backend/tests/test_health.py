@@ -1,13 +1,11 @@
 import pytest
-from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from copiloto.config import Configuracion
-from copiloto.main import app
 
 
-def test_health_responde_ok_y_dice_el_proveedor():
-    respuesta = TestClient(app).get("/api/health")
+def test_health_responde_ok_y_dice_el_proveedor(cliente):
+    respuesta = cliente.get("/api/health")
 
     assert respuesta.status_code == 200
     assert respuesta.json() == {"status": "ok", "llm_provider": "mock"}
