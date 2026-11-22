@@ -9,7 +9,8 @@ from copiloto.main import crear_app
 
 LLAMADA = {"turnos": TURNOS}
 UBICACION = {"calle": "Av. Corrientes", "altura": 1540, "esquinas": ["Montevideo", "Paraná"]}
-COMPLETOS = {"prioridad": "P2", "tipo_hecho": "INCENDIO_RESCATE", "ubicacion": UBICACION}
+INCENDIO = {"categoria": "INCENDIO_RESCATE", "subtipo": None}
+COMPLETOS = {"prioridad": "P2", "tipo_hecho": INCENDIO, "ubicacion": UBICACION}
 
 
 def iniciar(cliente) -> str:
@@ -30,6 +31,7 @@ def test_iniciar_una_llamada_devuelve_la_sugerencia_y_queda_esperando(cliente):
     assert llamada["sugerencia"] == {
         "ubicacion": {"calle": {"origen": "falta"}, "altura": {"origen": "falta"}, "esquinas": []},
         "tipo_hecho": {"origen": "inferido", "valor": "NO_DETERMINADA", "fuente": "reglas"},
+        "subtipo": {"origen": "falta"},
         "prioridad": {"origen": "falta"},
         "checklist": [],
         "instrucciones": [],
@@ -69,6 +71,7 @@ def test_derivar_devuelve_la_carta_con_lo_que_completo_el_operador(cliente):
             ],
         },
         "tipo_hecho": {"origen": "operador", "valor": "INCENDIO_RESCATE"},
+        "subtipo": {"origen": "falta"},
         "prioridad": {"origen": "operador", "valor": "P2"},
         "checklist": [],
         "instrucciones": [],
@@ -245,3 +248,115 @@ def test_una_llamada_guardada_con_otro_formato_se_informa_como_ilegible(cliente)
     assert consulta.status_code == intento.status_code == 500
     assert "formato" in consulta.json()["detail"]
     assert "Corrientes" not in consulta.text
+
+
+# ---------- El catálogo ----------
+
+
+def test_la_api_entrega_el_catalogo_con_sus_treinta_protocolos(cliente):
+    respuesta = cliente.get("/api/catalogo")
+
+    assert respuesta.status_code == 200
+    protocolos = respuesta.json()["protocolos"]
+    assert [p["id"] for p in protocolos] == [f"SFX-{n:03d}" for n in range(1, 31)]
+    assert protocolos[4] == {
+        "id": "SFX-005",
+        "categoria": "ACCIDENTE_VIAL",
+        "nombre": "Colisión Vehículo vs Motovehículo",
+        "preguntas": [
+            {"id": "SFX-005-Q1", "texto": "¿El motociclista respira y responde al diálogo?"},
+            {"id": "SFX-005-Q2", "texto": "¿Se le retiró el casco? (NO retirar)"},
+            {"id": "SFX-005-Q3", "texto": "¿Hay combustible sobre el asfalto?"},
+        ],
+        "instrucciones": [
+            {
+                "id": "SFX-005-I1",
+                "texto": "BAJO NINGUNA CIRCUNSTANCIA retire el casco del motociclista. No moverlo "
+                "del asfalto. Desviar el tránsito con conos o balizas para evitar un segundo "
+                "atropello.",
+            }
+        ],
+    }
+
+
+def test_al_derivar_con_un_subtipo_la_carta_trae_su_checklist_y_sus_instrucciones(cliente):
+    llamada_id = iniciar(cliente)
+    protocolo = cliente.get("/api/catalogo").json()["protocolos"][4]
+    tipo = {"categoria": "ACCIDENTE_VIAL", "subtipo": "SFX-005"}
+
+    carta = derivar(cliente, llamada_id, {**COMPLETOS, "tipo_hecho": tipo}).json()["carta"]
+
+    assert carta["subtipo"] == {"origen": "operador", "valor": "SFX-005"}
+    assert [(item["id"], item["pregunta"]) for item in carta["checklist"]] == [
+        (pregunta["id"], pregunta["texto"]) for pregunta in protocolo["preguntas"]
+    ]
+    assert not any(item["respondida"] for item in carta["checklist"])
+    assert carta["instrucciones"] == protocolo["instrucciones"]
+    assert cliente.get(f"/api/llamadas/{llamada_id}").json()["carta"] == {
+        **carta,
+        "derivada_en": carta["derivada_en"],
+    }
+
+
+@pytest.mark.parametrize(
+    "tipo",
+    [
+        {"categoria": "INCENDIO_RESCATE", "subtipo": "SFX-005"},
+        {"categoria": "ACCIDENTE_VIAL", "subtipo": "SFX-999"},
+    ],
+)
+def test_un_subtipo_invalido_devuelve_422_y_la_llamada_sigue_esperando(cliente, tipo):
+    llamada_id = iniciar(cliente)
+
+    rechazo = derivar(cliente, llamada_id, {**COMPLETOS, "tipo_hecho": tipo})
+
+    assert rechazo.status_code == 422
+    assert rechazo.json()["detail"][0]["loc"] == ["ajustes", "tipo_hecho", "subtipo"]
+    assert cliente.get(f"/api/llamadas/{llamada_id}").json()["estado"] == "esperando_operador"
+
+
+def test_una_llamada_guardada_antes_de_que_existiera_el_subtipo_se_sigue_leyendo(cliente):
+    llamada_id = iniciar(cliente)
+    sin_subtipo = cliente.get(f"/api/llamadas/{llamada_id}").json()["sugerencia"]
+    del sin_subtipo["subtipo"]
+    cliente.app.state.llamadas._grafo.update_state(_hilo(llamada_id), {"sugerencia": sin_subtipo})
+
+    llamada = cliente.get(f"/api/llamadas/{llamada_id}")
+
+    assert llamada.status_code == 200
+    assert llamada.json()["sugerencia"]["subtipo"] == {"origen": "falta"}
+    assert derivar(cliente, llamada_id, COMPLETOS).status_code == 200
+
+
+def test_unos_ajustes_guardados_con_otro_formato_se_informan_como_ilegibles(cliente):
+    # Una versión anterior guardó el tipo de hecho como texto y se cortó antes de armar la carta.
+    llamada_id = iniciar(cliente)
+    grafo = cliente.app.state.llamadas._grafo
+    viejos = {"ajustes": {"tipo_hecho": "INCENDIO_RESCATE"}}
+    grafo.update_state(_hilo(llamada_id), viejos, as_node="esperar_operador")
+
+    consulta = cliente.get(f"/api/llamadas/{llamada_id}")
+    intento = derivar(cliente, llamada_id, COMPLETOS)
+
+    assert consulta.status_code == intento.status_code == 500
+    assert "formato" in consulta.json()["detail"]
+
+
+def test_la_sugerencia_que_se_guarda_ya_esta_ajustada_al_catalogo(
+    configuracion, monkeypatch, sugerencia_completa
+):
+    sugerencia_completa["subtipo"]["valor"] = "SFX-999"
+    monkeypatch.setattr(flujo, "analizar", lambda _: Sugerencia.model_validate(sugerencia_completa))
+    with TestClient(crear_app(configuracion)) as cliente:
+        sugerencia = cliente.post("/api/llamadas", json=LLAMADA).json()["sugerencia"]
+
+    assert sugerencia["subtipo"] == {"origen": "falta"}
+    assert sugerencia["checklist"] == sugerencia["instrucciones"] == []
+
+
+def test_la_api_entrega_el_criterio_de_prioridad_junto_al_catalogo(cliente):
+    criterio = cliente.get("/api/catalogo").json()["criterio"]
+
+    assert [nivel["id"] for nivel in criterio["niveles"]] == ["P1", "P2", "P3", "P4"]
+    assert set(criterio["niveles"][0]) == {"id", "nombre", "definicion", "senales"}
+    assert len(criterio["reglas"]) == 4

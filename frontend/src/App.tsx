@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi } from './api'
-import type { Ajustes, DetalleValidacion, Llamada } from './api'
+import { consultarCatalogo, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi } from './api'
+import type { Ajustes, Catalogo, DetalleValidacion, Llamada } from './api'
 import CartaLlamada from './CartaLlamada'
 import FormularioSugerencia from './FormularioSugerencia'
 
@@ -13,6 +13,8 @@ const nombresCampos: Record<string, string> = {
   altura: 'Altura',
   esquinas: 'Esquinas',
   tipo_hecho: 'Tipo de hecho',
+  categoria: 'Tipo de hecho',
+  subtipo: 'Subtipo',
   prioridad: 'Prioridad',
   turnos: 'Turnos',
   texto: 'Texto de la transcripción',
@@ -39,6 +41,7 @@ function cambiarUrl(identificador: string | null) {
 
 function App() {
   const [modo, setModo] = useState<string | null>()
+  const [catalogo, setCatalogo] = useState<Catalogo | null>()
   const [identificador, setIdentificador] = useState(leerIdentificador)
   const [llamada, setLlamada] = useState<Llamada | null>(null)
   const [transcripcion, setTranscripcion] = useState('')
@@ -48,6 +51,17 @@ function App() {
   const solicitud = useRef<AbortController | null>(null)
   const regionAvisos = useRef<HTMLDivElement>(null)
   const bloqueado = ocupado || modo === undefined
+  const analisisBloqueado = bloqueado || !catalogo
+  const erroresSubtipo = Array.isArray(error)
+    ? error.flatMap(({ loc }, indice) => loc.at(-1) === 'subtipo' ? [`error-campo-${indice}`] : []).join(' ')
+    : ''
+
+  const cargarCatalogo = useCallback((senal: AbortSignal) => {
+    consultarCatalogo(senal).then(
+      (respuesta) => { if (!senal.aborted) setCatalogo(respuesta) },
+      () => { if (!senal.aborted) setCatalogo(null) },
+    )
+  }, [])
 
   useEffect(() => {
     const control = new AbortController()
@@ -55,8 +69,14 @@ function App() {
       (salud) => { if (!control.signal.aborted) setModo(salud.llm_provider) },
       () => { if (!control.signal.aborted) setModo(null) },
     )
+    cargarCatalogo(control.signal)
     return () => control.abort()
-  }, [])
+  }, [cargarCatalogo])
+
+  function reintentarCatalogo() {
+    setCatalogo(undefined)
+    cargarCatalogo(new AbortController().signal)
+  }
 
   const solicitar = useCallback(async (operacion: (senal: AbortSignal) => Promise<void>) => {
     if (solicitud.current) return
@@ -117,12 +137,14 @@ function App() {
   }, [solicitar])
 
   useEffect(() => {
-    if (error || aviso || modo === null) regionAvisos.current?.scrollIntoView({ block: 'nearest' })
-  }, [error, aviso, modo])
+    if (error || aviso || modo === null || catalogo === null) {
+      regionAvisos.current?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [error, aviso, modo, catalogo])
 
   function analizar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
-    if (bloqueado || !transcripcion.trim()) return
+    if (analisisBloqueado || !transcripcion.trim()) return
     void solicitar(async (senal) => {
       const creada = await crearLlamada(transcripcion, senal)
       if (senal.aborted) return
@@ -134,7 +156,7 @@ function App() {
   }
 
   function derivar(ajustes: Ajustes) {
-    if (bloqueado || llamada?.estado !== 'esperando_operador') return
+    if (bloqueado || !catalogo || llamada?.estado !== 'esperando_operador') return
     const id = llamada.llamada_id
     void solicitar(async (senal) => {
       try {
@@ -171,12 +193,19 @@ function App() {
       <div className="avisos" ref={regionAvisos} aria-live="polite" aria-atomic="true">
         {aviso && <p className="aviso">{aviso}</p>}
         {modo === null && error !== errorConexion && <p className="error">{errorConexion}</p>}
+        {catalogo === undefined && <p id="estado-catalogo" className="aviso">Cargando el catálogo de protocolos…</p>}
+        {catalogo === null && (
+          <p id="estado-catalogo" className="error">
+            No se pudo cargar el catálogo de protocolos.{' '}
+            <button type="button" className="secundario" onClick={reintentarCatalogo}>Reintentar</button>
+          </p>
+        )}
         {Array.isArray(error) ? (
           <div className="error">
             <p>Revisá los datos:</p>
             <ul>
               {error.map(({ loc, msg }, indice) => (
-                <li key={indice}>{nombrarCampo(loc)}: {msg}</li>
+                <li key={indice} id={`error-campo-${indice}`}>{nombrarCampo(loc)}: {msg}</li>
               ))}
             </ul>
           </div>
@@ -187,11 +216,12 @@ function App() {
         <form className="panel" onSubmit={analizar}>
           <label className="titulo-campo">
             Transcripción de la llamada
-            <textarea rows={7} value={transcripcion} disabled={bloqueado} required
+            <textarea rows={7} value={transcripcion} disabled={analisisBloqueado} required
+              aria-describedby={catalogo ? undefined : 'estado-catalogo'}
               onChange={(evento) => setTranscripcion(evento.target.value)} />
           </label>
           <div className="acciones">
-            <button type="submit" disabled={bloqueado || !transcripcion.trim()}>
+            <button type="submit" disabled={analisisBloqueado || !transcripcion.trim()}>
               {ocupado ? 'Analizando…' : 'Analizar llamada'}
             </button>
           </div>
@@ -204,9 +234,18 @@ function App() {
             <h2>Transcripción de la llamada</h2>
             <p className="transcripcion">{llamada.turnos.map(({ texto }) => texto).join('\n\n')}</p>
           </section>
-          <FormularioSugerencia key={llamada.llamada_id} sugerencia={llamada.sugerencia}
-            bloqueado={bloqueado} ocupado={ocupado} alDerivar={derivar}
-            alValidar={setError} alEmpezar={nuevaLlamada} />
+          {catalogo ? (
+            <FormularioSugerencia key={llamada.llamada_id} sugerencia={llamada.sugerencia} catalogo={catalogo}
+              bloqueado={bloqueado} ocupado={ocupado} alDerivar={derivar} erroresSubtipo={erroresSubtipo}
+              alValidar={setError} alEmpezar={nuevaLlamada} />
+          ) : (
+            // Sin catálogo no hay formulario, pero el operador no queda encerrado en esta llamada.
+            <div className="panel acciones">
+              <button type="button" className="secundario" disabled={bloqueado} onClick={nuevaLlamada}>
+                Nueva llamada
+              </button>
+            </div>
+          )}
         </>
       )}
 
@@ -214,7 +253,7 @@ function App() {
         <section className="panel">
           {ocupado && <p role="status">Consultando la llamada…</p>}
           {llamada?.estado === 'en_proceso' && <h2>Llamada en proceso</h2>}
-          {llamada?.estado === 'derivada' && <CartaLlamada carta={llamada.carta} />}
+          {llamada?.estado === 'derivada' && <CartaLlamada carta={llamada.carta} catalogo={catalogo ?? null} />}
           <div className="acciones">
             <button type="button" className="secundario" disabled={bloqueado} onClick={nuevaLlamada}>
               Nueva llamada

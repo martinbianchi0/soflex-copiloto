@@ -27,9 +27,31 @@ Qué se eligió, por qué y qué se dejó afuera.
 - **Lo que el operador no cambia conserva su origen y su cita; lo que cambia pasa a ser suyo.** Volver a escribir lo mismo con otras mayúsculas o acentos no es un cambio. Vaciar un dato sugerido queda registrado como una decisión del operador, que no es lo mismo que un dato que nadie dijo.
 - **Lo guardado se valida al leerlo.** El grafo guarda datos planos y cada nodo los valida al entrar: de la base no sale una llamada que rompa sus propias reglas. Una llamada guardada con un formato anterior se informa como ilegible: en un prototipo no hay migración de datos.
 
+## El catálogo de protocolos
+
+- **Las preguntas y las instrucciones salen de un catálogo, no se redactan.** El sistema elige un protocolo por su identificador y muestra su texto tal cual. Una instrucción de pre-arribo mal redactada puede hacer daño: si en "no retirar el casco" de un motociclista se pierde el "no", la instrucción se invierte. Por eso el servicio nunca escribe una.
+- **El catálogo se arma del dataset provisto, al arrancar.** Cada fila da un protocolo: el subtipo de hecho, sus tres preguntas obligatorias y su instrucción de pre-arribo. Son 30, uno por subtipo, repartidos en las 6 categorías. Si el archivo no tiene la forma esperada (columnas que faltan o se repiten, filas con celdas de más o de menos, un registro repetido o incompleto), el servicio no arranca.
+- **Los identificadores salen del número de registro del dataset** (`SFX-REC-2026-005` da el protocolo `SFX-005`, sus preguntas `SFX-005-Q1` a `Q3` y su instrucción `SFX-005-I1`). Así cada texto que ve el operador se puede rastrear hasta su fila.
+- **El protocolo son las preguntas obligatorias.** El dataset trae otras dos columnas de preguntas (las respondidas en el relato y las pendientes), pero describen esa llamada puntual: algunas nombran sus calles o sus detalles, y de las 90 obligatorias sólo 1 aparece también ahí. No son un protocolo reutilizable; sirven de referencia para medir qué preguntas detecta el sistema como respondidas.
+- **El tipo de hecho tiene dos niveles: categoría y subtipo.** La categoría siempre está; el subtipo es opcional y es el que trae el protocolo. Un subtipo de otra categoría se rechaza.
+- **Sin subtipo no se muestra el protocolo de un subtipo parecido.** El dataset no trae protocolos por categoría: mientras el hecho no tenga subtipo, la carta sale sin checklist ni instrucciones, y lo deja a la vista.
+- **El checklist y las instrucciones son siempre los del subtipo, con el texto del catálogo.** Los arma el servicio a partir del identificador, tanto en la sugerencia (antes de guardarla) como en la carta. Un subtipo sugerido que el catálogo no respalda se descarta. Si el operador cambia el subtipo, del anterior no se arrastra nada: ni las respuestas ni sus citas.
+- **El contenido no está validado por una autoridad médica ni operativa.** Viene del dataset provisto. En un sistema real, el catálogo lo aprueba y lo versiona quien es responsable del protocolo.
+
+## El criterio de prioridad
+
+- **La prioridad sigue las etiquetas del dataset.** El criterio P1 a P4 se escribió para que cada una de las 30 llamadas provistas caiga en el nivel que trae el dataset. Se comprobó leyendo cada llamada, no con un intérprete.
+- **P2 no es "poco grave": es "estable por ahora".** En cuatro llamadas hay una señal fuerte de riesgo y el dataset marca P2: un ascensor trabado con una embarazada, cables de media tensión cortados, conductores sobre los techos en un anegamiento y una fractura expuesta que sangra. El criterio las deja en P2, porque hay personas afectadas pero estables o un peligro que todavía no alcanzó a nadie. La alternativa, subir a P1 ante cualquier señal fuerte, coincidía con el dataset en 26 de 30 (leyendo las 30 llamadas una por una).
+- **Lo que sube un P2 a P1 son las respuestas a las preguntas del protocolo:** si el sangrado es a chorros, si alguien encerrado se descompensa. Por eso el checklist y la prioridad se leen juntos.
+- **Una sola señal de P1 alcanza, y ante la duda va el nivel más urgente.** Un golpe de alta energía (atropello, choque de moto, vuelco) es P1 aunque la persona esté consciente: así lo marca el dataset.
+- **P4 está definido aunque el dataset no trae ninguno:** lo que no es una emergencia y puede esperar. Así la escala cubre también los pedidos que pueden esperar, sin mezclarlos con las emergencias.
+- **El criterio es un dato del servicio, no un comentario.** Viaja con el catálogo y el panel lo muestra junto a la prioridad. Es el mismo texto que va a recibir cualquier intérprete que proponga una: el operador y el sistema leen la misma regla.
+- **La prioridad es siempre una propuesta.** La confirma el operador, y sin ella no se puede derivar.
+- **No está validado por una autoridad operativa.** En un sistema real el criterio lo define y lo versiona quien es responsable del protocolo.
+
 ## API
 
-- **Tres operaciones:** iniciar una llamada (`POST /api/llamadas`), consultarla (`GET /api/llamadas/{id}`) y derivarla (`POST /api/llamadas/{id}/derivar`). La llamada entra como una lista de turnos.
+- **Cuatro operaciones:** leer el catálogo y el criterio de prioridad (`GET /api/catalogo`), iniciar una llamada (`POST /api/llamadas`), consultarla (`GET /api/llamadas/{id}`) y derivarla (`POST /api/llamadas/{id}/derivar`). La llamada entra como una lista de turnos.
 - **Lo que entra se valida antes de tocar el flujo.** Los esquemas rechazan campos desconocidos, textos vacíos y prioridades fuera de P1–P4. La regla que depende de la sugerencia (lo mínimo para derivar) también se comprueba antes de retomar el grafo. En los dos casos la respuesta es 422 y la llamada sigue esperando al operador.
 - **El operador manda sólo lo que cambia, con los valores a secas.** Lo que no manda queda como lo sugirió el sistema. La ubicación se manda entera, y el servicio compara cada parte con la sugerida para decidir qué conserva su origen y qué pasa a ser del operador.
 - **Los errores dicen qué pasó:** 404 si la llamada no existe y 409 si ya no está esperando al operador.

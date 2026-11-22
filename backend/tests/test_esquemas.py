@@ -177,7 +177,7 @@ def test_una_llamada_con_un_dato_citado_que_nadie_dijo_no_es_valida(sugerencia_c
 
 
 def test_la_cita_de_una_respuesta_del_checklist_tambien_se_verifica(sugerencia_completa):
-    sugerencia_completa["checklist"][1]["cita"]["texto"] = "no hay nadie adentro"
+    sugerencia_completa["checklist"][0]["cita"]["texto"] = "no hay nadie adentro"
 
     with pytest.raises(ValidationError, match="La cita no aparece"):
         Llamada.model_validate(llamada(sugerencia_completa))
@@ -225,7 +225,10 @@ def test_el_estado_de_una_llamada_coincide_con_lo_que_tiene(sugerencia_completa,
     "ajustes",
     [
         {"prioridad": "P9"},
-        {"tipo_hecho": "INCENDIO"},
+        {"tipo_hecho": "INCENDIO_RESCATE"},
+        {"tipo_hecho": {"categoria": "INCENDIO", "subtipo": None}},
+        {"tipo_hecho": {"categoria": "INCENDIO_RESCATE"}},
+        {"tipo_hecho": {"categoria": "INCENDIO_RESCATE", "subtipo": "  "}},
         {"campo_inventado": "x"},
         {"prioridad": None},
         {"ubicacion": None},
@@ -275,9 +278,9 @@ def test_la_cita_de_una_respuesta_en_la_carta_tambien_se_verifica(sugerencia_com
         "llamada_id": "abc",
         "derivada_en": "2026-11-22T03:00:00Z",
     }
-    carta["checklist"][1]["cita"] = {"turno": 0, "texto": "no hay nadie adentro"}
+    carta["checklist"][0]["cita"] = {"turno": 0, "texto": "no hay nadie adentro"}
     sugerencia = Sugerencia.model_validate(sugerencia_completa).model_dump(mode="json")
-    sugerencia["checklist"][1]["cita"] = {"turno": 0, "texto": "se prendió fuego"}
+    sugerencia["checklist"][0]["cita"] = {"turno": 0, "texto": "se prendió fuego"}
 
     with pytest.raises(ValidationError, match="La cita no aparece"):
         Llamada.model_validate(llamada(sugerencia, estado="derivada", carta=carta))
@@ -308,3 +311,17 @@ def test_un_dato_alterado_por_fuera_no_pasa_como_parte_de_otro(sugerencia_comple
 
     with pytest.raises(ValidationError):
         Ubicacion(calle=alterada, altura=sugerencia.ubicacion.altura, esquinas=[])
+
+
+@pytest.mark.parametrize("lista", ["checklist", "instrucciones"])
+def test_una_ficha_no_repite_preguntas_ni_instrucciones(sugerencia_completa, lista):
+    sugerencia_completa[lista].append(sugerencia_completa[lista][0])
+
+    with pytest.raises(ValidationError, match="repetida"):
+        Sugerencia.model_validate(sugerencia_completa)
+
+
+def test_una_ficha_guardada_sin_subtipo_se_lee_como_que_falta(sugerencia_completa):
+    del sugerencia_completa["subtipo"]
+
+    assert Sugerencia.model_validate(sugerencia_completa).subtipo.origen == "falta"

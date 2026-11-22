@@ -75,6 +75,7 @@ legend {
 }
 
 .direccion, .esquinas, .hecho { display: grid; gap: 0.75rem; }
+.hecho { align-items: start; }
 
 label {
   display: block;
@@ -94,8 +95,8 @@ label {
   column-gap: 0.5rem;
 }
 
-.origen, .cita { color: #46596c; font-size: 0.8125rem; }
-.cita { display: block; margin-block-start: 0.25rem; }
+.origen, .cita, .definicion-prioridad { color: #46596c; font-size: 0.8125rem; }
+.cita, .definicion-prioridad { display: block; margin-block-start: 0.25rem; }
 
 input, select, textarea, button { font: inherit; }
 
@@ -158,7 +159,7 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
 .datos-carta dt { font-weight: 600; }
 .datos-carta .origen { display: block; }
 
-.detalles-sugerencia {
+.detalles-sugerencia, .criterio-prioridad {
   margin-block-start: 0.75rem;
   border-block-start: 1px solid #aebbc8;
   padding-block-start: 0.75rem;
@@ -166,10 +167,22 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
 }
 
 .detalles-sugerencia h3 { margin: 0; font-size: 1rem; }
-.detalles-sugerencia ul { margin: 0.25rem 0 0; padding-inline-start: 1.25rem; }
-.detalles-sugerencia li + li { margin-block-start: 0.25rem; }
+.criterio-prioridad summary { cursor: pointer; font-weight: 600; }
+.criterio-prioridad h3 { margin: 0.75rem 0 0; font-size: 1rem; }
+.detalles-sugerencia ul, .criterio-prioridad ul { margin: 0.25rem 0 0; padding-inline-start: 1.25rem; }
+.detalles-sugerencia li + li, .criterio-prioridad li + li { margin-block-start: 0.25rem; }
+.detalles-sugerencia .instrucciones {
+  border-inline-start: 0.25rem solid #1c4d77;
+  font-size: 1.0625rem;
+  white-space: pre-wrap;
+}
 
 @media (min-width: 36rem) {
-  .direccion, .hecho { grid-template-columns: minmax(0, 1fr) 9rem; }
+  .direccion { grid-template-columns: minmax(0, 1fr) 9rem; }
+  .hecho {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1.7fr);
+    row-gap: 0;
+  }
+  .hecho > .campo { display: grid; grid-row: span 2; grid-template-rows: subgrid; }
   .esquinas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
