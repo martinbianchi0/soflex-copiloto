@@ -25,10 +25,14 @@ export default function FormularioTurno({ bloqueado, edicionBloqueada, sumando, 
       if (!puedeSumar) return
       // Una transcripción con marcas trae sus propios hablantes, igual que en el alta.
       const conMarcas = /^\s*(operador|llamante)\s*:/i.test(texto)
+      const formulario = evento.currentTarget
       alSumar({ texto, hablante: conMarcas ? null : hablante }, () => {
         setTexto('')
         setHablante('llamante')
-        area.current?.focus()
+        // El foco vuelve al texto para seguir sumando, salvo que el operador lo haya llevado a
+        // otro lado mientras tanto (a leer la transcripción, por ejemplo).
+        const enFoco = document.activeElement
+        if (!enFoco || enFoco === document.body || formulario.contains(enFoco)) area.current?.focus()
       })
     }}>
       <fieldset>
