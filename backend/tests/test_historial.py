@@ -113,8 +113,8 @@ def test_el_historial_compara_los_valores_que_quedaron_en_la_carta(sugerencia):
         },
         {
             "campo": "pregunta SFX-001-Q2",
-            "sugerido": {"respondida": False},
-            "final": {"respondida": True},
+            "sugerido": {"respondida": False, "propuesta": False},
+            "final": {"respondida": True, "propuesta": False},
         },
     ]
 
@@ -142,5 +142,5 @@ def test_del_protocolo_nuevo_solo_cuentan_las_preguntas_que_se_marcaron(sugerenc
     cambios = historial.comparar(sugerencia, carta)
 
     assert [cambio.campo for cambio in cambios] == ["tipo_hecho", "subtipo", "pregunta SFX-005-Q1"]
-    assert cambios[-1].sugerido.model_dump() == {"respondida": False}
-    assert cambios[-1].final.model_dump() == {"respondida": True}
+    assert cambios[-1].sugerido.model_dump() == {"respondida": False, "propuesta": False}
+    assert cambios[-1].final.model_dump() == {"respondida": True, "propuesta": False}

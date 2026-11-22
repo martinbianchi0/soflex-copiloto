@@ -221,7 +221,8 @@ def test_el_checklist_solo_conserva_respuestas_respaldadas_del_protocolo(abrir_s
         (pregunta.id, pregunta.texto) for pregunta in protocolo.preguntas
     ]
     assert sugerencia.instrucciones == protocolo.instrucciones
-    assert [item.respondida for item in sugerencia.checklist] == [True, False, False]
+    # Lo que propone el modelo queda como posible respuesta, con su cita y sin darse por respondido.
+    assert [item.respondida for item in sugerencia.checklist] == [False, False, False]
     assert [item.cita for item in sugerencia.checklist] == [Cita(turno=1, texto=CITA), None, None]
     avisos = sugerencia.avisos[len(inicial.sugerencia.avisos) :]
     assert [aviso.codigo for aviso in avisos] == ["dato_descartado"] * 2
@@ -319,7 +320,35 @@ def test_la_revision_sin_decir_si_corresponde_se_vuelve_a_pedir(abrir_servicio):
     assert len(modelo.pedidos) == 3
     assert 'Falta "corresponde"' in modelo.pedidos[2][1]
     assert sugerencia.subtipo.valor == "SFX-001"
-    assert sugerencia.checklist[0].respondida
+    assert sugerencia.checklist[0].cita is not None
+
+
+def test_una_posible_respuesta_sin_confirmar_no_llega_respondida_a_la_carta(abrir_servicio):
+    with abrir_servicio(ModeloGuionado(CLASIFICACION, CHECKLIST)) as servicio:
+        llamada_id = alta_001(servicio).llamada_id
+        propuesta = servicio.completar_analisis(llamada_id).sugerencia.checklist[0]
+        carta = servicio.derivar(llamada_id, Ajustes()).carta
+        historial = servicio.consultar_historial(llamada_id)
+
+    assert propuesta.cita is not None and not propuesta.respondida
+    assert carta.checklist[0] == propuesta
+    assert not any(item.respondida for item in carta.checklist)
+    assert historial.cambios == []
+
+
+def test_el_operador_confirma_una_posible_respuesta_y_conserva_su_cita(abrir_servicio):
+    with abrir_servicio(ModeloGuionado(CLASIFICACION, CHECKLIST)) as servicio:
+        llamada_id = alta_001(servicio).llamada_id
+        propuesta = servicio.completar_analisis(llamada_id).sugerencia.checklist[0]
+        marca = Ajustes.model_validate({"checklist": [{"id": propuesta.id, "respondida": True}]})
+        confirmada = servicio.derivar(llamada_id, marca).carta.checklist[0]
+        (cambio,) = servicio.consultar_historial(llamada_id).cambios
+
+    assert confirmada.respondida and confirmada.del_operador
+    assert confirmada.cita == propuesta.cita
+    assert cambio.campo == f"pregunta {propuesta.id}"
+    assert cambio.sugerido.model_dump() == {"respondida": False, "propuesta": True}
+    assert cambio.final.model_dump() == {"respondida": True, "propuesta": False}
 
 
 def test_si_vence_antes_de_clasificar_se_rescata_sin_pedir_nada(abrir_servicio, monkeypatch):

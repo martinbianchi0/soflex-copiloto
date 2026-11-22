@@ -100,7 +100,10 @@ def medir(caso: dict[str, Any], servicio: Llamadas, contador: Contador | None) -
             "subtipo": valor_de(sugerencia.subtipo),
             "prioridad": _plano(valor_de(sugerencia.prioridad)),
             "cita_prioridad": cita.texto if cita else None,
-            "respondidas": [item.id for item in sugerencia.checklist if item.respondida],
+            # Las que el sistema da por respondidas y las que propone como posible respuesta.
+            "respondidas": [
+                item.id for item in sugerencia.checklist if item.respondida or item.cita
+            ],
             "citas_del_protocolo": {
                 item.id: item.cita.texto for item in sugerencia.checklist if item.cita
             },
@@ -206,8 +209,8 @@ def resumir(resultados: list[dict[str, Any]], con_modelo: bool) -> list[str]:
         esperadas = {q for r in anotados for q in r["esperado"]["respondidas"]}
         propuestas = {q for r in anotados for q in r["propuesto"]["respondidas"]}
         lineas.append(
-            f"- Preguntas del protocolo: de las {len(esperadas)} anotadas como respondidas detecta "
-            f"{len(esperadas & propuestas)}; da por respondidas otras {len(propuestas - esperadas)}."
+            f"- Preguntas del protocolo: de las {len(esperadas)} anotadas como respondidas señala "
+            f"{len(esperadas & propuestas)}; señala otras {len(propuestas - esperadas)}."
         )
 
     descartes = sum(r["avisos"].count("dato_descartado") for r in resultados)

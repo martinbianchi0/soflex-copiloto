@@ -320,8 +320,9 @@ def derivar(llamada_id: str, sugerencia: Sugerencia, ajustes: Ajustes, ahora: da
 def _marcar(checklist: list[ItemChecklist], marcas: list[MarcaChecklist]) -> list[ItemChecklist]:
     """El checklist con lo que marcó el operador por encima.
 
-    Confirmar lo que el sistema ya había detectado no cambia nada: la respuesta conserva su cita.
-    Marcar una pendiente, o desmarcar una detectada, pasa a ser una decisión del operador.
+    Confirmar lo que el sistema ya daba por respondido no cambia nada: la respuesta conserva su
+    cita. Marcar una pendiente, o desmarcar una detectada, pasa a ser una decisión del operador. Si
+    la pendiente era una posible respuesta, conserva la cita que el operador tuvo a la vista.
     """
     marcadas = {marca.id: marca.respondida for marca in marcas}
     if ajenas := sorted(set(marcadas) - {item.id for item in checklist}):
@@ -330,7 +331,11 @@ def _marcar(checklist: list[ItemChecklist], marcas: list[MarcaChecklist]) -> lis
         item
         if marcadas.get(item.id, item.respondida) == item.respondida
         else ItemChecklist(
-            id=item.id, pregunta=item.pregunta, respondida=marcadas[item.id], del_operador=True
+            id=item.id,
+            pregunta=item.pregunta,
+            respondida=marcadas[item.id],
+            cita=item.cita if marcadas[item.id] else None,
+            del_operador=True,
         )
         for item in checklist
     ]

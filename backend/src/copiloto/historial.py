@@ -128,17 +128,19 @@ def comparar(sugerencia: Sugerencia, carta: Carta) -> list[CambioHistorial]:
 
     # Al cambiar de protocolo, sus preguntas arrancan pendientes. Sólo cuentan las que se marcaron.
     sugeridas_por_pregunta = (
-        {(item.id, item.pregunta): item.respondida for item in sugerencia.checklist}
+        {(item.id, item.pregunta): item for item in sugerencia.checklist}
         if valor_de(sugerencia.subtipo) == valor_de(carta.subtipo)
         else {}
     )
     for item in carta.checklist:
-        respondida = sugeridas_por_pregunta.get((item.id, item.pregunta), False)
+        sugerida = sugeridas_por_pregunta.get((item.id, item.pregunta))
+        respondida = sugerida is not None and sugerida.respondida
         if item.del_operador and respondida != item.respondida:
+            propuesta = sugerida is not None and not respondida and sugerida.cita is not None
             cambios.append(
                 CambioHistorial(
                     campo=f"pregunta {item.id}",
-                    sugerido=EstadoPregunta(respondida=respondida),
+                    sugerido=EstadoPregunta(respondida=respondida, propuesta=propuesta),
                     final=EstadoPregunta(respondida=item.respondida),
                 )
             )

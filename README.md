@@ -2,7 +2,7 @@
 
 Prototipo que asiste al operador de una sala de emergencias: lee la transcripción de una llamada, propone ubicación, tipo de hecho y prioridad, y el operador revisa, ajusta y deriva la Carta de Llamada.
 
-**Estado:** funcionan los dos modos. En `mock`, sin red ni modelo, las reglas proponen la ubicación contrastada con el callejero de la Ciudad, con la cita de lo que dijo el llamante y avisos cuando la dirección no cierra; para un texto nuevo proponen además la categoría por palabras clave, y si la llamada es una de las 30 del dataset, su tipo, su subtipo, su prioridad y las preguntas del protocolo que el relato ya responde. Con un modelo local, la ubicación sigue saliendo de las reglas y el modelo propone el tipo de hecho, la prioridad con la cita que la justifica y las preguntas ya respondidas. En los dos modos el operador revisa, marca el protocolo y deriva la carta, que lleva lo que quedó sin confirmar con el llamante y el historial de la llamada: qué propuso el sistema, cuándo, y qué cambió el operador. El panel trae llamadas de ejemplo para cargar.
+**Estado:** funcionan los dos modos. En `mock`, sin red ni modelo, las reglas proponen la ubicación contrastada con el callejero de la Ciudad, con la cita de lo que dijo el llamante y avisos cuando la dirección no cierra; para un texto nuevo proponen además la categoría por palabras clave, y si la llamada es una de las 30 del dataset, su tipo, su subtipo, su prioridad y las preguntas del protocolo que el relato ya responde. Con un modelo local, la ubicación sigue saliendo de las reglas y el modelo propone el tipo de hecho, la prioridad con la cita que la justifica y posibles respuestas a las preguntas del protocolo, que el operador confirma. En los dos modos el operador revisa, marca el protocolo y deriva la carta, que lleva lo que quedó sin confirmar con el llamante y el historial de la llamada: qué propuso el sistema, cuándo, y qué cambió el operador. El panel trae llamadas de ejemplo para cargar.
 
 ## Cómo levantarlo
 
@@ -16,7 +16,7 @@ El estado de las llamadas se guarda en un volumen de Docker: una llamada que que
 
 ## Con un modelo local (opcional)
 
-Por defecto corre en modo `mock`. Para que un modelo proponga el tipo de hecho, la prioridad y las preguntas del protocolo que el llamante ya respondió:
+Por defecto corre en modo `mock`. Para que un modelo proponga el tipo de hecho, la prioridad y posibles respuestas a las preguntas del protocolo:
 
 1. Instalar [Ollama](https://ollama.com) en la máquina (0.30 o más nuevo) y bajar el modelo, de 3,3 GB:
    ```bash
@@ -42,7 +42,7 @@ Medido con `backend/herramientas/evaluar.py`, que pasa cada llamada por el mismo
 | Llamadas P1 detectadas | — | 9 de 9 | 12 de 14 |
 | Subtipo correcto | — | — | 26 (4 sin subtipo, 0 equivocados) |
 | Subtipo propuesto sin que el catálogo tenga uno | — | 4 | — |
-| Preguntas del protocolo ya respondidas | — | — | detecta 4 de las 7 anotadas; marca otras 15 |
+| Preguntas del protocolo: posibles respuestas | — | — | señala 4 de las 7 anotadas, y otras 15 |
 | Tiempo por llamada (mediana y percentil 95) | menos de 0,1 s | 5,2 y 10,0 s | 7,2 y 11,5 s |
 
 Las 30 llamadas del dataset son las mismas con las que se escribieron el criterio de prioridad y el catálogo: sus números son un techo. Las otras 32 son sintéticas y no son del dataset: son pocas, y no reemplazan una medición con llamadas reales. En modo `mock`, las 30 del dataset se reconocen por su texto y traen su ficha, así que ahí no hay nada que medir. La ubicación sale siempre de las reglas: reconoce la calle en 27 de las 28 llamadas nuevas que nombran una (`backend/tests/test_medicion.py`).

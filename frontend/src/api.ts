@@ -100,7 +100,7 @@ type EventoHistorial = {
   detalle: string
 }
 
-export type ValorCambio = Dato<string | number> | Dato<string>[] | { respondida: boolean }
+export type ValorCambio = Dato<string | number> | Dato<string>[] | { respondida: boolean; propuesta: boolean }
 
 export type Historial = {
   llamada_id: string
