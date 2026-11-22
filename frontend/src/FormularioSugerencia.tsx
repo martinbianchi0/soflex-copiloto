@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { FormEvent, ReactNode } from 'react'
+import type { FormEvent, KeyboardEvent, ReactNode } from 'react'
 import { nombresTiposHecho, textoOrigen, valorDato } from './api'
 import type { Ajustes, Catalogo, Criterio, Dato, DetalleValidacion, Pregunta, Prioridad, Sugerencia, TipoHecho, Turno } from './api'
 import AvisosSugerencia from './AvisosSugerencia'
@@ -188,10 +188,21 @@ export default function FormularioSugerencia({
     alDerivar(ajustes)
   }
 
+  function alTeclear(evento: KeyboardEvent<HTMLFormElement>) {
+    if (evento.key !== 'Enter') return
+    if (evento.ctrlKey || evento.metaKey) {
+      evento.preventDefault()
+      formulario.current?.requestSubmit()
+    } else if (evento.target instanceof HTMLInputElement) {
+      // Enter dentro de un campo no deriva: una carta derivada no se puede deshacer.
+      evento.preventDefault()
+    }
+  }
+
   return (
     <div className="panel-operador">
       <Transcripcion turnos={turnos} citas={citas.map(({ cita }) => cita)} citaActiva={citaActiva} />
-      <form className="panel" ref={formulario} onSubmit={enviar} noValidate
+      <form className="panel" ref={formulario} onSubmit={enviar} onKeyDown={alTeclear} noValidate
         onFocus={(evento) => setEnFoco(evento.target.id)} onBlur={() => setEnFoco('')}>
         <fieldset disabled={bloqueado}>
           <legend>Sugerencia</legend>
@@ -263,9 +274,10 @@ export default function FormularioSugerencia({
         <DetallesSugerencia checklist={checklist} instrucciones={protocolo?.instrucciones ?? []}
           errores={erroresDe('checklist')} bloqueado={bloqueado} alMarcar={marcarPregunta} />
         <div className="acciones">
-          <button type="submit" disabled={bloqueado}>
+          <button type="submit" disabled={bloqueado} aria-keyshortcuts="Control+Enter Meta+Enter">
             {ocupado ? 'Derivando…' : 'Derivar Carta de Llamada'}
           </button>
+          <small className="atajo"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></small>
           <button type="button" className="secundario" disabled={bloqueado} onClick={alEmpezar}>
             Nueva llamada
           </button>

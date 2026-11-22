@@ -273,3 +273,11 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
     overflow-y: auto;
   }
 }
+
+.atajo { align-self: center; color: #46596c; font-size: 0.8125rem; }
+.atajo kbd {
+  border: 1px solid #9aa9b8;
+  border-radius: 4px;
+  font: inherit;
+  padding: 0 0.3rem;
+}
