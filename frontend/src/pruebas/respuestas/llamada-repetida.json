@@ -1,0 +1,99 @@
+{
+ "llamada_id": "llamada-repetida",
+ "estado": "esperando_operador",
+ "turnos": [
+  {
+   "texto": "911 emergencias, ¿dónde es su urgencia?",
+   "hablante": "operador"
+  },
+  {
+   "texto": "Hola, por favor manden a los bomberos ya! En la pizzería de Av. Corrientes 1540 casi Montevideo, se prendió fuego la campana de la cocina y se está metiendo el humo negro al salón, la gente salió corriendo a la calle pero adentro quedó el cocinero!",
+   "hablante": "llamante"
+  }
+ ],
+ "sugerencia": {
+  "ubicacion": {
+   "calle": {
+    "origen": "dicho",
+    "valor": "Av. Corrientes",
+    "cita": {
+     "turno": 1,
+     "texto": "Av. Corrientes"
+    }
+   },
+   "altura": {
+    "origen": "dicho",
+    "valor": 1540,
+    "cita": {
+     "turno": 1,
+     "texto": "1540"
+    }
+   },
+   "esquinas": [
+    {
+     "origen": "dicho",
+     "valor": "Montevideo",
+     "cita": {
+      "turno": 1,
+      "texto": "Montevideo"
+     }
+    },
+    {
+     "origen": "inferido",
+     "valor": "Parana",
+     "fuente": "callejero"
+    }
+   ]
+  },
+  "tipo_hecho": {
+   "origen": "inferido",
+   "valor": "INCENDIO_RESCATE",
+   "fuente": "dataset"
+  },
+  "subtipo": {
+   "origen": "inferido",
+   "valor": "SFX-001",
+   "fuente": "dataset"
+  },
+  "prioridad": {
+   "origen": "inferido",
+   "valor": "P1",
+   "fuente": "dataset"
+  },
+  "checklist": [
+   {
+    "id": "SFX-001-Q1",
+    "pregunta": "¿Hay personas atrapadas en el interior?",
+    "respondida": true,
+    "cita": {
+     "turno": 1,
+     "texto": "adentro quedó el cocinero"
+    },
+    "del_operador": false
+   },
+   {
+    "id": "SFX-001-Q2",
+    "pregunta": "¿Hay garrafas o cañería de gas activa?",
+    "respondida": false,
+    "cita": null,
+    "del_operador": false
+   },
+   {
+    "id": "SFX-001-Q3",
+    "pregunta": "¿Hay inmuebles linderos afectados?",
+    "respondida": false,
+    "cita": null,
+    "del_operador": false
+   }
+  ],
+  "instrucciones": [
+   {
+    "id": "SFX-001-I1",
+    "texto": "No reingresar al local por ningún motivo. Mantener a los peatones en la vereda de enfrente y cortar el tránsito vehicular preventivamente."
+   }
+  ],
+  "avisos": [],
+  "datos_dictados": []
+ },
+ "carta": null
+}

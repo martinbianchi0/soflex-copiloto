@@ -1,0 +1,20 @@
+{
+ "detail": [
+  {
+   "type": "missing",
+   "loc": [
+    "ajustes",
+    "calle"
+   ],
+   "msg": "Hace falta para derivar."
+  },
+  {
+   "type": "missing",
+   "loc": [
+    "ajustes",
+    "prioridad"
+   ],
+   "msg": "Hace falta para derivar."
+  }
+ ]
+}

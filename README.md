@@ -93,6 +93,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 - `backend/src/copiloto/mapa.py`: el plano de la cuadra para confirmar la dirección.
 - `backend/src/copiloto/interprete.py` y `modelo.py`: los pedidos al modelo local y la verificación de lo que devuelve.
 - `backend/herramientas/evaluar.py` y `evaluacion/`: la medición de lo que propone el servicio y su detalle por llamada.
+- `backend/herramientas/capturar_respuestas.py` y `frontend/src/pruebas/respuestas/`: respuestas reales del servicio, que usan los tests del panel.
 - `backend/src/copiloto/criterio.py`: el criterio de prioridad P1 a P4, que el panel muestra junto a la prioridad.
 - `DECISIONS.md`: qué se eligió y por qué.
 

@@ -1,0 +1,42 @@
+{
+ "llamada_id": "llamada-sin-datos",
+ "estado": "esperando_operador",
+ "turnos": [
+  {
+   "texto": "Hola, ¿me escuchan?",
+   "hablante": null
+  }
+ ],
+ "sugerencia": {
+  "ubicacion": {
+   "calle": {
+    "origen": "falta"
+   },
+   "altura": {
+    "origen": "falta"
+   },
+   "esquinas": []
+  },
+  "tipo_hecho": {
+   "origen": "inferido",
+   "valor": "NO_DETERMINADA",
+   "fuente": "reglas"
+  },
+  "subtipo": {
+   "origen": "falta"
+  },
+  "prioridad": {
+   "origen": "falta"
+  },
+  "checklist": [],
+  "instrucciones": [],
+  "avisos": [
+   {
+    "codigo": "sin_calle",
+    "mensaje": "Pedí la dirección y confirmá la calle."
+   }
+  ],
+  "datos_dictados": []
+ },
+ "carta": null
+}

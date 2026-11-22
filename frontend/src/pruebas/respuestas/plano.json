@@ -1,0 +1,239 @@
+{
+ "radio_m": 250,
+ "exacto": true,
+ "leyenda": "Av. Corrientes 1540, entre Parana y Montevideo · San Nicolas",
+ "cuadras": [
+  {
+   "nombre": "Rodriguez Peña",
+   "x1": -210.6,
+   "y1": -153.0,
+   "x2": -213.6,
+   "y2": -20.5,
+   "principal": false
+  },
+  {
+   "nombre": "Montevideo",
+   "x1": -77.9,
+   "y1": -143.7,
+   "x2": -82.7,
+   "y2": -7.8,
+   "principal": false
+  },
+  {
+   "nombre": "Montevideo",
+   "x1": -75.0,
+   "y1": -274.3,
+   "x2": -77.9,
+   "y2": -143.7,
+   "principal": false
+  },
+  {
+   "nombre": "Sarmiento",
+   "x1": 54.7,
+   "y1": -134.3,
+   "x2": -77.9,
+   "y2": -143.7,
+   "principal": false
+  },
+  {
+   "nombre": "Sarmiento",
+   "x1": -77.9,
+   "y1": -143.7,
+   "x2": -210.6,
+   "y2": -153.0,
+   "principal": false
+  },
+  {
+   "nombre": "Lavalle",
+   "x1": 49.2,
+   "y1": 136.8,
+   "x2": -89.0,
+   "y2": 125.7,
+   "principal": false
+  },
+  {
+   "nombre": "Lavalle",
+   "x1": -89.0,
+   "y1": 125.7,
+   "x2": -216.2,
+   "y2": 117.1,
+   "principal": false
+  },
+  {
+   "nombre": "Lavalle",
+   "x1": -216.2,
+   "y1": 117.1,
+   "x2": -246.7,
+   "y2": 115.1,
+   "principal": false
+  },
+  {
+   "nombre": "Av. Corrientes",
+   "x1": 53.8,
+   "y1": 5.1,
+   "x2": -82.7,
+   "y2": -7.8,
+   "principal": true
+  },
+  {
+   "nombre": "Av. Corrientes",
+   "x1": -82.7,
+   "y1": -7.8,
+   "x2": -213.6,
+   "y2": -20.5,
+   "principal": true
+  },
+  {
+   "nombre": "Av. Corrientes",
+   "x1": -213.6,
+   "y1": -20.5,
+   "x2": -348.0,
+   "y2": -31.8,
+   "principal": true
+  },
+  {
+   "nombre": "Rodriguez Peña",
+   "x1": -213.6,
+   "y1": -20.5,
+   "x2": -216.2,
+   "y2": 117.1,
+   "principal": false
+  },
+  {
+   "nombre": "Montevideo",
+   "x1": -89.0,
+   "y1": 125.7,
+   "x2": -95.3,
+   "y2": 259.6,
+   "principal": false
+  },
+  {
+   "nombre": "Montevideo",
+   "x1": -82.7,
+   "y1": -7.8,
+   "x2": -89.0,
+   "y2": 125.7,
+   "principal": false
+  },
+  {
+   "nombre": "Parana",
+   "x1": 54.7,
+   "y1": -134.3,
+   "x2": 53.8,
+   "y2": 5.1,
+   "principal": false
+  },
+  {
+   "nombre": "Parana",
+   "x1": 62.0,
+   "y1": -263.0,
+   "x2": 54.7,
+   "y2": -134.3,
+   "principal": false
+  },
+  {
+   "nombre": "Uruguay",
+   "x1": 184.4,
+   "y1": -124.6,
+   "x2": 180.1,
+   "y2": 17.2,
+   "principal": false
+  },
+  {
+   "nombre": "Uruguay",
+   "x1": 193.5,
+   "y1": -252.9,
+   "x2": 184.4,
+   "y2": -124.6,
+   "principal": false
+  },
+  {
+   "nombre": "Sarmiento",
+   "x1": 316.1,
+   "y1": -114.4,
+   "x2": 184.4,
+   "y2": -124.6,
+   "principal": false
+  },
+  {
+   "nombre": "Sarmiento",
+   "x1": 184.4,
+   "y1": -124.6,
+   "x2": 54.7,
+   "y2": -134.3,
+   "principal": false
+  },
+  {
+   "nombre": "Lavalle",
+   "x1": 169.3,
+   "y1": 151.8,
+   "x2": 49.2,
+   "y2": 136.8,
+   "principal": false
+  },
+  {
+   "nombre": "Av. Corrientes",
+   "x1": 307.5,
+   "y1": 26.2,
+   "x2": 180.1,
+   "y2": 17.2,
+   "principal": true
+  },
+  {
+   "nombre": "Av. Corrientes",
+   "x1": 180.1,
+   "y1": 17.2,
+   "x2": 173.8,
+   "y2": 16.5,
+   "principal": true
+  },
+  {
+   "nombre": "Av. Corrientes",
+   "x1": 173.8,
+   "y1": 16.5,
+   "x2": 53.8,
+   "y2": 5.1,
+   "principal": true
+  },
+  {
+   "nombre": "Parana",
+   "x1": 49.2,
+   "y1": 136.8,
+   "x2": 41.9,
+   "y2": 269.2,
+   "principal": false
+  },
+  {
+   "nombre": "Parana",
+   "x1": 53.8,
+   "y1": 5.1,
+   "x2": 49.2,
+   "y2": 136.8,
+   "principal": false
+  },
+  {
+   "nombre": "Av. Uruguay",
+   "x1": 173.8,
+   "y1": 16.5,
+   "x2": 169.3,
+   "y2": 151.8,
+   "principal": false
+  },
+  {
+   "nombre": "Lavalle",
+   "x1": 301.5,
+   "y1": 161.0,
+   "x2": 169.3,
+   "y2": 151.8,
+   "principal": false
+  },
+  {
+   "nombre": "Av. Uruguay",
+   "x1": 169.3,
+   "y1": 151.8,
+   "x2": 164.5,
+   "y2": 275.8,
+   "principal": false
+  }
+ ]
+}

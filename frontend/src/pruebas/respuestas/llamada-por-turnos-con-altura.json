@@ -1,0 +1,70 @@
+{
+ "llamada_id": "llamada-por-turnos",
+ "estado": "esperando_operador",
+ "turnos": [
+  {
+   "texto": "911, ¿cuál es su emergencia?",
+   "hablante": "operador"
+  },
+  {
+   "texto": "Chocaron un auto y una moto en Av. San Juan, el de la moto quedó tirado en la calle.",
+   "hablante": "llamante"
+  },
+  {
+   "texto": "¿A qué altura?",
+   "hablante": "operador"
+  },
+  {
+   "texto": "Al 2100.",
+   "hablante": "llamante"
+  }
+ ],
+ "sugerencia": {
+  "ubicacion": {
+   "calle": {
+    "origen": "dicho",
+    "valor": "Av. San Juan",
+    "cita": {
+     "turno": 1,
+     "texto": "Av. San Juan"
+    }
+   },
+   "altura": {
+    "origen": "dicho",
+    "valor": 2100,
+    "cita": {
+     "turno": 3,
+     "texto": "2100"
+    }
+   },
+   "esquinas": [
+    {
+     "origen": "inferido",
+     "valor": "Sarandi",
+     "fuente": "callejero"
+    },
+    {
+     "origen": "inferido",
+     "valor": "Rincon",
+     "fuente": "callejero"
+    }
+   ]
+  },
+  "tipo_hecho": {
+   "origen": "inferido",
+   "valor": "ACCIDENTE_VIAL",
+   "fuente": "reglas"
+  },
+  "subtipo": {
+   "origen": "falta"
+  },
+  "prioridad": {
+   "origen": "falta"
+  },
+  "checklist": [],
+  "instrucciones": [],
+  "avisos": [],
+  "datos_dictados": []
+ },
+ "carta": null
+}
