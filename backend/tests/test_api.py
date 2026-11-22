@@ -178,6 +178,95 @@ def test_una_llamada_que_no_existe_devuelve_404(cliente):
     assert cliente.get("/api/llamadas/no-existe").status_code == 404
     assert cliente.get("/api/llamadas/no-existe/historial").status_code == 404
     assert derivar(cliente, "no-existe", COMPLETOS).status_code == 404
+    assert (
+        cliente.post("/api/llamadas/no-existe/turnos", json={"turno": TURNOS[0]}).status_code == 404
+    )
+
+
+def test_sumar_turnos_en_mock_conserva_los_indices_y_deriva_la_ultima_sugerencia(cliente):
+    turno = {"hablante": "llamante", "texto": "Hay un choque en Av. Corrientes."}
+    alta = cliente.post("/api/llamadas", json={"turnos": [turno]}).json()
+    ruta = f"/api/llamadas/{alta['llamada_id']}"
+    pregunta = {"hablante": "operador", "texto": "¿A qué altura?"}
+    respuesta = {"hablante": "llamante", "texto": "Al 1540."}
+
+    primera = cliente.post(f"{ruta}/turnos", json={"turno": pregunta})
+    segunda = cliente.post(f"{ruta}/turnos", json={"turno": respuesta})
+
+    assert primera.status_code == segunda.status_code == 200
+    ampliada = segunda.json()
+    assert ampliada["estado"] == "esperando_operador"
+    assert primera.json()["turnos"] == [turno, pregunta]
+    assert ampliada["turnos"] == [turno, pregunta, respuesta]
+    assert alta["sugerencia"]["ubicacion"]["altura"] == {"origen": "falta"}
+    ubicacion = ampliada["sugerencia"]["ubicacion"]
+    assert ubicacion["calle"] == alta["sugerencia"]["ubicacion"]["calle"]
+    assert ubicacion["calle"]["cita"] == {"turno": 0, "texto": "Av. Corrientes"}
+    assert ubicacion["altura"] == {
+        "origen": "dicho",
+        "valor": 1540,
+        "cita": {"turno": 2, "texto": "1540"},
+    }
+    derivada = cliente.post(f"{ruta}/derivar", json={"ajustes": {"prioridad": "P2"}})
+    assert derivada.status_code == 200
+    assert derivada.json()["carta"]["ubicacion"] == ubicacion
+    assert [cambio["campo"] for cambio in cliente.get(f"{ruta}/historial").json()["cambios"]] == [
+        "prioridad"
+    ]
+    rechazo = cliente.post(f"{ruta}/turnos", json={"turno": respuesta})
+    assert rechazo.status_code == 409
+    assert cliente.get(ruta).json() == derivada.json()
+
+
+def test_sumar_un_texto_con_marcas_registra_una_vuelta_del_grafo(cliente):
+    llamada_id = iniciar(cliente, [{"texto": "Hay un choque en Corrientes."}])
+    ruta = f"/api/llamadas/{llamada_id}"
+    turno = {"texto": "Operador: ¿A qué altura? Llamante: Al 1540."}
+    primer_historial = cliente.get(f"{ruta}/historial").json()["eventos"]
+
+    ampliada = cliente.post(f"{ruta}/turnos", json={"turno": turno})
+    assert ampliada.status_code == 200
+    assert ampliada.json()["turnos"][1:] == [
+        {"hablante": "operador", "texto": "¿A qué altura?"},
+        {"hablante": "llamante", "texto": "Al 1540."},
+    ]
+    assert derivar(cliente, llamada_id, {"prioridad": "P2"}).status_code == 200
+
+    eventos = cliente.get(f"{ruta}/historial").json()["eventos"]
+    assert eventos[:2] == primer_historial
+    assert [(evento["tipo"], evento["detalle"]) for evento in eventos] == [
+        ("recibida", "Llamada recibida, con 1 turno."),
+        ("sugerencia_reglas", "Sugerencia de las reglas, con 1 aviso."),
+        ("turno_agregado", "Se sumó un turno a la llamada: ahora tiene 3."),
+        ("sugerencia_reglas", "Sugerencia de las reglas, sin avisos."),
+        ("ajustes_operador", "El operador confirmó con 1 cambio."),
+        ("derivada", "Carta de Llamada derivada."),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("turnos", "nuevo"),
+    [
+        pytest.param([{"texto": "a" * 20_000}] * 2 + [{"texto": "a" * 10_000}], "Hola", id="largo"),
+        pytest.param([{"texto": "Hola"}] * 500, "Hola", id="cantidad"),
+        pytest.param(
+            [{"texto": "Hola"}] * 499, "Operador: Bien. Llamante: Sí.", id="cantidad_con_marcas"
+        ),
+        pytest.param([{"texto": "Hola"}], "Llamante: Sí. " * 501, id="turno_con_demasiadas_marcas"),
+        pytest.param([{"texto": "Hola"}], " ", id="vacio"),
+    ],
+)
+def test_un_turno_invalido_devuelve_422_y_deja_la_llamada_igual(cliente, turnos, nuevo):
+    alta = cliente.post("/api/llamadas", json={"turnos": turnos})
+    assert alta.status_code == 201
+    ruta = f"/api/llamadas/{alta.json()['llamada_id']}"
+    historial = cliente.get(f"{ruta}/historial").json()
+
+    respuesta = cliente.post(f"{ruta}/turnos", json={"turno": {"texto": nuevo}})
+
+    assert respuesta.status_code == 422
+    assert cliente.get(ruta).json() == alta.json()
+    assert cliente.get(f"{ruta}/historial").json() == historial
 
 
 @pytest.mark.parametrize(

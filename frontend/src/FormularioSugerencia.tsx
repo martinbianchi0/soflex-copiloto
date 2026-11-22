@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent, ReactNode } from 'react'
 import { citaDato, nombresTiposHecho, textoOrigen, valorDato } from './api'
 import type { Ajustes, Catalogo, Criterio, Dato, DetalleValidacion, Pregunta, Prioridad, Sugerencia, TipoHecho, Turno } from './api'
+import { actualizarBorrador, iniciarBorrador, leerAltura } from './borradorSugerencia'
+import type { CamposSugerencia } from './borradorSugerencia'
 import AvisosSugerencia from './AvisosSugerencia'
 import DetallesSugerencia from './DetallesSugerencia'
 import PrioridadEtiqueta from './PrioridadEtiqueta'
@@ -12,10 +14,12 @@ type Propiedades = {
   turnos: Turno[]
   sugerencia: Sugerencia
   catalogo: Catalogo | null
+  analizando: boolean
   bloqueado: boolean
   ocupado: boolean
   nuevaLlamadaBloqueada: boolean
   errores: DetalleValidacion[]
+  formularioTurno: ReactNode
   alCambiarProtocolo: (mensaje: string) => void
   alDerivar: (ajustes: Ajustes) => void
   alValidar: (errores: DetalleValidacion[]) => void
@@ -80,9 +84,16 @@ function CriterioPrioridad({ niveles, reglas }: Criterio) {
 }
 
 export default function FormularioSugerencia({
-  turnos, sugerencia, catalogo, bloqueado, ocupado, nuevaLlamadaBloqueada, errores,
+  turnos, sugerencia: recibida, catalogo, analizando, bloqueado, ocupado, nuevaLlamadaBloqueada, errores, formularioTurno,
   alCambiarProtocolo, alDerivar, alValidar, alEmpezar,
 }: Propiedades) {
+  const [borrador, setBorrador] = useState(() => iniciarBorrador(recibida, catalogo))
+  // Durante el reanálisis se conserva la última sugerencia completa como base de las ediciones.
+  if (borrador.catalogo !== catalogo || (!analizando && borrador.sugerencia !== recibida)) {
+    setBorrador(actualizarBorrador(borrador, analizando ? borrador.sugerencia : recibida, catalogo))
+  }
+  const { sugerencia, campos, marcas } = borrador
+  const { calle, altura, esquinaUno, esquinaDos, categoria, subtipo, prioridad } = campos
   const ubicacion = sugerencia.ubicacion
   const [primeraEsquina = faltante, segundaEsquina = faltante] = ubicacion.esquinas
   const calleSugerida = valorDato(ubicacion.calle) ?? ''
@@ -90,22 +101,9 @@ export default function FormularioSugerencia({
   const categoriaSugerida = valorDato(sugerencia.tipo_hecho)
   const subtipoSugerido = valorDato(sugerencia.subtipo)
   const prioridadSugerida = valorDato(sugerencia.prioridad)
-  const [calle, setCalle] = useState(calleSugerida)
-  const [altura, setAltura] = useState(alturaSugerida?.toString() ?? '')
-  const [esquinaUno, setEsquinaUno] = useState(valorDato(primeraEsquina) ?? '')
-  const [esquinaDos, setEsquinaDos] = useState(valorDato(segundaEsquina) ?? '')
-  const [categoria, setCategoria] = useState<TipoHecho | ''>(categoriaSugerida ?? '')
-  // Un subtipo sugerido que no es de esa categoría en el catálogo se descarta: queda "Sin subtipo".
-  const [subtipo, setSubtipo] = useState(() => !catalogo || catalogo.protocolos.some(
-    (protocolo) => protocolo.id === subtipoSugerido && protocolo.categoria === categoriaSugerida,
-  ) ? subtipoSugerido : null)
-  const [prioridad, setPrioridad] = useState<Prioridad | ''>(prioridadSugerida ?? '')
-  const [marcas, setMarcas] = useState(() => new Set<string>())
   const [enFoco, setEnFoco] = useState('')
   const formulario = useRef<HTMLFormElement>(null)
-  const textoAltura = altura.trim()
-  const numeroAltura = textoAltura ? Number(textoAltura) : null
-  const alturaInvalida = numeroAltura !== null && (!/^\d+$/.test(textoAltura) || numeroAltura < 1 || numeroAltura > 99999)
+  const { numero: numeroAltura, invalida: alturaInvalida } = leerAltura(altura)
   const datos = {
     calle: datoVisible(ubicacion.calle, calle || null),
     altura: datoVisible(ubicacion.altura, numeroAltura, alturaInvalida),
@@ -128,12 +126,14 @@ export default function FormularioSugerencia({
   // Los textos salen siempre del catálogo. De la sugerencia se toma sólo qué está respondido y
   // dónde, y sólo si es la misma pregunta del mismo subtipo.
   const sugeridas = subtipo === subtipoSugerido ? sugerencia.checklist : []
-  const checklist = protocolo?.preguntas.map(({ id, texto }): Pregunta => {
-    const base = sugeridas.find((item) => item.id === id && item.pregunta === texto) ??
-      { id, pregunta: texto, respondida: false, cita: null, del_operador: false }
-    // Al confirmar una posible respuesta, la cita que se tenía a la vista queda con la pregunta.
-    return marcas.has(id) ? { ...base, respondida: !base.respondida, cita: base.respondida ? null : base.cita, del_operador: true } : base
-  }) ?? (catalogo ? [] : sugerencia.checklist)
+  const baseChecklist = protocolo?.preguntas.map(({ id, texto }): Pregunta => (
+    sugeridas.find((item) => item.id === id && item.pregunta === texto) ??
+    { id, pregunta: texto, respondida: false, cita: null, del_operador: false }
+  )) ?? (catalogo ? [] : sugerencia.checklist)
+  const checklist = baseChecklist.map((pregunta) => {
+    const marca = marcas.get(pregunta.id)
+    return marca ? { ...pregunta, ...marca, del_operador: true } : pregunta
+  })
   const citas = [
     ...Object.entries(datos).flatMap(([control, dato]) => {
       const cita = citaDato(dato)
@@ -149,12 +149,13 @@ export default function FormularioSugerencia({
 
   // Cuando la sugerencia queda editable, el foco va al primer dato que falta para derivar. Si no
   // falta ninguno, queda en la transcripción, que es lo primero que se revisa.
-  const primerFaltante = useRef(!calle ? 'calle' : !categoria || categoria === 'NO_DETERMINADA' ? 'tipo_hecho' : !prioridad ? 'prioridad' : null)
+  const huboFocoInicial = useRef(false)
   useEffect(() => {
-    if (bloqueado || !primerFaltante.current) return
-    document.getElementById(primerFaltante.current)?.focus()
-    primerFaltante.current = null
-  }, [bloqueado])
+    if (bloqueado || huboFocoInicial.current) return
+    huboFocoInicial.current = true
+    const primerFaltante = !calle ? 'calle' : !categoria || categoria === 'NO_DETERMINADA' ? 'tipo_hecho' : !prioridad ? 'prioridad' : null
+    if (primerFaltante) document.getElementById(primerFaltante)?.focus()
+  }, [bloqueado, calle, categoria, prioridad])
 
   useEffect(() => {
     if (!bloqueado && errores.length > 0) {
@@ -162,19 +163,27 @@ export default function FormularioSugerencia({
     }
   }, [bloqueado, errores])
 
-  function elegirSubtipo(elegido: string | null) {
-    setSubtipo(elegido)
-    setMarcas(new Set())
+  function editar<Campo extends keyof CamposSugerencia>(campo: Campo, valor: CamposSugerencia[Campo]) {
+    setBorrador((actual) => ({ ...actual, campos: { ...actual.campos, [campo]: valor } }))
+  }
+
+  function elegirSubtipo(elegido: string | null, tipo = categoria) {
+    setBorrador((actual) => ({
+      ...actual, campos: { ...actual.campos, categoria: tipo, subtipo: elegido }, marcas: new Map(),
+    }))
     const nombre = protocolos.find(({ id }) => id === elegido)?.nombre
     alCambiarProtocolo(nombre ? `${nombre}. Protocolo actualizado.` : 'Sin subtipo elegido.')
   }
 
   function marcarPregunta(id: string) {
-    setMarcas((anteriores) => {
-      const siguientes = new Set(anteriores)
-      if (!siguientes.delete(id)) siguientes.add(id)
-      return siguientes
-    })
+    const pregunta = checklist.find((item) => item.id === id)
+    const base = baseChecklist.find((item) => item.id === id)
+    if (!pregunta || !base) return
+    const respondida = !pregunta.respondida
+    const siguientes = new Map(marcas)
+    if (respondida === base.respondida) siguientes.delete(id)
+    else siguientes.set(id, { id, respondida, cita: respondida ? pregunta.cita : null })
+    setBorrador((actual) => ({ ...actual, marcas: siguientes }))
   }
 
   function enviar(evento: FormEvent<HTMLFormElement>) {
@@ -208,7 +217,7 @@ export default function FormularioSugerencia({
       ajustes.tipo_hecho = { categoria, subtipo }
     }
     if (prioridad && prioridad !== prioridadSugerida) ajustes.prioridad = prioridad
-    const cambiosChecklist = checklist.filter(({ id }) => marcas.has(id)).map(({ id, respondida }) => ({ id, respondida }))
+    const cambiosChecklist = checklist.flatMap(({ id }) => marcas.get(id) ?? [])
     if (cambiosChecklist.length) ajustes.checklist = cambiosChecklist
     alDerivar(ajustes)
   }
@@ -226,7 +235,10 @@ export default function FormularioSugerencia({
 
   return (
     <div className="panel-operador">
-      <Transcripcion turnos={turnos} citas={citas.map(({ cita }) => cita)} citaActiva={citaActiva} />
+      <div className="columna-transcripcion">
+        <Transcripcion turnos={turnos} citas={citas.map(({ cita }) => cita)} citaActiva={citaActiva} />
+        {formularioTurno}
+      </div>
       <form className="panel" ref={formulario} onSubmit={enviar} onKeyDown={alTeclear} noValidate
         onFocus={(evento) => setEnFoco(evento.target.id)} onBlur={() => setEnFoco('')}>
         <fieldset disabled={bloqueado}>
@@ -234,18 +246,18 @@ export default function FormularioSugerencia({
           <AvisosSugerencia avisos={sugerencia.avisos} />
           <div className="direccion">
             <CampoSugerido nombre="calle" etiqueta="Calle" dato={datos.calle} errores={erroresDe('calle')}>
-              {(control) => <input {...control} value={calle} onChange={(evento) => setCalle(evento.target.value)} required />}
+              {(control) => <input {...control} value={calle} onChange={(evento) => editar('calle', evento.target.value)} required />}
             </CampoSugerido>
             <CampoSugerido nombre="altura" etiqueta="Altura" dato={datos.altura} errores={erroresDe('altura')} opcional>
-              {(control) => <input {...control} inputMode="numeric" value={altura} onChange={(evento) => setAltura(evento.target.value)} />}
+              {(control) => <input {...control} inputMode="numeric" value={altura} onChange={(evento) => editar('altura', evento.target.value)} />}
             </CampoSugerido>
           </div>
           <div className="esquinas">
             <CampoSugerido nombre="primera_esquina" etiqueta="Primera esquina" dato={datos.primera_esquina} nota={notaDeEsquina(datos.primera_esquina)} errorCompartido={errorEsquinas} opcional>
-              {(control) => <input {...control} value={esquinaUno} onChange={(evento) => setEsquinaUno(evento.target.value)} />}
+              {(control) => <input {...control} value={esquinaUno} onChange={(evento) => editar('esquinaUno', evento.target.value)} />}
             </CampoSugerido>
             <CampoSugerido nombre="segunda_esquina" etiqueta="Segunda esquina" dato={datos.segunda_esquina} nota={notaDeEsquina(datos.segunda_esquina)} errorCompartido={errorEsquinas} opcional>
-              {(control) => <input {...control} value={esquinaDos} onChange={(evento) => setEsquinaDos(evento.target.value)} />}
+              {(control) => <input {...control} value={esquinaDos} onChange={(evento) => editar('esquinaDos', evento.target.value)} />}
             </CampoSugerido>
             {errorEsquinas && <p id={errorEsquinas} className="error-campo">{erroresEsquinas.join(' ')}</p>}
           </div>
@@ -253,8 +265,7 @@ export default function FormularioSugerencia({
             <CampoSugerido nombre="tipo_hecho" etiqueta="Tipo de hecho" dato={datos.tipo_hecho} errores={erroresDe('tipo_hecho')}>
               {(control) => (
                 <select {...control} value={categoria} onChange={(evento) => {
-                  setCategoria(evento.target.value as TipoHecho | '')
-                  elegirSubtipo(null)
+                  elegirSubtipo(null, evento.target.value as TipoHecho | '')
                 }}>
                   {categoriaSugerida === null && <option value="">Elegir…</option>}
                   {Object.entries(nombresTiposHecho).map(([opcion, nombre]) => (
@@ -279,7 +290,7 @@ export default function FormularioSugerencia({
               <>
                 <div className="control-prioridad">
                   <select {...control} value={prioridad} required
-                    onChange={(evento) => setPrioridad(evento.target.value as Prioridad | '')}
+                    onChange={(evento) => editar('prioridad', evento.target.value as Prioridad | '')}
                     aria-describedby={nivelElegido ? `${control['aria-describedby']} prioridad-definicion` : control['aria-describedby']}>
                     {prioridadSugerida === null && <option value="">Elegir…</option>}
                     {!catalogo && prioridadSugerida && <option value={prioridadSugerida}>{prioridadSugerida}</option>}

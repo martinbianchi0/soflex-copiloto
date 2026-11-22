@@ -63,9 +63,39 @@ class FaltanDatos(ValueError):
 class MarcaInvalida(ValueError):
     """Se marcó una pregunta que no es del protocolo que queda en la carta."""
 
-    def __init__(self, preguntas: list[str]) -> None:
+    def __init__(self, preguntas: list[str], motivo: str | None = None) -> None:
         self.preguntas = preguntas
-        super().__init__(f"No son preguntas del protocolo de esta carta: {', '.join(preguntas)}.")
+        super().__init__(
+            motivo or f"No son preguntas del protocolo de esta carta: {', '.join(preguntas)}."
+        )
+
+
+_FICHA_SIN_ACTUALIZAR = Aviso(
+    codigo="ficha_sin_actualizar",
+    mensaje=(
+        "El tipo, la prioridad y las preguntas respondidas salen de la ficha del dataset: "
+        "lo que se dijo después no los cambia. Revisalos."
+    ),
+)
+
+
+def avisar_cambio_de_prioridad(sugerencia: Sugerencia, previa: Prioridad | None) -> Sugerencia:
+    """Si al sumar un turno cambió la prioridad sugerida, la sugerencia lo dice.
+
+    El operador puede haber leído ya la anterior: un cambio que pasa sin verse es el riesgo de
+    volver a analizar.
+    """
+    nueva = valor_de(sugerencia.prioridad)
+    if previa is None or nueva is None or nueva == previa:
+        return sugerencia
+    aviso = Aviso(
+        codigo="prioridad_cambiada",
+        mensaje=(
+            f"Con lo que se sumó, la prioridad sugerida pasó de {previa.value} a {nueva.value}. "
+            "Confirmala."
+        ),
+    )
+    return sugerencia.model_copy(update={"avisos": [*sugerencia.avisos, aviso]})
 
 
 def analizar(turnos: list[Turno]) -> Sugerencia:
@@ -81,10 +111,13 @@ def analizar(turnos: list[Turno]) -> Sugerencia:
     lugar = ubicacion.interpretar(turnos)
     protocolo = catalogo.cargar().protocolo(conocida.categoria, conocida.subtipo)
     assert protocolo is not None  # La llamada conocida siempre trae un subtipo del catálogo.
+    # La ficha describe el relato del dataset. Si el llamante dijo algo más, eso no la cambia:
+    # sin modelo no hay quien lo interprete, y el operador tiene que saberlo.
+    avisos = [*lugar.avisos, *([_FICHA_SIN_ACTUALIZAR] if dataset.se_dijo_algo_mas(turnos) else [])]
     return Sugerencia.model_validate(
         {
             "ubicacion": lugar.ubicacion,
-            "avisos": lugar.avisos,
+            "avisos": avisos,
             "tipo_hecho": Inferido[Categoria](valor=conocida.categoria, fuente="dataset"),
             "subtipo": Inferido[str](valor=conocida.subtipo, fuente="dataset"),
             "prioridad": Inferido[Prioridad](valor=conocida.prioridad, fuente="dataset"),
@@ -262,7 +295,14 @@ def quitar_lo_que_nadie_dijo(sugerencia: Sugerencia, turnos: list[Turno]) -> Sug
     return Sugerencia.model_validate(plana)
 
 
-def derivar(llamada_id: str, sugerencia: Sugerencia, ajustes: Ajustes, ahora: datetime) -> Carta:
+def derivar(
+    llamada_id: str,
+    sugerencia: Sugerencia,
+    ajustes: Ajustes,
+    ahora: datetime,
+    *,
+    turnos: list[Turno] | None = None,
+) -> Carta:
     """Arma la Carta de Llamada: lo sugerido, con lo que el operador cambió por encima.
 
     Lo que el operador deja igual conserva su origen y su cita; lo que cambia pasa a ser suyo.
@@ -294,7 +334,7 @@ def derivar(llamada_id: str, sugerencia: Sugerencia, ajustes: Ajustes, ahora: da
     sin_confirmar = [
         aviso
         for aviso in sugerencia.avisos
-        if aviso.codigo not in ("dato_descartado", "modelo_no_disponible")
+        if aviso.codigo not in _AVISOS_PARA_EL_OPERADOR
         and ubicacion == sugerencia.ubicacion.model_dump()
     ]
     if se_quitaron_esquinas:
@@ -305,7 +345,7 @@ def derivar(llamada_id: str, sugerencia: Sugerencia, ajustes: Ajustes, ahora: da
             "tipo_hecho": tipo_hecho,
             "subtipo": subtipo,
             "prioridad": _resolver(sugerencia.prioridad, ajustes.prioridad, si_no_manda=True),
-            "checklist": _marcar(checklist_de(protocolo, previo), ajustes.checklist or []),
+            "checklist": _marcar(checklist_de(protocolo, previo), ajustes.checklist or [], turnos),
             "instrucciones": protocolo.instrucciones if protocolo else [],
             "avisos": sin_confirmar,
         }
@@ -317,28 +357,51 @@ def derivar(llamada_id: str, sugerencia: Sugerencia, ajustes: Ajustes, ahora: da
     )
 
 
-def _marcar(checklist: list[ItemChecklist], marcas: list[MarcaChecklist]) -> list[ItemChecklist]:
+# Avisos sobre cómo se armó la sugerencia: son para quien la revisa, no para quien despacha.
+_AVISOS_PARA_EL_OPERADOR = (
+    "dato_descartado",
+    "modelo_no_disponible",
+    "ficha_sin_actualizar",
+    "prioridad_cambiada",
+)
+
+
+def _marcar(
+    checklist: list[ItemChecklist], marcas: list[MarcaChecklist], turnos: list[Turno] | None
+) -> list[ItemChecklist]:
     """El checklist con lo que marcó el operador por encima.
 
     Confirmar lo que el sistema ya daba por respondido no cambia nada: la respuesta conserva su
     cita. Marcar una pendiente, o desmarcar una detectada, pasa a ser una decisión del operador. Si
     la pendiente era una posible respuesta, conserva la cita que el operador tuvo a la vista.
     """
-    marcadas = {marca.id: marca.respondida for marca in marcas}
+    marcadas = {marca.id: marca for marca in marcas}
     if ajenas := sorted(set(marcadas) - {item.id for item in checklist}):
         raise MarcaInvalida(ajenas)
-    return [
-        item
-        if marcadas.get(item.id, item.respondida) == item.respondida
-        else ItemChecklist(
-            id=item.id,
-            pregunta=item.pregunta,
-            respondida=marcadas[item.id],
-            cita=item.cita if marcadas[item.id] else None,
-            del_operador=True,
+    resultado: list[ItemChecklist] = []
+    for item in checklist:
+        marca = marcadas.get(item.id)
+        if marca is None:
+            resultado.append(item)
+            continue
+        trae_cita = "cita" in marca.model_fields_set
+        if not trae_cita and marca.respondida == item.respondida:
+            resultado.append(item)
+            continue
+        if marca.cita is not None and not _lo_dijo_el_llamante(marca.cita, turnos or []):
+            raise MarcaInvalida(
+                [item.id], f"La cita de «{item.pregunta}» no está en lo que dijo el llamante."
+            )
+        resultado.append(
+            ItemChecklist(
+                id=item.id,
+                pregunta=item.pregunta,
+                respondida=marca.respondida,
+                cita=(marca.cita if trae_cita else item.cita) if marca.respondida else None,
+                del_operador=True,
+            )
         )
-        for item in checklist
-    ]
+    return resultado
 
 
 def checklist_de(protocolo: Protocolo | None, previo: list[ItemChecklist]) -> list[ItemChecklist]:

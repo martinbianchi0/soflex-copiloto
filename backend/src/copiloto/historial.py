@@ -33,9 +33,7 @@ def armar(llamada: Llamada, puntos: Sequence[PuntoGuardado]) -> Historial:
     eventos: list[EventoHistorial] = []
     anterior: Mapping[str, object] = {}
     for punto in reversed(puntos):
-        detalle = _detalle(
-            punto, anterior, len(llamada.turnos), len(cambios) if llamada.carta else None
-        )
+        detalle = _detalle(punto, anterior, len(cambios) if llamada.carta else None)
         if detalle is not None:
             tipo, mensaje = detalle
             eventos.append(
@@ -51,38 +49,49 @@ def _nodo(punto: PuntoGuardado, anterior: Mapping[str, object]) -> str | None:
     nuevas = punto.valores.keys() - anterior.keys()
     if "turnos" in nuevas:
         return "__start__"
+    turnos, previos = punto.valores.get("turnos"), anterior.get("turnos")
+    if isinstance(turnos, list) and isinstance(previos, list) and len(turnos) > len(previos):
+        return "turno_agregado"
     escrituras = punto.metadatos.get("writes")
     if isinstance(escrituras, Mapping):
         nodos = ("analizar", "consultar_modelo", "esperar_operador", "derivar")
         return next((nodo for nodo in nodos if nodo in escrituras), None)
 
-    # Los puntos actuales de SQLite no traen writes. Cada nodo agrega su propia clave,
-    # salvo el del modelo, que reemplaza la sugerencia si tiene algo distinto.
-    if "sugerencia" in nuevas:
+    # Las reglas registran cuántos turnos analizaron, aunque salga la misma sugerencia. Las
+    # llamadas anteriores sólo dejan la primera sugerencia y, si cambia, la del modelo.
+    if "sugerencia" in nuevas or punto.valores.get("turnos_analizados") != anterior.get(
+        "turnos_analizados"
+    ):
         return "analizar"
     if "ajustes" in nuevas:
         return "esperar_operador"
     if "carta" in nuevas:
         return "derivar"
-    if punto.metadatos.get("source") == "loop" and _cambio_la_sugerencia(punto, anterior):
+    if punto.metadatos.get("source") == "loop" and _termino_el_modelo(punto, anterior):
         return "consultar_modelo"
     return None
 
 
-def _cambio_la_sugerencia(punto: PuntoGuardado, anterior: Mapping[str, object]) -> bool:
-    return punto.valores.get("sugerencia") != anterior.get("sugerencia")
+def _termino_el_modelo(punto: PuntoGuardado, anterior: Mapping[str, object]) -> bool:
+    return (
+        punto.valores.get("falta_el_modelo") is False and anterior.get("falta_el_modelo") is True
+    ) or punto.valores.get("sugerencia") != anterior.get("sugerencia")
 
 
 def _detalle(
-    punto: PuntoGuardado, anterior: Mapping[str, object], turnos: int, cambios: int | None
+    punto: PuntoGuardado, anterior: Mapping[str, object], cambios: int | None
 ) -> tuple[TipoEvento, str] | None:
     match _nodo(punto, anterior):
-        case "__start__":
-            return "recibida", f"Llamada recibida, con {_cantidad(turnos, 'turno')}."
+        case ("__start__" | "turno_agregado") as nodo:
+            turnos = punto.valores["turnos"]
+            assert isinstance(turnos, list)
+            if nodo == "__start__":
+                return "recibida", f"Llamada recibida, con {_cantidad(len(turnos), 'turno')}."
+            return "turno_agregado", f"Se sumó un turno a la llamada: ahora tiene {len(turnos)}."
         case "analizar":
             sugerencia = Sugerencia.model_validate(punto.valores.get("sugerencia"))
             return "sugerencia_reglas", f"Sugerencia de las reglas, {_avisos(sugerencia)}."
-        case "consultar_modelo" if _cambio_la_sugerencia(punto, anterior):
+        case "consultar_modelo" if _termino_el_modelo(punto, anterior):
             sugerencia = Sugerencia.model_validate(punto.valores.get("sugerencia"))
             # Si el tipo de hecho no es del modelo, la sugerencia entera volvió a las reglas. Un
             # aviso del modelo con el tipo ya propuesto es que sólo falló la revisión del subtipo.
@@ -135,8 +144,8 @@ def comparar(sugerencia: Sugerencia, carta: Carta) -> list[CambioHistorial]:
     for item in carta.checklist:
         sugerida = sugeridas_por_pregunta.get((item.id, item.pregunta))
         respondida = sugerida is not None and sugerida.respondida
-        if item.del_operador and respondida != item.respondida:
-            propuesta = sugerida is not None and not respondida and sugerida.cita is not None
+        propuesta = sugerida is not None and not respondida and sugerida.cita is not None
+        if item.del_operador and (respondida != item.respondida or propuesta):
             cambios.append(
                 CambioHistorial(
                     campo=f"pregunta {item.id}",

@@ -9,13 +9,13 @@ from conftest import FILAS_DATASET, TEXTO
 from fastapi.testclient import TestClient
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
-from langgraph.types import Command
+from langgraph.types import Command, interrupt
 
 from copiloto import catalogo, dataset, flujo, grafo, main
 from copiloto import modelo as modelos
 from copiloto.config import Configuracion
 from copiloto.esquemas import Ajustes, Aviso, Cita, Falta, Turno
-from copiloto.llamadas import Llamadas
+from copiloto.llamadas import LlamadaNoEsperaOperador, Llamadas
 from copiloto.modelo import ModeloNoDisponible
 from copiloto.turnos import separar_hablantes
 
@@ -456,9 +456,17 @@ def test_la_llamada_pendiente_del_modelo_se_rescata_si_el_servicio_vuelve_en_moc
     )
 
 
-@pytest.mark.parametrize("estado_anterior", ["analizando", "esperando_operador", "derivada"])
+@pytest.mark.parametrize(
+    ("estado_anterior", "sumar"),
+    [
+        ("analizando", False),
+        ("esperando_operador", False),
+        ("derivada", False),
+        ("esperando_operador", True),
+    ],
+)
 def test_se_pueden_retomar_llamadas_guardadas_con_el_grafo_anterior(
-    tmp_path, abrir_servicio, estado_anterior
+    tmp_path, abrir_servicio, estado_anterior, sumar
 ):
     ruta = tmp_path / "llamadas.sqlite"
     pendiente = estado_anterior == "analizando"
@@ -466,14 +474,19 @@ def test_se_pueden_retomar_llamadas_guardadas_con_el_grafo_anterior(
     def analizar_sin_marca(estado):
         cambios = grafo.analizar(estado, con_modelo=pendiente)
         del cambios["falta_el_modelo"]
+        del cambios["turnos_analizados"]
         return cambios
 
     def no_consultar(estado):
         pytest.fail("El grafo anterior se interrumpe antes de consultar el modelo.")
 
+    def esperar_solo_ajustes(estado):
+        respuesta = interrupt({"sugerencia": estado["sugerencia"]})
+        return {"ajustes": respuesta["ajustes"]}
+
     anterior = StateGraph(grafo.Estado)
     anterior.add_node("analizar", analizar_sin_marca)
-    anterior.add_node("esperar_operador", grafo.esperar_operador)
+    anterior.add_node("esperar_operador", esperar_solo_ajustes)
     anterior.add_node("derivar", grafo.derivar)
     anterior.add_edge(START, "analizar")
     if pendiente:
@@ -506,6 +519,17 @@ def test_se_pueden_retomar_llamadas_guardadas_con_el_grafo_anterior(
         if pendiente:
             llamada = servicio.completar_analisis(llamada_id)
             assert llamada.sugerencia.avisos[-1] == aviso_rescate("el servicio está en modo mock")
+        if sumar:
+            nuevo = Turno(texto="¿Sigue ahí?", hablante="operador")
+            llamada = servicio.sumar_turno(llamada_id, nuevo)
+            assert llamada.estado == "esperando_operador"
+            assert llamada.turnos == [*turnos, nuevo]
+            assert [evento.tipo for evento in servicio.consultar_historial(llamada_id).eventos] == [
+                "recibida",
+                "sugerencia_reglas",
+                "turno_agregado",
+                "sugerencia_reglas",
+            ]
         if llamada.estado == "esperando_operador":
             llamada = servicio.derivar(llamada_id, Ajustes())
 
@@ -543,6 +567,8 @@ def test_dos_pedidos_simultaneos_completan_la_llamada_una_sola_vez(abrir_servici
             assert consultando.wait(5)
             segundo = hilos.submit(servicio.completar_analisis, inicial.llamada_id)
             assert servicio.consultar(inicial.llamada_id) == inicial
+            with pytest.raises(LlamadaNoEsperaOperador):
+                servicio.sumar_turno(inicial.llamada_id, Turno(texto="Hay humo."))
             assert servicio.derivar(lista.llamada_id, Ajustes()).estado == "derivada"
         finally:
             terminar.set()
@@ -605,6 +631,80 @@ def test_la_api_devuelve_el_analisis_en_dos_tiempos(tmp_path, monkeypatch):
         assert [vence for _, _, vence in modelo.pedidos] == [102.5, 102.5]
 
 
+def test_sumar_un_turno_reanaliza_todo_y_conserva_la_confirmacion(tmp_path, monkeypatch):
+    modelo = ModeloGuionado(
+        CLASIFICACION, CHECKLIST, CLASIFICACION, '{"corresponde": true, "respuestas": []}'
+    )
+    configuracion = Configuracion(
+        llm_provider="ollama", sqlite_path=tmp_path / "llamadas.sqlite", ollama_model="de-prueba"
+    )
+    monkeypatch.setattr(main, "de_ollama", lambda _: modelo)
+    nueva_respuesta = "Los clientes ya salieron."
+    with TestClient(main.crear_app(configuracion)) as cliente:
+        alta = cliente.post("/api/llamadas", json={"turnos": [{"texto": TEXTO_001}]}).json()
+        ruta = f"/api/llamadas/{alta['llamada_id']}"
+        turno = {"texto": f"Operador: ¿Hay clientes? Llamante: {nueva_respuesta}"}
+        assert cliente.post(f"{ruta}/turnos", json={"turno": turno}).status_code == 409
+        assert cliente.get(ruta).json() == alta
+        primera = cliente.post(f"{ruta}/analisis").json()
+        propuesta = primera["sugerencia"]["checklist"][0]
+        assert not propuesta["respondida"] and propuesta["cita"]
+
+        respuesta = cliente.post(f"{ruta}/turnos", json={"turno": turno})
+        assert respuesta.status_code == 200
+        ampliada = respuesta.json()
+        assert ampliada["estado"] == "analizando"
+        assert ampliada["turnos"][:2] == primera["turnos"]
+        assert ampliada["turnos"][-1] == {"texto": nueva_respuesta, "hablante": "llamante"}
+        assert ampliada["sugerencia"]["ubicacion"] == primera["sugerencia"]["ubicacion"]
+        assert ampliada["sugerencia"]["prioridad"] == {"origen": "falta"}
+        assert ampliada["sugerencia"]["tipo_hecho"]["fuente"] == "reglas"
+        assert len(modelo.pedidos) == 2
+        assert cliente.post(f"{ruta}/turnos", json={"turno": turno}).status_code == 409
+
+        final = cliente.post(f"{ruta}/analisis").json()
+        assert final["estado"] == "esperando_operador"
+        assert final["sugerencia"]["prioridad"]["fuente"] == "modelo"
+        assert final["sugerencia"]["checklist"][0]["cita"] is None
+        assert [usuario for _, usuario, _ in modelo.pedidos] == [
+            f"Lo que dijo el llamante:\n{TEXTO}",
+            f"Lo que dijo el llamante:\n{TEXTO}",
+            f"Lo que dijo el llamante:\n{TEXTO}\n{nueva_respuesta}",
+            f"Lo que dijo el llamante:\n{TEXTO}\n{nueva_respuesta}",
+        ]
+
+        marca = {"id": propuesta["id"], "respondida": True, "cita": propuesta["cita"]}
+        invalida = {**marca, "cita": {"turno": 2, "texto": "¿Hay clientes?"}}
+        assert (
+            cliente.post(f"{ruta}/derivar", json={"ajustes": {"checklist": [invalida]}}).status_code
+            == 422
+        )
+        assert cliente.get(ruta).json() == final
+        derivada = cliente.post(f"{ruta}/derivar", json={"ajustes": {"checklist": [marca]}})
+        assert derivada.status_code == 200
+        assert derivada.json()["carta"]["checklist"][0] == {
+            **propuesta,
+            "respondida": True,
+            "del_operador": True,
+        }
+        historial = cliente.get(f"{ruta}/historial").json()
+
+    assert [evento["tipo"] for evento in historial["eventos"]] == [
+        "recibida",
+        "sugerencia_reglas",
+        "sugerencia_modelo",
+        "turno_agregado",
+        "sugerencia_reglas",
+        "sugerencia_modelo",
+        "ajustes_operador",
+        "derivada",
+    ]
+    (cambio,) = historial["cambios"]
+    assert cambio["campo"] == f"pregunta {propuesta['id']}"
+    assert cambio["sugerido"] == {"respondida": False, "propuesta": False}
+    assert cambio["final"] == {"respondida": True, "propuesta": False}
+
+
 def test_en_mock_el_alta_ya_espera_al_operador_y_completar_no_cambia_la_llamada(cliente):
     inicial = cliente.post("/api/llamadas", json={"turnos": [{"texto": TEXTO_001}]}).json()
     assert inicial["estado"] == "esperando_operador"
@@ -646,3 +746,37 @@ def test_el_historial_registra_el_resultado_del_modelo_en_sqlite(
     assert historial.eventos[2].detalle == detalle
     assert historial.eventos[3].detalle == "El operador confirmó sin cambios."
     assert historial.cambios == []
+
+
+SIN_RESPUESTAS = '{"corresponde": true, "respuestas": []}'
+
+
+def _prioridades_al_sumar_un_turno(abrir_servicio, segunda_prioridad):
+    segunda = json.dumps({**RESPUESTA, "prioridad": segunda_prioridad})
+    modelo = ModeloGuionado(CLASIFICACION, SIN_RESPUESTAS, segunda, SIN_RESPUESTAS)
+    with abrir_servicio(modelo) as servicio:
+        llamada_id = alta_001(servicio).llamada_id
+        antes = servicio.completar_analisis(llamada_id).sugerencia
+        a_medias = servicio.sumar_turno(llamada_id, Turno(hablante="llamante", texto="Ya salió."))
+        despues = servicio.completar_analisis(llamada_id).sugerencia
+        carta = servicio.derivar(llamada_id, Ajustes()).carta
+    return antes, a_medias.sugerencia, despues, carta
+
+
+def test_si_al_sumar_un_turno_cambia_la_prioridad_sugerida_se_avisa(abrir_servicio):
+    antes, a_medias, despues, carta = _prioridades_al_sumar_un_turno(abrir_servicio, "P3")
+
+    assert antes.prioridad.valor == "P2" and despues.prioridad.valor == "P3"
+    # Mientras el modelo no respondió todavía no hay con qué comparar.
+    assert "prioridad_cambiada" not in [aviso.codigo for aviso in a_medias.avisos]
+    (aviso,) = [aviso for aviso in despues.avisos if aviso.codigo == "prioridad_cambiada"]
+    assert aviso.mensaje == "Con lo que se sumó, la prioridad sugerida pasó de P2 a P3. Confirmala."
+    # Es para quien revisa la sugerencia: no viaja a la carta.
+    assert "prioridad_cambiada" not in [aviso.codigo for aviso in carta.avisos]
+
+
+def test_si_al_sumar_un_turno_la_prioridad_sugerida_no_cambia_no_se_avisa(abrir_servicio):
+    antes, _, despues, _ = _prioridades_al_sumar_un_turno(abrir_servicio, "P2")
+
+    assert antes.prioridad.valor == despues.prioridad.valor == "P2"
+    assert "prioridad_cambiada" not in [aviso.codigo for aviso in despues.avisos]

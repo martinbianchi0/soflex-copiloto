@@ -55,10 +55,21 @@ def test_un_signo_que_cambia_el_sentido_no_se_reconoce():
     assert dataset.buscar([Turno(texto=cambiada)]) is None
 
 
-def test_si_el_llamante_dice_algo_mas_ya_no_es_la_llamada_del_dataset():
+def test_si_el_llamante_dice_algo_mas_sigue_siendo_la_llamada_del_dataset():
+    relato = [Turno(hablante="llamante", texto=TEXTO)]
+    turnos = [*relato, Turno(hablante="operador", texto="¿Algo más?")]
+
+    assert not dataset.se_dijo_algo_mas(turnos)
+    turnos.append(Turno(hablante="llamante", texto="Apúrense."))
+
+    assert dataset.buscar(turnos) == dataset.buscar(relato) is not None
+    assert dataset.se_dijo_algo_mas(turnos)
+
+
+def test_si_el_relato_no_es_lo_primero_que_dice_el_llamante_no_se_reconoce():
     turnos = [
+        Turno(hablante="llamante", texto="Hola, ¿me escucha?"),
         Turno(hablante="llamante", texto=TEXTO),
-        Turno(hablante="llamante", texto="Apúrense."),
     ]
 
     assert dataset.buscar(turnos) is None

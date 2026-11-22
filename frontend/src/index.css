@@ -134,7 +134,9 @@ input:not([type="checkbox"]), select, textarea {
 }
 
 textarea { min-block-size: 7rem; resize: vertical; }
-input:not([type="checkbox"]):disabled, select:disabled, textarea:disabled { background: #edf1f5; color: #46596c; }
+.formulario-turno textarea { min-block-size: 4.5rem; }
+.formulario-turno .error-campo { display: block; }
+input:not([type="checkbox"]):disabled, select:disabled, textarea:disabled, textarea:read-only { background: #edf1f5; color: #46596c; }
 .cargar-ejemplo { margin-block-end: 0.875rem; }
 
 :focus-visible { outline: 3px solid #005ab5; outline-offset: 2px; }
@@ -289,12 +291,16 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
 @media (min-width: 1100px) {
   main.vista-operador { max-inline-size: 84rem; }
   .panel-operador { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); align-items: start; gap: 1rem; }
-  .panel-operador > .transcripcion {
+  .columna-transcripcion {
     position: sticky;
     inset-block-start: 1rem;
     max-block-size: calc(100dvh - 2rem);
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
   }
+  .columna-transcripcion > .transcripcion { min-block-size: 10rem; overflow-y: auto; }
+  .columna-transcripcion > .formulario-turno { flex: none; }
 }
 
 .atajo { align-self: center; color: #46596c; font-size: 0.8125rem; }

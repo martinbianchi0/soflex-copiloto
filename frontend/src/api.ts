@@ -66,7 +66,7 @@ export type Criterio = { niveles: Nivel[]; reglas: string[] }
 export type Catalogo = { protocolos: Protocolo[]; criterio: Criterio }
 
 export type Aviso = {
-  codigo: 'sin_calle' | 'falta_altura' | 'calle_ambigua' | 'direccion_no_cierra' | 'cruce_sin_confirmar' | 'dato_descartado' | 'modelo_no_disponible'
+  codigo: 'sin_calle' | 'falta_altura' | 'calle_ambigua' | 'direccion_no_cierra' | 'cruce_sin_confirmar' | 'ficha_sin_actualizar' | 'prioridad_cambiada' | 'dato_descartado' | 'modelo_no_disponible'
   mensaje: string
 }
 
@@ -82,11 +82,13 @@ type Ficha = {
 
 export type Sugerencia = Ficha
 
+export type MarcaChecklist = Pick<Pregunta, 'id' | 'respondida'> & { cita: Cita | null }
+
 export type Ajustes = {
   ubicacion?: UbicacionAjustada
   tipo_hecho?: { categoria: TipoHecho; subtipo: string | null }
   prioridad?: Prioridad
-  checklist?: Pick<Pregunta, 'id' | 'respondida'>[]
+  checklist?: MarcaChecklist[]
 }
 
 export type Carta = Ficha & {
@@ -95,7 +97,7 @@ export type Carta = Ficha & {
 }
 
 type EventoHistorial = {
-  tipo: 'recibida' | 'sugerencia_reglas' | 'sugerencia_modelo' | 'ajustes_operador' | 'derivada'
+  tipo: 'recibida' | 'sugerencia_reglas' | 'sugerencia_modelo' | 'turno_agregado' | 'ajustes_operador' | 'derivada'
   cuando: string
   detalle: string
 }
@@ -179,6 +181,10 @@ export function consultarHistorial(identificador: string, senal: AbortSignal) {
 
 export function analizarLlamada(identificador: string, senal: AbortSignal) {
   return pedir<Llamada>(`/llamadas/${encodeURIComponent(identificador)}/analisis`, senal, { method: 'POST' })
+}
+
+export function sumarTurno(identificador: string, turno: Turno, senal: AbortSignal) {
+  return enviar<Llamada>(`/llamadas/${encodeURIComponent(identificador)}/turnos`, senal, { turno })
 }
 
 export function derivarLlamada(identificador: string, ajustes: Ajustes, senal: AbortSignal) {

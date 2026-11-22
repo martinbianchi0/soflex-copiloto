@@ -55,6 +55,7 @@ TextoDeTurno = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=20_000)
 ]
 MAXIMO_DE_LA_LLAMADA = 50_000
+MAXIMO_DE_TURNOS = 500
 # Tiene que ser un entero de verdad: ni "1540" ni 1540.0.
 Altura = Annotated[int, Field(ge=1, le=99_999, strict=True)]
 
@@ -237,6 +238,8 @@ class Aviso(Esquema):
         "calle_ambigua",
         "direccion_no_cierra",
         "cruce_sin_confirmar",
+        "ficha_sin_actualizar",
+        "prioridad_cambiada",
         "dato_descartado",
         "modelo_no_disponible",
     ]
@@ -326,7 +329,7 @@ class Llamada(Esquema):
 
     llamada_id: Texto
     estado: Literal["en_proceso", "analizando", "esperando_operador", "derivada"]
-    turnos: list[Turno] = Field(min_length=1, max_length=500)
+    turnos: list[Turno] = Field(min_length=1, max_length=MAXIMO_DE_TURNOS)
     sugerencia: Sugerencia | None
     carta: Carta | None
 
@@ -352,7 +355,12 @@ class Llamada(Esquema):
 
 
 type TipoEvento = Literal[
-    "recibida", "sugerencia_reglas", "sugerencia_modelo", "ajustes_operador", "derivada"
+    "recibida",
+    "sugerencia_reglas",
+    "sugerencia_modelo",
+    "turno_agregado",
+    "ajustes_operador",
+    "derivada",
 ]
 
 
@@ -387,7 +395,7 @@ class Historial(Esquema):
 
 
 class NuevaLlamada(Esquema):
-    turnos: list[Turno] = Field(min_length=1, max_length=500)
+    turnos: list[Turno] = Field(min_length=1, max_length=MAXIMO_DE_TURNOS)
 
     @model_validator(mode="after")
     def de_un_largo_razonable(self) -> Self:
@@ -398,6 +406,10 @@ class NuevaLlamada(Esquema):
                 f"La transcripción completa puede tener hasta {MAXIMO_DE_LA_LLAMADA} caracteres."
             )
         return self
+
+
+class NuevoTurno(Esquema):
+    turno: Turno
 
 
 class UbicacionAjustada(Esquema):
@@ -426,6 +438,14 @@ class MarcaChecklist(Esquema):
 
     id: Texto
     respondida: bool
+    # Si se manda, es la cita que se tenía a la vista al marcar, incluso si era ninguna.
+    cita: Cita | None = None
+
+    @model_validator(mode="after")
+    def cita_solo_si_respondida(self) -> Self:
+        if self.cita is not None and not self.respondida:
+            raise ValueError("Una pregunta que el operador desmarcó no lleva cita.")
+        return self
 
 
 class Ajustes(Esquema):

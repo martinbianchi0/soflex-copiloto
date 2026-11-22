@@ -12,13 +12,14 @@ from copiloto import callejero, catalogo, dataset, ejemplos
 from copiloto.catalogo import Catalogo, SubtipoInvalido
 from copiloto.config import Configuracion
 from copiloto.ejemplos import Ejemplo
-from copiloto.esquemas import Derivacion, Historial, Llamada, NuevaLlamada
+from copiloto.esquemas import Derivacion, Historial, Llamada, NuevaLlamada, NuevoTurno
 from copiloto.flujo import FaltanDatos, MarcaInvalida
 from copiloto.llamadas import (
     LlamadaIlegible,
     LlamadaInexistente,
     LlamadaNoEsperaOperador,
     Llamadas,
+    TurnoNoEntra,
 )
 from copiloto.modelo import de_ollama
 
@@ -129,6 +130,14 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
     @api.post("/llamadas/{llamada_id}/analisis")
     def completar_analisis(llamada_id: str) -> Llamada:
         return llamadas().completar_analisis(llamada_id)
+
+    @api.post("/llamadas/{llamada_id}/turnos")
+    def sumar_turno(llamada_id: str, nuevo: NuevoTurno) -> Llamada:
+        try:
+            return llamadas().sumar_turno(llamada_id, nuevo.turno)
+        except TurnoNoEntra as error:
+            detalle = {"type": "value_error", "loc": ["body", "turno"], "msg": str(error)}
+            raise RequestValidationError([detalle]) from error
 
     @api.post("/llamadas/{llamada_id}/derivar")
     def derivar_llamada(llamada_id: str, derivacion: Derivacion) -> Llamada:
