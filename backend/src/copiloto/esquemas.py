@@ -208,9 +208,21 @@ class Ficha(Esquema):
 
     ubicacion: Ubicacion
     tipo_hecho: Dato[Categoria]
+    # El identificador de un protocolo del catálogo. De él salen el checklist y las instrucciones.
+    subtipo: Dato[Texto] = Field(default_factory=Falta)
     prioridad: Dato[Prioridad]
     checklist: list[ItemChecklist] = Field(default_factory=list)
     instrucciones: list[Instruccion] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def sin_preguntas_ni_instrucciones_repetidas(self) -> Self:
+        for nombre, ids in (
+            ("pregunta", [item.id for item in self.checklist]),
+            ("instrucción", [instruccion.id for instruccion in self.instrucciones]),
+        ):
+            if len(set(ids)) != len(ids):
+                raise ValueError(f"Hay una {nombre} repetida.")
+        return self
 
     def datos(self) -> dict[str, Dicho | Inferido | DelOperador | Falta]:
         esquinas = {f"esquinas.{n}": esquina for n, esquina in enumerate(self.ubicacion.esquinas)}
@@ -219,6 +231,7 @@ class Ficha(Esquema):
             "altura": self.ubicacion.altura,
             **esquinas,
             "tipo_hecho": self.tipo_hecho,
+            "subtipo": self.subtipo,
             "prioridad": self.prioridad,
         }
 
@@ -309,11 +322,18 @@ class UbicacionAjustada(Esquema):
         return self
 
 
+class TipoAjustado(Esquema):
+    """Se manda entero: la categoría y, si lo hay, el subtipo. Sin subtipo, `null`."""
+
+    categoria: Categoria
+    subtipo: Texto | None
+
+
 class Ajustes(Esquema):
     """Lo que el operador cambia de la sugerencia. Lo que no manda queda como estaba."""
 
     ubicacion: UbicacionAjustada | None = None
-    tipo_hecho: Categoria | None = None
+    tipo_hecho: TipoAjustado | None = None
     prioridad: Prioridad | None = None
 
     @model_validator(mode="after")

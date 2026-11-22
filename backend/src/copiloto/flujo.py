@@ -2,12 +2,15 @@
 
 from datetime import datetime
 
+from copiloto import catalogo
+from copiloto.catalogo import Protocolo, SubtipoInvalido
 from copiloto.esquemas import (
     Ajustes,
     Carta,
     Categoria,
     Dato,
     Ficha,
+    ItemChecklist,
     Sugerencia,
     Turno,
     texto_plano,
@@ -58,18 +61,70 @@ def derivar(llamada_id: str, sugerencia: Sugerencia, ajustes: Ajustes, ahora: da
             "altura": _resolver(sugerencia.ubicacion.altura, nueva.altura),
             "esquinas": [_resolver_esquina(sugeridas, nombre) for nombre in nueva.esquinas],
         }
+    tipo_hecho, subtipo = sugerencia.tipo_hecho.model_dump(), sugerencia.subtipo.model_dump()
+    sugerido = valor_de(sugerencia.subtipo)
+    if (tipo := ajustes.tipo_hecho) is not None:
+        tipo_hecho = _resolver(sugerencia.tipo_hecho, tipo.categoria)
+        # Un identificador se compara exacto: no es un texto que el operador pueda reescribir.
+        if tipo.subtipo != sugerido:
+            subtipo = {"origen": "operador", "valor": tipo.subtipo}
+    # El checklist y las instrucciones son siempre los del subtipo que queda en la carta. Si el
+    # operador lo cambió, del anterior no se arrastra nada: ni las respuestas ni sus citas.
+    protocolo = catalogo.cargar().protocolo(tipo_hecho["valor"], subtipo.get("valor"))
+    previo = sugerencia.checklist if subtipo.get("valor") == sugerido else []
     ficha = Ficha.model_validate(
         {
-            **sugerencia.model_dump(),
             "ubicacion": ubicacion,
-            "tipo_hecho": _resolver(sugerencia.tipo_hecho, ajustes.tipo_hecho, si_no_manda=True),
+            "tipo_hecho": tipo_hecho,
+            "subtipo": subtipo,
             "prioridad": _resolver(sugerencia.prioridad, ajustes.prioridad, si_no_manda=True),
+            "checklist": checklist_de(protocolo, previo),
+            "instrucciones": protocolo.instrucciones if protocolo else [],
         }
     )
     if faltan := ficha.faltantes():
         raise FaltanDatos(faltan)
     return Carta.model_validate(
         {**ficha.model_dump(), "llamada_id": llamada_id, "derivada_en": ahora}
+    )
+
+
+def checklist_de(protocolo: Protocolo | None, previo: list[ItemChecklist]) -> list[ItemChecklist]:
+    """Las preguntas del protocolo, con el texto del catálogo.
+
+    De lo que ya se sabía se conserva sólo si cada pregunta estaba respondida y dónde, y sólo
+    cuando es la misma pregunta: mismo identificador y mismo texto.
+    """
+    if protocolo is None:
+        return []
+    sabido = {(item.id, item.pregunta): item for item in previo}
+    return [
+        sabido.get(
+            (pregunta.id, pregunta.texto),
+            ItemChecklist(id=pregunta.id, pregunta=pregunta.texto, respondida=False),
+        )
+        for pregunta in protocolo.preguntas
+    ]
+
+
+def ajustar_al_catalogo(sugerencia: Sugerencia) -> Sugerencia:
+    """Deja en la sugerencia sólo lo que el catálogo respalda.
+
+    Un subtipo que no existe o que es de otra categoría se descarta y queda como faltante. Las
+    preguntas y las instrucciones son siempre las del protocolo, con su texto.
+    """
+    subtipo = sugerencia.subtipo.model_dump()
+    try:
+        protocolo = catalogo.cargar().protocolo(sugerencia.tipo_hecho.valor, subtipo.get("valor"))
+    except SubtipoInvalido:
+        protocolo, subtipo = None, {"origen": "falta"}
+    return Sugerencia.model_validate(
+        {
+            **sugerencia.model_dump(),
+            "subtipo": subtipo,
+            "checklist": checklist_de(protocolo, sugerencia.checklist),
+            "instrucciones": protocolo.instrucciones if protocolo else [],
+        }
     )
 
 

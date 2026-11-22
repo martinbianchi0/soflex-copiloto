@@ -7,7 +7,7 @@ export default function DetallesSugerencia({
     <>
       {checklist.length > 0 && (
         <section className="detalles-sugerencia">
-          <h3>Preguntas de verificación</h3>
+          <h3>Preguntas del protocolo</h3>
           <ul>
             {checklist.map(({ id, pregunta, respondida, cita }) => (
               <li key={id}>
@@ -21,7 +21,7 @@ export default function DetallesSugerencia({
       {instrucciones.length > 0 && (
         <section className="detalles-sugerencia">
           <h3>Instrucciones de pre-arribo (leer textual)</h3>
-          <ul>{instrucciones.map(({ id, texto }) => <li key={id}>{texto}</li>)}</ul>
+          <ul className="instrucciones">{instrucciones.map(({ id, texto }) => <li key={id}>{texto}</li>)}</ul>
         </section>
       )}
     </>

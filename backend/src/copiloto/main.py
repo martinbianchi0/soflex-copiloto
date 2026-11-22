@@ -7,6 +7,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from copiloto import catalogo
+from copiloto.catalogo import Catalogo, SubtipoInvalido
 from copiloto.config import Configuracion
 from copiloto.esquemas import Derivacion, Llamada, NuevaLlamada
 from copiloto.flujo import FaltanDatos
@@ -23,6 +25,7 @@ def crear_app(configuracion: Configuracion | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def ciclo_de_vida(app: FastAPI):
+        catalogo.cargar()  # Si el catálogo no sirve, el servicio no arranca.
         app.state.llamadas = Llamadas(configuracion.sqlite_path)
         yield
         app.state.llamadas.cerrar()
@@ -69,9 +72,20 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
         ]
         return JSONResponse({"detail": detalle}, 422)
 
+    @api.exception_handler(SubtipoInvalido)
+    def subtipo_invalido(request: Request, error: SubtipoInvalido) -> JSONResponse:
+        donde = ["ajustes", "tipo_hecho", "subtipo"]
+        return JSONResponse(
+            {"detail": [{"type": "value_error", "loc": donde, "msg": str(error)}]}, 422
+        )
+
     @api.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok", "llm_provider": configuracion.llm_provider}
+
+    @api.get("/catalogo")
+    def consultar_catalogo() -> Catalogo:
+        return catalogo.cargar()
 
     @api.post("/llamadas", status_code=201)
     def iniciar_llamada(nueva: NuevaLlamada) -> Llamada:

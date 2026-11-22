@@ -26,7 +26,7 @@ class Estado(TypedDict, total=False):
 
 def analizar(estado: Estado) -> Estado:
     turnos = [Turno.model_validate(turno) for turno in estado["turnos"]]
-    sugerencia = flujo.analizar(turnos)
+    sugerencia = flujo.ajustar_al_catalogo(flujo.analizar(turnos))
     # Se comprueba antes de guardar: una sugerencia con una cita que nadie dijo no llega al disco.
     if ausentes := citas_que_no_estan(sugerencia, turnos):
         raise ValueError(

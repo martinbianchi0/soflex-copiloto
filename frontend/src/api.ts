@@ -44,19 +44,33 @@ type UbicacionAjustada = {
 }
 
 type Pregunta = { id: string; pregunta: string; respondida: boolean; cita: Cita | null }
-type Instruccion = { id: string; texto: string }
+type TextoProtocolo = { id: string; texto: string }
+
+export type Protocolo = {
+  id: string
+  categoria: Exclude<TipoHecho, 'NO_DETERMINADA'>
+  nombre: string
+  preguntas: TextoProtocolo[]
+  instrucciones: TextoProtocolo[]
+}
+
+export type Nivel = { id: Prioridad; nombre: string; definicion: string; senales: string[] }
+export type Criterio = { niveles: Nivel[]; reglas: string[] }
+
+export type Catalogo = { protocolos: Protocolo[]; criterio: Criterio }
 
 export type Sugerencia = {
   ubicacion: Ubicacion
   tipo_hecho: Dato<TipoHecho>
+  subtipo: Dato<string>
   prioridad: Dato<Prioridad>
   checklist: Pregunta[]
-  instrucciones: Instruccion[]
+  instrucciones: TextoProtocolo[]
 }
 
 export type Ajustes = {
   ubicacion?: UbicacionAjustada
-  tipo_hecho?: TipoHecho
+  tipo_hecho?: { categoria: TipoHecho; subtipo: string | null }
   prioridad?: Prioridad
 }
 
@@ -106,6 +120,10 @@ async function pedir<Respuesta>(ruta: string, senal: AbortSignal, datos?: object
 
 export function consultarSalud(senal: AbortSignal) {
   return pedir<Salud>('/health', senal)
+}
+
+export function consultarCatalogo(senal: AbortSignal) {
+  return pedir<Catalogo>('/catalogo', senal)
 }
 
 export function crearLlamada(texto: string, senal: AbortSignal) {

@@ -90,7 +90,11 @@ class Llamadas:
         """
         llamada = self._leer(llamada_id)
         if llamada.estado == "en_proceso":
-            self._avanzar(None, llamada_id)
+            try:
+                self._avanzar(None, llamada_id)
+            except ValidationError as error:
+                # Lo que quedó guardado (por ejemplo, los ajustes) es de otra versión del servicio.
+                raise LlamadaIlegible(llamada_id) from error
             llamada = self._leer(llamada_id)
         return llamada
 
