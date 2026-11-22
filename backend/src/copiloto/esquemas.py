@@ -366,6 +366,23 @@ class Llamada(Esquema):
         return self
 
 
+# ---------- Otras llamadas del mismo lugar ----------
+
+
+class PosibleDuplicado(Esquema):
+    llamada_id: Texto
+    recibida_en: AwareDatetime
+    ubicacion: str
+    categoria: Categoria
+    derivada: bool
+
+
+class Duplicados(Esquema):
+    llamada_id: Texto
+    recibida_en: AwareDatetime | None
+    posibles: list[PosibleDuplicado]
+
+
 # ---------- El historial de la llamada ----------
 
 

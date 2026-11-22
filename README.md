@@ -70,7 +70,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 - **Protocolos para lo que el catálogo no cubre**, definidos por quien tiene la autoridad para hacerlo.
 - **Patentes y teléfonos como llegan de un reconocimiento de voz:** deletreados o con los números en palabras. Hoy se leen escritos con letras y cifras.
 - **Entrada en vivo.** Hoy el operador escribe cada turno, o se reproduce un ejemplo; lo siguiente sería recibirlos a medida que se transcribe la llamada.
-- **Aviso de llamadas sobre el mismo hecho:** misma esquina y pocos minutos de diferencia.
+- **Que el aviso de otra llamada del mismo lugar se actualice solo y compare por distancia.** Hoy se consulta cuando la llamada cambia, y compara calle, altura y esquinas.
 - **Coordenadas además de calle y altura**, y contraste con el servicio de direcciones de la Ciudad cuando hay red.
 - **Trazas de cada pedido al modelo** (qué se le mandó, qué devolvió, cuánto tardó), para revisar un caso sin volver a correrlo.
 - **Tests automáticos del panel.** El backend tiene los suyos; el panel no tiene.
@@ -83,6 +83,7 @@ cd backend && uv run python herramientas/evaluar.py --proveedor ollama --salida 
 - `backend/src/copiloto/datos/`: el dataset provisto, con 30 llamadas sintéticas. De ahí sale el catálogo de protocolos: preguntas e instrucciones de pre-arribo por subtipo de hecho. Su contenido no está validado por una autoridad médica ni operativa.
 - `backend/src/copiloto/ubicacion.py` y `callejero.py`: la lectura de la dirección y su contraste con el callejero.
 - `backend/src/copiloto/dictados.py`: la patente y el teléfono que dicta el llamante.
+- `backend/src/copiloto/duplicados.py`: el aviso de otra llamada reciente del mismo lugar.
 - `backend/src/copiloto/interprete.py` y `modelo.py`: los pedidos al modelo local y la verificación de lo que devuelve.
 - `backend/herramientas/evaluar.py` y `evaluacion/`: la medición de lo que propone el servicio y su detalle por llamada.
 - `backend/src/copiloto/criterio.py`: el criterio de prioridad P1 a P4, que el panel muestra junto a la prioridad.
