@@ -210,7 +210,22 @@ input:not([type="checkbox"], [type="radio"]), select, textarea {
 }
 
 textarea { min-block-size: 7rem; resize: vertical; }
-.formulario-turno textarea { min-block-size: 4.5rem; }
+/* Sumar un turno es una acción secundaria: una fila al pie de la transcripción, que es la que
+   tiene que verse. El texto crece mientras se escribe. */
+.formulario-turno { padding: 0.625rem 0.75rem; background: #f7f9fb; }
+.formulario-turno fieldset { gap: 0.25rem; }
+.formulario-turno legend { margin-block-end: 0.25rem; color: #46596c; font-size: 0.875rem; }
+.fila-turno { display: grid; grid-template-columns: 7.25rem minmax(0, 1fr); align-items: start; gap: 0.5rem; }
+.formulario-turno :is(select, textarea) {
+  min-block-size: 2.25rem;
+  margin-block-start: 0;
+  padding-block: 0.3125rem;
+  font-size: 0.9375rem;
+}
+.formulario-turno textarea { field-sizing: content; max-block-size: 9rem; }
+.formulario-turno ::placeholder { color: #5b6b7b; opacity: 1; }
+.formulario-turno .acciones { margin-block-start: 0.5rem; }
+.formulario-turno button { min-block-size: 2.25rem; padding-block: 0.25rem; }
 .formulario-turno .error-campo { display: block; }
 input:not([type="checkbox"], [type="radio"]):disabled, select:disabled, textarea:disabled, textarea:read-only { background: #edf1f5; color: #46596c; }
 .cargar-ejemplo { margin-block-end: 0.875rem; }
@@ -528,13 +543,15 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
 @media (min-width: 1100px) {
   .columna-transcripcion {
     position: sticky;
-    inset-block-start: 1rem;
-    max-block-size: calc(100dvh - 2rem);
+    inset-block-start: 0.75rem;
+    max-block-size: calc(100dvh - 1.5rem);
     display: flex;
     flex-direction: column;
     overflow-y: auto;
   }
   .columna-transcripcion > .transcripcion { min-block-size: 10rem; overflow-y: auto; }
+  /* La columna recorta lo que sobresale: el contorno del foco va por dentro. */
+  .columna-transcripcion > :focus-visible { outline-offset: -3px; }
   .columna-transcripcion > .formulario-turno { flex: none; }
 }
 
