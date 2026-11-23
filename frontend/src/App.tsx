@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { analizarLlamada, consultarCatalogo, consultarDuplicados, consultarEjemplos, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi, sumarTurno, valorDato } from './api'
-import type { Ajustes, Aviso, Catalogo, DetalleValidacion, Ejemplo, Llamada, PosibleDuplicado, Turno } from './api'
+import type { Ajustes, Aviso, Catalogo, DetalleValidacion, Ejemplo, Llamada, PosibleDuplicado, Proveedor, Salud, Turno } from './api'
 import AvisoDuplicados from './AvisoDuplicados'
 import CartaLlamada from './CartaLlamada'
 import FormularioSugerencia from './FormularioSugerencia'
 import FormularioTurno from './FormularioTurno'
 import { calcularPausa, separarIntercambios } from './reproduccion'
+import SelectorDeModo from './SelectorDeModo'
 import Transcripcion from './Transcripcion'
 import { campoSugerencia, nombrarCampo } from './validacion'
 
@@ -80,7 +81,8 @@ function mensajeErrorTurno(fallo: unknown) {
 }
 
 function App() {
-  const [modo, setModo] = useState<string | null>()
+  const [salud, setSalud] = useState<Salud | null>()
+  const [preferencia, setPreferencia] = useState<Proveedor>()
   const [catalogo, setCatalogo] = useState<Catalogo | null>()
   const [ejemplos, setEjemplos] = useState<Ejemplo[]>([])
   const [ejemploElegido, setEjemploElegido] = useState('')
@@ -103,7 +105,8 @@ function App() {
   const pausa = useRef<number | undefined>(undefined)
   const reanalizando = useRef(false)
   const regionAvisos = useRef<HTMLDivElement>(null)
-  const bloqueado = ocupado || modo === undefined
+  const proveedorElegido = salud?.proveedores.find((proveedor) => proveedor === preferencia) ?? salud?.llm_provider
+  const bloqueado = ocupado || salud === undefined
   const analisisBloqueado = bloqueado || !catalogo
   const analizando = llamada?.estado === 'analizando'
   const analisisEnCurso = analizando && ocupado
@@ -136,10 +139,8 @@ function App() {
   useEffect(() => {
     const control = new AbortController()
     consultarSalud(control.signal).then(
-      ({ llm_provider: proveedor, modelo }) => {
-        if (!control.signal.aborted) setModo(modelo ? `${proveedor} · ${modelo}` : proveedor)
-      },
-      () => { if (!control.signal.aborted) setModo(null) },
+      (respuesta) => { if (!control.signal.aborted) setSalud(respuesta) },
+      () => { if (!control.signal.aborted) setSalud(null) },
     )
     cargarCatalogo(control.signal)
     consultarEjemplos(control.signal).then(
@@ -215,6 +216,7 @@ function App() {
     solicitudDuplicados.current?.abort()
     solicitudDuplicados.current = null
     setLlamada(recibida)
+    if (recibida) setPreferencia(recibida.proveedor)
     if (!estaAbierta(recibida)) return
 
     const id = recibida.llamada_id
@@ -297,10 +299,10 @@ function App() {
   }, [detenerReproduccion, mostrarLlamada, recibirLlamada, solicitar])
 
   useEffect(() => {
-    if (mostrarErrorArriba || aviso || modo === null || catalogo === null) {
+    if (mostrarErrorArriba || aviso || salud === null || catalogo === null) {
       regionAvisos.current?.scrollIntoView({ block: 'nearest' })
     }
-  }, [mostrarErrorArriba, aviso, modo, catalogo])
+  }, [mostrarErrorArriba, aviso, salud, catalogo])
 
   function elegirEjemplo(id: string) {
     const ejemplo = ejemplos.find((opcion) => opcion.id === id)
@@ -316,8 +318,9 @@ function App() {
     if (analisisBloqueado || !transcripcion.trim()) return
     const intercambios = reproducirEjemplo && ejemploSeleccionado ? separarIntercambios(ejemploSeleccionado.turnos) : []
     const [primero] = intercambios
+    const proveedor = salud?.proveedores.length === 2 ? proveedorElegido : undefined
     void solicitar(async (senal) => {
-      const creada = await crearLlamada(primero ?? transcripcion, senal)
+      const creada = await crearLlamada(primero ?? transcripcion, senal, proveedor)
       if (senal.aborted) return
       cambiarUrl(creada.llamada_id)
       setIdentificador(creada.llamada_id)
@@ -458,9 +461,8 @@ function App() {
     <main className={muestraSugerencia ? 'vista-operador' : undefined}>
       <header className="encabezado">
         <h1>Copiloto para Operadores de Sala</h1>
-        <span className="modo" title="El modo se elige al levantar el servicio.">
-          Modo: {modo === undefined ? 'consultando…' : modo ?? 'no disponible'}
-        </span>
+        <SelectorDeModo salud={salud} proveedor={llamada?.proveedor ?? proveedorElegido}
+          bloqueado={ocupado || llamada !== null} alElegir={setPreferencia} />
       </header>
 
       <div className="avisos" ref={regionAvisos} role={analisisEnCurso ? 'status' : undefined}
@@ -472,7 +474,7 @@ function App() {
             : anuncio}</span>
           <span className="solo-lectores">{estadoReproduccion}</span>
           {aviso && <p className="aviso">{aviso}</p>}
-          {modo === null && error !== errorConexion && <p className="error">{errorConexion}</p>}
+          {salud === null && error !== errorConexion && <p className="error">{errorConexion}</p>}
           {catalogo === undefined && <p id="estado-catalogo" className="aviso">Cargando el catálogo de protocolos…</p>}
           {catalogo === null && (
             <p id="estado-catalogo" className="error">

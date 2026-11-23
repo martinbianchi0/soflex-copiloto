@@ -29,7 +29,7 @@ Por defecto corre en modo `mock`. Para que un modelo proponga el tipo de hecho, 
    ollama pull qwen3.5:4b-q4_K_M
    ```
 2. Crear un `.env` junto a `docker-compose.yml` con `LLM_PROVIDER=ollama` (las demás variables están en `.env.example`).
-3. Levantar con `docker compose up --build`. El encabezado del panel muestra el modo y el modelo.
+3. Levantar con `docker compose up --build`. El encabezado del panel muestra el modo y el modelo, y deja elegir con cuál se analiza cada llamada: `ollama` (el modelo) o `mock` (sólo las reglas). El modo se elige antes de analizar y una llamada abierta sigue con el suyo. Para comparar los dos, se analiza la misma transcripción en dos llamadas, una con cada modo, sin reiniciar el servicio (la segunda muestra el aviso de otra llamada del mismo lugar).
 
 El modelo no viene con el repositorio: lo baja Ollama, y se distribuye con licencia Apache 2.0 (`ollama show qwen3.5:4b-q4_K_M --license`).
 
