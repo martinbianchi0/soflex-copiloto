@@ -63,7 +63,8 @@ export default function MiniMapa({ calle, altura, esquinas: [primera, segunda] }
     const { numero, invalida } = leerAltura(altura)
     const esquinas = [primera, segunda].filter((esquina) => esquina.trim())
     if (!calle.trim()) return { pedido: null, falta: 'Sin plano: falta la calle.' }
-    if (invalida || (numero === null && esquinas.length === 0)) {
+    if (invalida) return { pedido: null, falta: 'Sin plano: la altura tiene que ser un número entre 1 y 99999.' }
+    if (numero === null && esquinas.length === 0) {
       return { pedido: null, falta: 'Sin plano: falta la altura o una esquina.' }
     }
     return { pedido: { calle, altura: numero, esquinas }, falta: '' }

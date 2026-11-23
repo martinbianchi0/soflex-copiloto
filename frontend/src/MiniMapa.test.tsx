@@ -107,7 +107,9 @@ test.each([
   { caso: 'faltan tanto la altura como la esquina', calle: 'Av. Corrientes', altura: '', esquina: '',
     mensaje: 'Sin plano: falta la altura o una esquina.' },
   { caso: 'la altura es inválida aunque haya esquina', calle: 'Av. Corrientes', altura: '15A', esquina: 'Montevideo',
-    mensaje: 'Sin plano: falta la altura o una esquina.' },
+    mensaje: 'Sin plano: la altura tiene que ser un número entre 1 y 99999.' },
+  { caso: 'la altura está fuera de rango y no hay esquina', calle: 'Av. Corrientes', altura: '0', esquina: '',
+    mensaje: 'Sin plano: la altura tiene que ser un número entre 1 y 99999.' },
 ])('Muestra por qué falta el plano y no lo pide si $caso', async ({ calle, altura, esquina, mensaje }) => {
   const servicio = simularServicio()
   render(<MiniMapa calle={calle} altura={altura} esquinas={[esquina, '']} />)
