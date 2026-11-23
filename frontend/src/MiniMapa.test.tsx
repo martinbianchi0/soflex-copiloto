@@ -48,8 +48,9 @@ test('Pide el plano con la altura numérica y sólo las esquinas escritas, y mue
   expect(servicio.pedidosA(rutaPlano).map(({ cuerpo }) => cuerpo)).toEqual([
     { calle: 'Av. Corrientes', altura: 1540, esquinas: ['Montevideo'] },
   ])
+  // La dirección se lee una sola vez: en la leyenda, no en el nombre del dibujo.
   expect(screen.getByText(respuestas.plano.leyenda)).toBeTruthy()
-  expect(screen.getByRole('img', { name: respuestas.plano.leyenda })).toBeTruthy()
+  expect(screen.getByRole('img', { name: 'Plano de la cuadra' })).toBeTruthy()
 })
 
 test('Tres cambios seguidos hacen un solo pedido 400 ms después del último', async () => {
@@ -82,10 +83,10 @@ test('Una respuesta tardía no reemplaza el plano de la dirección nueva', async
   servicio.responder(rutaPlano, nuevo)
   rerender(<MiniMapa {...direccion} altura="1542" />)
   await avanzar(400)
-  expect(screen.getByRole('img', { name: nuevo.leyenda })).toBeTruthy()
+  expect(screen.getByText(nuevo.leyenda)).toBeTruthy()
 
   await act(async () => { anterior.entregar(contestar(respuestas.plano)) })
-  expect(screen.getByRole('img', { name: nuevo.leyenda })).toBeTruthy()
+  expect(screen.getByText(nuevo.leyenda)).toBeTruthy()
   expect(screen.queryByText(respuestas.plano.leyenda)).toBeNull()
 })
 
@@ -150,7 +151,7 @@ test.each([
   render(<><style>{estilos}</style><MiniMapa {...direccion} altura={plano.exacto ? '1540' : ''} /></>)
   await avanzar(400)
 
-  const punto = screen.getByRole('img', { name: plano.leyenda }).querySelector('circle')
+  const punto = screen.getByRole('img', { name: 'Plano de la cuadra' }).querySelector('circle')
   if (!punto) throw new Error('Falta el punto del plano')
   const relleno = getComputedStyle(punto).getPropertyValue('fill')
   expect(relleno).toBeTruthy()

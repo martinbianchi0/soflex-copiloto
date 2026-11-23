@@ -5,7 +5,7 @@ import { leerAltura } from './borradorSugerencia'
 import { ubicarRotulos } from './rotulosDelPlano'
 
 function DibujoPlano({ plano }: { plano: Plano }) {
-  const { radio_m: radio, cuadras, leyenda, exacto } = plano
+  const { radio_m: radio, cuadras, exacto } = plano
   const svg = useRef<SVGSVGElement>(null)
   const [tamano, setTamano] = useState<{ ancho: number; alto: number } | null>(null)
   useLayoutEffect(() => {
@@ -32,7 +32,7 @@ function DibujoPlano({ plano }: { plano: Plano }) {
 
   return (
     <svg ref={svg} viewBox={`${-radio} ${-radio} ${2 * radio} ${2 * radio}`}
-      preserveAspectRatio="xMidYMid slice" role="img" aria-label={leyenda}>
+      preserveAspectRatio="xMidYMid slice" role="img" aria-label="Plano de la cuadra">
       {cuadras.map(({ x1, y1, x2, y2, principal }, indice) => (
         <line key={indice} className={principal ? 'mini-mapa-cuadra principal' : 'mini-mapa-cuadra'}
           x1={x1} y1={-y1} x2={x2} y2={-y2} />
