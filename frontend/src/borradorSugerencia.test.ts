@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { Llamada, Prioridad, Sugerencia, TipoHecho } from './api'
-import { actualizarBorrador, iniciarBorrador, leerAltura } from './borradorSugerencia'
+import { actualizarBorrador, avisosVigentes, editarCampo, iniciarBorrador, leerAltura, usarDireccion } from './borradorSugerencia'
 import type { BorradorSugerencia, CamposSugerencia } from './borradorSugerencia'
 import { respuestas } from './pruebas/respuestas'
 
@@ -212,5 +212,64 @@ describe('Al llegar otra sugerencia', () => {
     const anterior = structuredClone(borrador)
     actualizarBorrador(borrador, sanJuanConAltura, catalogo)
     expect(borrador).toEqual(anterior)
+  })
+})
+
+describe('Los avisos sobre la dirección', () => {
+  const conAviso = sugerenciaDe(respuestas.llamadaConAviso)
+  const [avisoInicial] = conAviso.avisos
+  const otraDireccion = {
+    codigo: 'direccion_no_cierra' as const,
+    mensaje: 'Se mencionaron Av. Rivadavia 5000 y Av. Rivadavia 6300. Confirmá con el llamante cuál es la dirección.',
+  }
+  const delModelo = { codigo: 'modelo_no_disponible' as const, mensaje: 'No hay sugerencia del modelo.' }
+
+  function conAvisos(...avisos: Sugerencia['avisos']) {
+    const variante = structuredClone(conAviso)
+    variante.avisos = avisos
+    return variante
+  }
+
+  test('con la dirección sugerida se ven todos', () => {
+    const borrador = editarCampo(iniciarBorrador(conAviso, catalogo), 'altura', '5000')
+    expect(avisosVigentes(borrador, false)).toEqual(conAviso.avisos)
+  })
+
+  test('el que estaba a la vista cuando el operador cambió la dirección se quita', () => {
+    const borrador = editarCampo(iniciarBorrador(conAviso, catalogo), 'altura', '5100')
+    expect(avisosVigentes(borrador, true)).toEqual([])
+  })
+
+  test('usar la dirección que leyó el modelo también lo quita', () => {
+    const borrador = usarDireccion(iniciarBorrador(conAviso, catalogo), { calle: 'Aráoz', altura: 1236, esquinas: [] })
+    expect(avisosVigentes(borrador, true)).toEqual([])
+  })
+
+  test('editar un campo que no es de la ubicación no quita ninguno', () => {
+    const borrador = editarCampo(iniciarBorrador(conAviso, catalogo), 'prioridad', 'P1')
+    expect(avisosVigentes(borrador, true)).toEqual(conAviso.avisos)
+  })
+
+  test('el que llega después de ese cambio se muestra, y el anterior sigue quitado', () => {
+    const editado = editarCampo(iniciarBorrador(conAviso, catalogo), 'altura', '5100')
+    const actualizado = actualizarBorrador(editado, conAvisos(avisoInicial, otraDireccion), catalogo)
+    expect(avisosVigentes(actualizado, true)).toEqual([otraDireccion])
+  })
+
+  test('si el operador vuelve a cambiar la dirección con el nuevo a la vista, también se quita', () => {
+    const editado = editarCampo(iniciarBorrador(conAviso, catalogo), 'altura', '5100')
+    const actualizado = actualizarBorrador(editado, conAvisos(avisoInicial, otraDireccion), catalogo)
+    expect(avisosVigentes(editarCampo(actualizado, 'altura', '6300'), true)).toEqual([])
+  })
+
+  test('uno que deja de darse y vuelve a darse más tarde se muestra de nuevo', () => {
+    const editado = editarCampo(iniciarBorrador(conAviso, catalogo), 'altura', '5100')
+    const sinAviso = actualizarBorrador(editado, conAvisos(), catalogo)
+    expect(avisosVigentes(actualizarBorrador(sinAviso, conAviso, catalogo), true)).toEqual(conAviso.avisos)
+  })
+
+  test('los que no hablan de la dirección no se quitan nunca', () => {
+    const borrador = editarCampo(iniciarBorrador(conAvisos(avisoInicial, delModelo), catalogo), 'calle', 'Av. Corrientes')
+    expect(avisosVigentes(borrador, true)).toEqual([delModelo])
   })
 })

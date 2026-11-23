@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent, ReactNode } from 'react'
 import { citaDato, idDictado, nombresTiposHecho, textoOrigen, valorDato } from './api'
 import type { Ajustes, Catalogo, Criterio, Dato, DetalleValidacion, DireccionAlternativa, Pregunta, Prioridad, Sugerencia, TipoHecho, Turno } from './api'
-import { actualizarBorrador, iniciarBorrador, leerAltura, usarDireccion } from './borradorSugerencia'
+import { actualizarBorrador, avisosVigentes, editarCampo, iniciarBorrador, leerAltura, usarDireccion } from './borradorSugerencia'
 import type { CamposSugerencia } from './borradorSugerencia'
 import AvisosSugerencia from './AvisosSugerencia'
 import DatosDictados from './DatosDictados'
@@ -117,6 +117,12 @@ export default function FormularioSugerencia({
   const formulario = useRef<HTMLFormElement>(null)
   const { numero: numeroAltura, invalida: alturaInvalida } = leerAltura(altura)
   const esquinas = [esquinaUno, esquinaDos].filter((esquina) => esquina.trim())
+  const esquinasSugeridas = ubicacion.esquinas.map((dato) => valorDato(dato) ?? '').filter((esquina) => esquina.trim())
+  // Decide si la ubicación viaja como ajuste al derivar y si los avisos sobre la dirección sugerida
+  // que el operador ya tuvo a la vista siguen mostrándose.
+  const ubicacionCambiada = calle !== calleSugerida || numeroAltura !== alturaSugerida ||
+    esquinas.length !== esquinasSugeridas.length ||
+    esquinas.some((esquina, indice) => esquina !== esquinasSugeridas[indice])
   const alternativa = sugerencia.direccion_alternativa
   const coincideConAlternativa = alternativa && !alturaInvalida && numeroAltura === alternativa.altura &&
     nombreComparable(calle) === nombreComparable(alternativa.calle) &&
@@ -183,9 +189,7 @@ export default function FormularioSugerencia({
   }, [edicionBloqueada, errores])
 
   function editar<Campo extends keyof CamposSugerencia>(campo: Campo, valor: CamposSugerencia[Campo]) {
-    setBorrador((actual) => ({
-      ...actual, campos: { ...actual.campos, [campo]: valor }, editados: new Set([...actual.editados, campo]),
-    }))
+    setBorrador((actual) => editarCampo(actual, campo, valor))
   }
 
   function aplicarDireccion(direccion: DireccionAlternativa) {
@@ -246,12 +250,7 @@ export default function FormularioSugerencia({
     }
 
     const ajustes: Ajustes = {}
-    const esquinasSugeridas = ubicacion.esquinas.map((dato) => valorDato(dato) ?? '').filter((esquina) => esquina.trim())
-    if (calle !== calleSugerida || numeroAltura !== alturaSugerida ||
-      esquinas.length !== esquinasSugeridas.length ||
-      esquinas.some((esquina, indice) => esquina !== esquinasSugeridas[indice])) {
-      ajustes.ubicacion = { calle, altura: numeroAltura, esquinas }
-    }
+    if (ubicacionCambiada) ajustes.ubicacion = { calle, altura: numeroAltura, esquinas }
     if (categoria && (categoria !== categoriaSugerida || subtipo !== subtipoSugerido)) {
       ajustes.tipo_hecho = { categoria, subtipo }
     }
@@ -287,7 +286,8 @@ export default function FormularioSugerencia({
         <fieldset disabled={edicionBloqueada}>
           <legend>Sugerencia</legend>
           {avisoDuplicados}
-          <AvisosSugerencia avisos={sugerencia.avisos} alternativa={coincideConAlternativa ? null : alternativa}
+          <AvisosSugerencia avisos={avisosVigentes(borrador, ubicacionCambiada)}
+            alternativa={coincideConAlternativa ? null : alternativa}
             alUsarDireccion={aplicarDireccion} alAnunciarDireccion={alAnunciarDireccion} />
           <div className="direccion">
             <CampoSugerido nombre="calle" etiqueta="Calle" dato={datos.calle} errores={erroresDe('calle')}
