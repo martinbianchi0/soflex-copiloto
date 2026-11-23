@@ -15,7 +15,9 @@ DISPARAN = {"direccion_no_cierra", "calle_ambigua", "sin_calle", "cruce_sin_conf
 
 _registro = logging.getLogger(__name__)
 
-_SISTEMA = """Sos un segundo lector de direcciones para un operador de emergencias de la Ciudad \
+# El texto con el que se midió evaluacion/direccion-modelo.json; lo fija un test. Pide un
+# "motivo" que el servicio no usa: quitarlo cambia el pedido y obliga a medir de nuevo.
+SISTEMA = """Sos un segundo lector de direcciones para un operador de emergencias de la Ciudad \
 de Buenos Aires. Recibís la transcripción de una llamada, la dirección que leyó un sistema de \
 reglas y los avisos que dio. Tu tarea es decir si de lo que dijo el llamante sale una dirección \
 distinta y mejor.
@@ -38,16 +40,11 @@ fuera de la Ciudad de Buenos Aires, o si no hay ninguna ubicación.
 
 Respondé sólo con un JSON, sin texto antes ni después:
 {"calle": texto o null, "altura": número o null, "esquinas": [textos], "motivo": "una oración"}
-Si no proponés nada, "calle" va en null. En "esquinas" van sólo las que dijo el llamante."""
-
-SISTEMA_CON_DATOS = (
-    _SISTEMA
-    + """
+Si no proponés nada, "calle" va en null. En "esquinas" van sólo las que dijo el llamante.
 
 Al final del pedido van datos del callejero sobre las calles que leyeron las reglas: a qué \
 altura queda cada esquina y qué calles limitan la cuadra de la altura leída. Usalos para decidir \
 si alguna altura que dijo el llamante cierra con las esquinas que dijo."""
-)
 
 
 @dataclass(frozen=True)
@@ -61,9 +58,12 @@ def corresponde(avisos: list[Aviso]) -> bool:
     return any(aviso.codigo in DISPARAN for aviso in avisos)
 
 
-def usuario(
-    texto: str, lectura: Interpretacion, avisos: list[str], datos: list[str] | None = None
-) -> str:
+def pedido(turnos: list[Turno], lectura: Interpretacion) -> str:
+    """La llamada, lo que leyeron las reglas con sus avisos y lo que dice el callejero."""
+    texto = " ".join(
+        f"{turno.hablante.capitalize()}: {turno.texto}" if turno.hablante else turno.texto
+        for turno in turnos
+    )
     ubicacion = lectura.ubicacion
     calle = valor_de(ubicacion.calle) or "ninguna"
     numero = valor_de(ubicacion.altura)
@@ -74,22 +74,13 @@ def usuario(
         )
         or "ninguna"
     )
-    lineas = "\n".join(f"- {aviso}" for aviso in avisos) or "- ninguno"
+    avisos = "\n".join(f"- {aviso.mensaje}" for aviso in lectura.avisos) or "- ninguno"
+    datos = datos_del_callejero(lectura)
     return (
         f"Transcripción:\n{texto}\n\n"
         f"Lo que leyeron las reglas: calle: {calle}; altura: {altura}; esquinas: {esquinas}.\n"
-        f"Avisos de las reglas:\n{lineas}"
+        f"Avisos de las reglas:\n{avisos}"
         + ("\n\nDatos del callejero:\n" + "\n".join(f"- {dato}" for dato in datos) if datos else "")
-    )
-
-
-def pedido(turnos: list[Turno], lectura: Interpretacion) -> str:
-    texto = " ".join(
-        f"{turno.hablante.capitalize()}: {turno.texto}" if turno.hablante else turno.texto
-        for turno in turnos
-    )
-    return usuario(
-        texto, lectura, [aviso.mensaje for aviso in lectura.avisos], datos_del_callejero(lectura)
     )
 
 
@@ -212,7 +203,7 @@ def consultar(turnos: list[Turno], modelo: Modelo, vence: float) -> DireccionAlt
         lectura = interpretar(turnos)
         mensaje = pedido(turnos, lectura)
         tiempo_restante(vence)
-        texto = modelo(SISTEMA_CON_DATOS, mensaje, vence)
+        texto = modelo(SISTEMA, mensaje, vence)
         tiempo_restante(vence)
         propuesta, motivo = comprobar(_leer_json(texto))
         tiempo_restante(vence)
