@@ -41,6 +41,19 @@ export function textoOrigen(dato: Dato<unknown>): string {
   return dato.origen
 }
 
+// Qué significa el origen de un dato, para quien tiene que decidir cuánto confiar en él.
+export function explicacionOrigen(dato: Dato<unknown>): string {
+  if (dato.origen === 'dicho') return 'Lo dijo el llamante: la cita está debajo.'
+  if (dato.origen === 'operador') return 'Lo escribiste o lo elegiste vos.'
+  if (dato.origen === 'falta') return 'Nadie lo dijo. Si hace falta, preguntalo.'
+  return {
+    callejero: 'Nadie lo dijo: lo completó el callejero. Confirmalo con el llamante.',
+    reglas: 'Lo dedujeron las reglas a partir de lo que dijo el llamante. Revisalo.',
+    modelo: 'Lo propuso el modelo a partir de lo que dijo el llamante. Revisalo.',
+    dataset: 'Viene de la ficha de esta llamada en el dataset.',
+  }[dato.fuente]
+}
+
 export type Ubicacion = {
   calle: Dato<string>
   altura: Dato<number>

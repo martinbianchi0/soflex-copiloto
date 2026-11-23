@@ -37,26 +37,29 @@ export default function FormularioTurno({ bloqueado, edicionBloqueada, sumando, 
     }}>
       <fieldset>
         <legend>Sumar lo que se dijo después</legend>
-        <label>
-          Quién habla
-          <select value={hablante} disabled={edicionBloqueada} onChange={(evento) => {
-            setHablante(evento.target.value === 'operador' ? 'operador' : 'llamante')
-            alEditar()
-          }}>
-            <option value="llamante">Llamante</option>
-            <option value="operador">Operador</option>
-          </select>
-        </label>
-        <label className="campo">
-          Texto del turno
-          <textarea ref={area} rows={3} value={texto} readOnly={edicionBloqueada}
-            aria-invalid={error ? true : undefined} aria-describedby={error ? 'error-turno' : undefined}
-            onChange={(evento) => {
-              setTexto(evento.target.value)
+        {/* Una sola fila: quién habla y qué dijo. Las etiquetas quedan para los lectores de pantalla. */}
+        <div className="fila-turno">
+          <label>
+            <span className="solo-lectores">Quién habla</span>
+            <select value={hablante} disabled={edicionBloqueada} onChange={(evento) => {
+              setHablante(evento.target.value === 'operador' ? 'operador' : 'llamante')
               alEditar()
-            }} />
-          {error && <span id="error-turno" className="error-campo" role="alert">{error}</span>}
-        </label>
+            }}>
+              <option value="llamante">Llamante</option>
+              <option value="operador">Operador</option>
+            </select>
+          </label>
+          <label className="campo">
+            <span className="solo-lectores">Texto del turno</span>
+            <textarea ref={area} rows={1} placeholder="Lo que se dijo después…" value={texto} readOnly={edicionBloqueada}
+              aria-invalid={error ? true : undefined} aria-describedby={error ? 'error-turno' : undefined}
+              onChange={(evento) => {
+                setTexto(evento.target.value)
+                alEditar()
+              }} />
+            {error && <span id="error-turno" className="error-campo" role="alert">{error}</span>}
+          </label>
+        </div>
       </fieldset>
       <div className="acciones">
         <button type="submit" disabled={!puedeSumar} aria-keyshortcuts="Control+Enter Meta+Enter">

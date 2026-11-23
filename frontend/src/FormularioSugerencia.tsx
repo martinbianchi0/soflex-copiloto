@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent, ReactNode } from 'react'
-import { citaDato, idDictado, nombresTiposHecho, textoOrigen, valorDato } from './api'
+import { citaDato, explicacionOrigen, idDictado, nombresTiposHecho, textoOrigen, valorDato } from './api'
 import type { Ajustes, Catalogo, Criterio, Dato, DetalleValidacion, DireccionAlternativa, Pregunta, Prioridad, Sugerencia, TipoHecho, Turno } from './api'
 import { actualizarBorrador, avisosVigentes, editarCampo, iniciarBorrador, leerAltura, usarDireccion } from './borradorSugerencia'
 import type { CamposSugerencia } from './borradorSugerencia'
@@ -62,10 +62,10 @@ function CampoSugerido({ nombre, etiqueta, dato, opcional, nota, errores = [], e
   const descripcion = [origen, idCita, idNota, error, errorCompartido].filter(Boolean).join(' ')
 
   return (
-    <div className="campo">
+    <div className="campo" data-origen={dato.origen}>
       <div className="etiqueta-campo">
         <label htmlFor={nombre}>{etiqueta}{opcional && <> <span className="opcional">(opcional)</span></>}</label>
-        <small id={origen} className="origen">{textoOrigen(dato)}</small>
+        <small id={origen} className={`origen origen-${dato.origen}`} title={explicacionOrigen(dato)}>{textoOrigen(dato)}</small>
       </div>
       <div>
         {dibujarControl({ id: nombre, name: nombre, 'aria-describedby': descripcion, 'aria-invalid': error || errorCompartido ? true : undefined })}
@@ -73,6 +73,23 @@ function CampoSugerido({ nombre, etiqueta, dato, opcional, nota, errores = [], e
         {nota && <small id={idNota} className="cita">{nota}</small>}
         {error && <p id={error} className="error-campo">{errores.join(' ')}</p>}
       </div>
+    </div>
+  )
+}
+
+// El título de la sugerencia y, al lado, de dónde puede salir cada dato y cuánto respaldo tiene.
+// Va escrito, no sólo con color. El título visible repite la leyenda del grupo, que es la que
+// leen los lectores de pantalla.
+function CabeceraDeLaSugerencia() {
+  return (
+    <div className="cabecera-ficha">
+      <span className="titulo-ficha" aria-hidden="true">Sugerencia</span>
+      <ul className="leyenda-origenes" aria-label="De dónde sale cada dato">
+        <li><span className="origen origen-dicho">Dicho</span> lo dijo el llamante</li>
+        <li><span className="origen origen-inferido">Inferido</span> lo completó el sistema: confirmalo</li>
+        <li><span className="origen origen-falta">Falta</span> nadie lo dijo</li>
+        <li><span className="origen origen-operador">Del operador</span> lo cambiaste vos</li>
+      </ul>
     </div>
   )
 }
@@ -281,85 +298,102 @@ export default function FormularioSugerencia({
         <Transcripcion turnos={turnos} citas={citas.map(({ cita }) => cita)} citaActiva={citaActiva} />
         {pieTranscripcion}
       </div>
-      <form className="panel" ref={formulario} onSubmit={enviar} onKeyDown={alTeclear} noValidate
+      <form className="panel ficha" ref={formulario} onSubmit={enviar} onKeyDown={alTeclear} noValidate
         onFocus={(evento) => setEnFoco(evento.target.id)} onBlur={() => setEnFoco('')}>
         <fieldset disabled={edicionBloqueada}>
           <legend>Sugerencia</legend>
+          <CabeceraDeLaSugerencia />
           {avisoDuplicados}
           <AvisosSugerencia avisos={avisosVigentes(borrador, ubicacionCambiada)}
             alternativa={coincideConAlternativa ? null : alternativa}
             alUsarDireccion={aplicarDireccion} alAnunciarDireccion={alAnunciarDireccion} />
-          <div className="direccion">
-            <CampoSugerido nombre="calle" etiqueta="Calle" dato={datos.calle} errores={erroresDe('calle')}
-              nota={direccionAlternativa ? `El análisis ahora sugiere otra dirección: ${direccionAlternativa}.` : undefined}>
-              {(control) => <input {...control} value={calle} onChange={(evento) => editar('calle', evento.target.value)} required />}
-            </CampoSugerido>
-            <CampoSugerido nombre="altura" etiqueta="Altura" dato={datos.altura} errores={erroresDe('altura')} opcional>
-              {(control) => <input {...control} inputMode="numeric" value={altura} onChange={(evento) => editar('altura', evento.target.value)} />}
-            </CampoSugerido>
-          </div>
-          <div className="esquinas">
-            <CampoSugerido nombre="primera_esquina" etiqueta="Primera esquina" dato={datos.primera_esquina} nota={notaDeEsquina(datos.primera_esquina)} errorCompartido={errorEsquinas} opcional>
-              {(control) => <input {...control} value={esquinaUno} onChange={(evento) => editar('esquinaUno', evento.target.value)} />}
-            </CampoSugerido>
-            <CampoSugerido nombre="segunda_esquina" etiqueta="Segunda esquina" dato={datos.segunda_esquina} nota={notaDeEsquina(datos.segunda_esquina)} errorCompartido={errorEsquinas} opcional>
-              {(control) => <input {...control} value={esquinaDos} onChange={(evento) => editar('esquinaDos', evento.target.value)} />}
-            </CampoSugerido>
-            {errorEsquinas && <p id={errorEsquinas} className="error-campo">{erroresEsquinas.join(' ')}</p>}
-          </div>
-          <MiniMapa calle={calle} altura={altura} esquinas={[esquinaUno, esquinaDos]} />
-          <DatosDictados datos={sugerencia.datos_dictados} edicion={{ quitados: dictadosQuitados, alMarcar: marcarDictado }} />
-          <div className="hecho">
-            <CampoSugerido nombre="tipo_hecho" etiqueta="Tipo de hecho" dato={datos.tipo_hecho} errores={erroresDe('tipo_hecho')}>
-              {(control) => (
-                <select {...control} value={categoria} onChange={(evento) => {
-                  elegirSubtipo(null, evento.target.value as TipoHecho | '')
-                }}>
-                  {(categoriaSugerida === null || categoria === '') && <option value="">Elegir…</option>}
-                  {Object.entries(nombresTiposHecho).map(([opcion, nombre]) => (
-                    <option key={opcion} value={opcion}>{nombre}</option>
-                  ))}
-                </select>
-              )}
-            </CampoSugerido>
-            <CampoSugerido nombre="subtipo" etiqueta="Subtipo" dato={datos.subtipo} errores={erroresDe('subtipo')} opcional>
-              {(control) => (
-                <select {...control} value={subtipo ?? ''} onChange={(evento) => elegirSubtipo(evento.target.value || null)}
-                  aria-describedby={subtipo ? control['aria-describedby'] : `${control['aria-describedby']} ayuda-subtipo`}>
-                  <option value="">Sin subtipo</option>
-                  {!catalogo && subtipoSugerido && <option value={subtipoSugerido}>{subtipoSugerido}</option>}
-                  {protocolos.map(({ id, nombre }) => <option key={id} value={id}>{nombre}</option>)}
-                </select>
-              )}
-            </CampoSugerido>
-          </div>
-          <CampoSugerido nombre="prioridad" etiqueta="Prioridad" dato={datos.prioridad} errores={erroresDe('prioridad')}>
-            {(control) => (
-              <>
-                <div className="control-prioridad">
-                  <select {...control} value={prioridad} required
-                    onChange={(evento) => editar('prioridad', evento.target.value as Prioridad | '')}
-                    aria-describedby={nivelElegido ? `${control['aria-describedby']} prioridad-definicion` : control['aria-describedby']}>
-                    {(prioridadSugerida === null || prioridad === '') && <option value="">Elegir…</option>}
-                    {!catalogo && prioridadSugerida && <option value={prioridadSugerida}>{prioridadSugerida}</option>}
-                    {niveles.map(({ id, nombre }) => <option key={id} value={id}>{id} · {nombre}</option>)}
-                  </select>
-                  {prioridad && <PrioridadEtiqueta prioridad={prioridad} />}
+          <div className="bloques">
+            <section className="bloque bloque-ubicacion" aria-labelledby="titulo-ubicacion">
+              <h3 id="titulo-ubicacion">Ubicación</h3>
+              <div className="ubicacion">
+                <div className="campos-ubicacion">
+                  <div className="direccion">
+                    <CampoSugerido nombre="calle" etiqueta="Calle" dato={datos.calle} errores={erroresDe('calle')}
+                      nota={direccionAlternativa ? `El análisis ahora sugiere otra dirección: ${direccionAlternativa}.` : undefined}>
+                      {(control) => <input {...control} value={calle} onChange={(evento) => editar('calle', evento.target.value)} required />}
+                    </CampoSugerido>
+                    <CampoSugerido nombre="altura" etiqueta="Altura" dato={datos.altura} errores={erroresDe('altura')} opcional>
+                      {(control) => <input {...control} inputMode="numeric" placeholder="opcional" value={altura} onChange={(evento) => editar('altura', evento.target.value)} />}
+                    </CampoSugerido>
+                  </div>
+                  <div className="esquinas">
+                    <CampoSugerido nombre="primera_esquina" etiqueta="Primera esquina" dato={datos.primera_esquina} nota={notaDeEsquina(datos.primera_esquina)} errorCompartido={errorEsquinas} opcional>
+                      {(control) => <input {...control} placeholder="opcional" value={esquinaUno} onChange={(evento) => editar('esquinaUno', evento.target.value)} />}
+                    </CampoSugerido>
+                    <CampoSugerido nombre="segunda_esquina" etiqueta="Segunda esquina" dato={datos.segunda_esquina} nota={notaDeEsquina(datos.segunda_esquina)} errorCompartido={errorEsquinas} opcional>
+                      {(control) => <input {...control} placeholder="opcional" value={esquinaDos} onChange={(evento) => editar('esquinaDos', evento.target.value)} />}
+                    </CampoSugerido>
+                    {errorEsquinas && <p id={errorEsquinas} className="error-campo">{erroresEsquinas.join(' ')}</p>}
+                  </div>
                 </div>
-                {nivelElegido && <small id="prioridad-definicion" className="definicion-prioridad">{nivelElegido.definicion}</small>}
-              </>
-            )}
-          </CampoSugerido>
+                <MiniMapa calle={calle} altura={altura} esquinas={[esquinaUno, esquinaDos]} />
+              </div>
+            </section>
+            <section className="bloque" aria-labelledby="titulo-hecho">
+              <h3 id="titulo-hecho">Hecho y prioridad</h3>
+              <div className="hecho">
+                <CampoSugerido nombre="tipo_hecho" etiqueta="Tipo de hecho" dato={datos.tipo_hecho} errores={erroresDe('tipo_hecho')}>
+                  {(control) => (
+                    <select {...control} value={categoria} onChange={(evento) => {
+                      elegirSubtipo(null, evento.target.value as TipoHecho | '')
+                    }}>
+                      {(categoriaSugerida === null || categoria === '') && <option value="">Elegir…</option>}
+                      {Object.entries(nombresTiposHecho).map(([opcion, nombre]) => (
+                        <option key={opcion} value={opcion}>{nombre}</option>
+                      ))}
+                    </select>
+                  )}
+                </CampoSugerido>
+                <CampoSugerido nombre="subtipo" etiqueta="Subtipo" dato={datos.subtipo} errores={erroresDe('subtipo')} opcional>
+                  {(control) => (
+                    <select {...control} value={subtipo ?? ''} onChange={(evento) => elegirSubtipo(evento.target.value || null)}
+                      aria-describedby={subtipo ? control['aria-describedby'] : `${control['aria-describedby']} ayuda-subtipo`}>
+                      <option value="">Sin subtipo</option>
+                      {!catalogo && subtipoSugerido && <option value={subtipoSugerido}>{subtipoSugerido}</option>}
+                      {protocolos.map(({ id, nombre }) => <option key={id} value={id}>{nombre}</option>)}
+                    </select>
+                  )}
+                </CampoSugerido>
+              </div>
+              <CampoSugerido nombre="prioridad" etiqueta="Prioridad" dato={datos.prioridad} errores={erroresDe('prioridad')}>
+                {(control) => (
+                  <>
+                    <div className="control-prioridad">
+                      <select {...control} value={prioridad} required
+                        onChange={(evento) => editar('prioridad', evento.target.value as Prioridad | '')}
+                        aria-describedby={nivelElegido ? `${control['aria-describedby']} prioridad-definicion` : control['aria-describedby']}>
+                        {(prioridadSugerida === null || prioridad === '') && <option value="">Elegir…</option>}
+                        {!catalogo && prioridadSugerida && <option value={prioridadSugerida}>{prioridadSugerida}</option>}
+                        {niveles.map(({ id, nombre }) => <option key={id} value={id}>{id} · {nombre}</option>)}
+                      </select>
+                      {prioridad && <PrioridadEtiqueta prioridad={prioridad} />}
+                    </div>
+                    {nivelElegido && <small id="prioridad-definicion" className="definicion-prioridad">{nivelElegido.definicion}</small>}
+                  </>
+                )}
+              </CampoSugerido>
+              {catalogo && <CriterioPrioridad {...catalogo.criterio} />}
+            </section>
+            <DatosDictados datos={sugerencia.datos_dictados} edicion={{ quitados: dictadosQuitados, alMarcar: marcarDictado }} />
+          </div>
         </fieldset>
-        {catalogo && <CriterioPrioridad {...catalogo.criterio} />}
-        {!subtipo && (
-          <p className="detalles-sugerencia" id="ayuda-subtipo">
-            Elegí un subtipo para ver las instrucciones y las preguntas.
-          </p>
-        )}
-        <DetallesSugerencia checklist={checklist} instrucciones={protocolo?.instrucciones ?? (catalogo ? [] : sugerencia.instrucciones)}
-          errores={erroresDe('checklist')} bloqueado={edicionBloqueada} alMarcar={marcarPregunta} />
-        <div className="acciones">
+        <section className="bloque protocolo" aria-labelledby="titulo-protocolo">
+          <h3 id="titulo-protocolo">Protocolo</h3>
+          {!subtipo && (
+            <p className="sin-protocolo" id="ayuda-subtipo">
+              <strong>Falta el subtipo.</strong> Las preguntas para el llamante y las instrucciones de pre-arribo son
+              las de cada subtipo: elegilo en «Hecho y prioridad» para verlas.
+            </p>
+          )}
+          <DetallesSugerencia checklist={checklist} instrucciones={protocolo?.instrucciones ?? (catalogo ? [] : sugerencia.instrucciones)}
+            errores={erroresDe('checklist')} bloqueado={edicionBloqueada} alMarcar={marcarPregunta} />
+        </section>
+        <div className="acciones acciones-fijas">
           <button type="submit" disabled={derivacionBloqueada} aria-keyshortcuts="Control+Enter Meta+Enter">
             {ocupado ? 'Derivando…' : 'Derivar Carta de Llamada'}
           </button>

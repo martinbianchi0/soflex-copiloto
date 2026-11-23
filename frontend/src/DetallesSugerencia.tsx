@@ -11,7 +11,7 @@ export default function DetallesSugerencia({
   const error = errores.length > 0 ? 'error-checklist' : undefined
   return (
     <>
-      <Instrucciones instrucciones={instrucciones} />
+      <Instrucciones instrucciones={instrucciones} porOraciones />
       {(checklist.length > 0 || error) && (
         <section className="detalles-sugerencia" aria-labelledby="titulo-checklist" aria-describedby={error}
           aria-invalid={error ? true : undefined} tabIndex={error ? -1 : undefined}>

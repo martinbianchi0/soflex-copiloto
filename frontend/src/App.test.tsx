@@ -3,6 +3,7 @@ import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test } from 'vitest'
 import App from './App'
+import { oraciones } from './oraciones'
 import './pruebas/dom'
 import { respuestas } from './pruebas/respuestas'
 import { contestar, contestacionPendiente, simularServicio } from './pruebas/servicio'
@@ -254,8 +255,11 @@ describe('La sugerencia', () => {
     for (const { texto } of protocoloIncendio.preguntas) {
       expect(preguntas.getByRole('checkbox', { name: texto })).toBeTruthy()
     }
-    const instrucciones = within(screen.getByRole('region', { name: 'Leele al llamante, textual' }))
-    expect(instrucciones.getByText(instruccionIncendio.texto)).toBeTruthy()
+    // Cada oración de la instrucción va en su renglón, sin cambiarle una letra.
+    const instrucciones = within(screen.getByRole('region', { name: 'Indicale al llamante' }))
+    expect(instrucciones.getAllByRole('listitem').map((renglon) => renglon.textContent))
+      .toEqual(oraciones(instruccionIncendio.texto))
+    expect(oraciones(instruccionIncendio.texto).join(' ')).toBe(instruccionIncendio.texto)
   })
 
   test('Al quitar el subtipo desaparecen sus preguntas e instrucciones', async () => {
@@ -266,7 +270,21 @@ describe('La sugerencia', () => {
     await operador.selectOptions(subtipo, 'Sin subtipo')
 
     expect(screen.queryByRole('checkbox')).toBeNull()
-    expect(screen.queryByRole('heading', { name: 'Leele al llamante, textual' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Indicale al llamante' })).toBeNull()
+  })
+
+  test('Sin subtipo, el bloque del protocolo dice que falta y lo explica', async () => {
+    abrirLlamada()
+    const operador = userEvent.setup()
+    const subtipo = await screen.findByRole('combobox', { name: 'Subtipo (opcional)' })
+    const protocolo = within(screen.getByRole('region', { name: 'Protocolo' }))
+    expect(protocolo.queryByText('Falta el subtipo.')).toBeNull()
+
+    await operador.selectOptions(subtipo, 'Sin subtipo')
+
+    expect(protocolo.getByText('Falta el subtipo.')).toBeTruthy()
+    expect(subtipo.getAttribute('aria-describedby')).toContain('ayuda-subtipo')
+    expect(document.getElementById('ayuda-subtipo')?.textContent).toMatch(/elegilo en «Hecho y prioridad»/)
   })
 
   test('La pregunta respondida por el servicio llega tildada con su cita', async () => {
