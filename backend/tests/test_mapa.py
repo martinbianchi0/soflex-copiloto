@@ -11,10 +11,19 @@ from conftest import DATOS_EMPAQUETADOS, TURNOS
 from fastapi.testclient import TestClient
 
 from copiloto import callejero, mapa, ubicacion
-from copiloto.esquemas import Turno, valor_de
+from copiloto.esquemas import CuadraDelPlano, Turno, valor_de
 from copiloto.main import crear_app
 
 CORRIENTES = {"calle": "Av. Corrientes", "altura": 1540, "esquinas": []}
+
+
+def _distancia_al_punto(cuadra: CuadraDelPlano) -> float:
+    """Metros entre el punto del plano, que es el origen, y el lugar más cercano de la cuadra."""
+    dx, dy = cuadra.x2 - cuadra.x1, cuadra.y2 - cuadra.y1
+    largo_al_cuadrado = dx**2 + dy**2
+    fraccion = -(cuadra.x1 * dx + cuadra.y1 * dy) / largo_al_cuadrado if largo_al_cuadrado else 0
+    fraccion = max(0, min(1, fraccion))
+    return hypot(cuadra.x1 + fraccion * dx, cuadra.y1 + fraccion * dy)
 
 
 def test_los_extremos_tienen_coordenadas_dentro_de_la_ciudad():
@@ -41,24 +50,15 @@ def test_plano_de_corrientes_ubica_la_altura_y_muestra_las_entrecalles():
     assert plano.exacto
     assert plano.radio_m == 250
     principales = [cuadra for cuadra in plano.cuadras if cuadra.principal]
-    distancias = []
-    for cuadra in principales:
-        dx, dy = cuadra.x2 - cuadra.x1, cuadra.y2 - cuadra.y1
-        largo_al_cuadrado = dx**2 + dy**2
-        fraccion = (
-            -(cuadra.x1 * dx + cuadra.y1 * dy) / largo_al_cuadrado if largo_al_cuadrado else 0
-        )
-        fraccion = max(0, min(1, fraccion))
-        distancias.append(hypot(cuadra.x1 + fraccion * dx, cuadra.y1 + fraccion * dy))
-    assert min(distancias) < 1
+    assert min(_distancia_al_punto(cuadra) for cuadra in principales) < 1
 
     cj = callejero.cargar()
     cruces = [cj.nombre_para_mostrar(nombre) for nombre in ("PARANA", "MONTEVIDEO")]
     assert set(cruces) <= {cuadra.nombre for cuadra in plano.cuadras}
     assert plano.leyenda == f"Av. Corrientes 1540, entre {cruces[0]} y {cruces[1]} · San Nicolas"
+    # Una cuadra larga puede pasar cerca del punto sin tener un extremo dentro del radio.
     for cuadra in plano.cuadras:
-        distancia = min(hypot(cuadra.x1, cuadra.y1), hypot(cuadra.x2, cuadra.y2))
-        assert distancia <= plano.radio_m + 0.1
+        assert _distancia_al_punto(cuadra) <= plano.radio_m + 0.1
 
 
 @pytest.mark.parametrize("altura", [None, 99_999])
