@@ -29,28 +29,29 @@ function duplicadosSinOtraParaElEjemplo() {
   return duplicados
 }
 
-function llamadaDelEjemploDerivada(): Llamada {
+function llamadaDelEjemploDerivada() {
   // Variante del segundo intercambio con la carta y la prioridad que eligió el operador.
   const llamada = structuredClone(respuestas.llamadaPorTurnosConAltura)
-  const derivada = structuredClone(respuestas.llamadaDelDatasetDerivada)
-  if (llamada.estado !== 'esperando_operador' || derivada.estado !== 'derivada') {
+  const { carta } = structuredClone(respuestas.llamadaPorTurnosDerivada)
+  if (llamada.estado !== 'esperando_operador' || !carta) {
     throw new Error('Falta la sugerencia del ejemplo o la carta derivada')
   }
   return {
     ...llamada,
-    estado: 'derivada',
     carta: {
-      ...llamada.sugerencia,
+      ...carta,
       llamada_id: id,
-      derivada_en: derivada.carta.derivada_en,
-      prioridad: { origen: 'operador', valor: 'P2' },
+      ubicacion: llamada.sugerencia.ubicacion,
+      avisos: llamada.sugerencia.avisos,
     },
-  }
+    ajustes: { prioridad: 'P1' },
+    carta_al_dia: true,
+  } satisfies Llamada
 }
 
 function historialDelEjemplo() {
   // Variante del historial con el identificador del ejemplo reproducido.
-  const historial = structuredClone(respuestas.historialDerivada)
+  const historial = structuredClone(respuestas.historialTerminada)
   historial.llamada_id = id
   return historial
 }
@@ -176,29 +177,49 @@ test('Al pulsar Detener, no suma más intercambios', async () => {
   expect(servicio.pedidosA(rutaTurnos)).toHaveLength(1)
 })
 
-test('Si deriva durante una pausa, aparece la carta y termina la reproducción', async () => {
+test('Si deriva durante una pausa, se suma el siguiente intercambio y la reproducción se frena al terminar la llamada', async () => {
   const { servicio, usuario } = await abrirPanel()
-  servicio.responder(`POST ${ruta}/derivar`, llamadaDelEjemploDerivada())
+  const derivada = llamadaDelEjemploDerivada()
+  const siguiente = siguientesIntercambios[1]
+  // Variante donde el tercer intercambio no cambia la sugerencia.
+  const conOtroIntercambio = structuredClone(derivada)
+  conOtroIntercambio.turnos.push({ texto: siguiente.texto, hablante: null })
+  const terminada: Llamada = { ...conOtroIntercambio, estado: 'terminada', carta_al_dia: null }
+  servicio.responder(`POST ${ruta}/derivar`, derivada)
+  servicio.responder(`POST ${ruta}/terminar`, terminada)
   servicio.responder(`GET ${ruta}/historial`, historialDelEjemplo())
   await reproducirEjemplo(usuario)
   await avanzar(siguientesIntercambios[0].pausa)
 
-  await act(async () => { await usuario.selectOptions(screen.getByRole('combobox', { name: 'Prioridad' }), 'P2') })
+  await act(async () => { await usuario.selectOptions(screen.getByRole('combobox', { name: 'Prioridad' }), 'P1') })
   await act(async () => { await usuario.click(screen.getByRole('button', { name: 'Derivar Carta de Llamada' })) })
 
+  expect(screen.getByRole('button', { name: 'Detener' })).toBeTruthy()
+  await avanzar(siguiente.pausa - 1)
+  expect(servicio.pedidosA(rutaTurnos)).toHaveLength(1)
+  servicio.responder(rutaTurnos, conOtroIntercambio)
+  await avanzar(1)
+  const pedidos = servicio.pedidosA(rutaTurnos)
+  expect(pedidos).toHaveLength(2)
+  expect(pedidos[1].cuerpo).toEqual({ turno: { texto: siguiente.texto, hablante: null } })
+
+  await act(async () => { await usuario.click(screen.getByRole('button', { name: 'Terminar llamada' })) })
   expect(screen.getByRole('heading', { name: 'Carta de Llamada' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'Detener' })).toBeNull()
   expect(screen.queryAllByText(/^Reproduciendo la llamada:/)).toHaveLength(0)
   await avanzar(24_000)
-  expect(servicio.pedidosA(rutaTurnos)).toHaveLength(1)
+  expect(servicio.pedidosA(rutaTurnos)).toHaveLength(2)
 })
 
 test('Si falla un pedido de un intercambio, muestra el error y deja de sumar', async () => {
   const { servicio, usuario } = await abrirPanel()
-  servicio.responder(rutaTurnos, respuestas.errorYaDerivada, 409)
+  const conflicto = structuredClone(respuestas.errorYaDerivada)
+  conflicto.detail = 'La llamada no está esperando al operador.'
+  servicio.responder(rutaTurnos, conflicto, 409)
   await reproducirEjemplo(usuario)
   await avanzar(siguientesIntercambios[0].pausa)
 
-  expect(screen.getByRole('alert').textContent).toBe(respuestas.errorYaDerivada.detail)
+  expect(screen.getByRole('alert').textContent).toBe(conflicto.detail)
   expect(screen.queryByRole('button', { name: 'Detener' })).toBeNull()
   await avanzar(24_000)
   expect(servicio.pedidosA(rutaTurnos)).toHaveLength(1)

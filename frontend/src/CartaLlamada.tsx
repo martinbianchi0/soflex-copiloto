@@ -62,6 +62,12 @@ export default function CartaLlamada({ carta, catalogo }: { carta: Carta; catalo
           texto={prioridad ? <PrioridadEtiqueta prioridad={prioridad} nombre={nivel?.nombre} /> : undefined} />
         <dt>Derivación</dt>
         <dd><time dateTime={carta.derivada_en}>{new Date(carta.derivada_en).toLocaleString('es-AR', { hourCycle: 'h23' })}</time></dd>
+        {carta.actualizada_en && (
+          <>
+            <dt>Última actualización</dt>
+            <dd><time dateTime={carta.actualizada_en}>{new Date(carta.actualizada_en).toLocaleString('es-AR', { hourCycle: 'h23' })}</time></dd>
+          </>
+        )}
       </dl>
       <DatosDictados datos={carta.datos_dictados} />
       <Instrucciones instrucciones={carta.instrucciones} titulo="Instrucciones de pre-arribo del protocolo" />

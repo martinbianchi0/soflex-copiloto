@@ -1,0 +1,95 @@
+{
+ "llamada_id": "llamada-por-turnos-temprana",
+ "estado": "esperando_operador",
+ "proveedor": "mock",
+ "turnos": [
+  {
+   "texto": "911, ¿cuál es su emergencia?",
+   "hablante": "operador"
+  },
+  {
+   "texto": "Chocaron un auto y una moto en Av. San Juan, el de la moto quedó tirado en la calle.",
+   "hablante": "llamante"
+  }
+ ],
+ "sugerencia": {
+  "ubicacion": {
+   "calle": {
+    "origen": "dicho",
+    "valor": "Av. San Juan",
+    "cita": {
+     "turno": 1,
+     "texto": "Av. San Juan"
+    }
+   },
+   "altura": {
+    "origen": "falta"
+   },
+   "esquinas": []
+  },
+  "tipo_hecho": {
+   "origen": "inferido",
+   "valor": "ACCIDENTE_VIAL",
+   "fuente": "reglas"
+  },
+  "subtipo": {
+   "origen": "falta"
+  },
+  "prioridad": {
+   "origen": "falta"
+  },
+  "checklist": [],
+  "instrucciones": [],
+  "avisos": [
+   {
+    "codigo": "falta_altura",
+    "mensaje": "Preguntá la altura o la esquina de Av. San Juan."
+   }
+  ],
+  "datos_dictados": [],
+  "direccion_alternativa": null
+ },
+ "carta": {
+  "ubicacion": {
+   "calle": {
+    "origen": "dicho",
+    "valor": "Av. San Juan",
+    "cita": {
+     "turno": 1,
+     "texto": "Av. San Juan"
+    }
+   },
+   "altura": {
+    "origen": "falta"
+   },
+   "esquinas": []
+  },
+  "tipo_hecho": {
+   "origen": "inferido",
+   "valor": "ACCIDENTE_VIAL",
+   "fuente": "reglas"
+  },
+  "subtipo": {
+   "origen": "falta"
+  },
+  "prioridad": {
+   "origen": "operador",
+   "valor": "P1"
+  },
+  "checklist": [],
+  "instrucciones": [],
+  "avisos": [
+   {
+    "codigo": "falta_altura",
+    "mensaje": "Preguntá la altura o la esquina de Av. San Juan."
+   }
+  ],
+  "datos_dictados": [],
+  "llamada_id": "llamada-por-turnos-temprana",
+  "derivada_en": "2026-01-01T12:00:00Z"
+ },
+ "ajustes": {
+  "prioridad": "P1"
+ },
+ "carta_al_dia": true
+}

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { analizarLlamada, consultarCatalogo, consultarDuplicados, consultarEjemplos, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi, sumarTurno, valorDato } from './api'
-import type { Ajustes, Aviso, Catalogo, DetalleValidacion, Ejemplo, Llamada, PosibleDuplicado, Proveedor, Salud, Turno } from './api'
+import { actualizarCarta, analizarLlamada, consultarCatalogo, consultarDuplicados, consultarEjemplos, consultarLlamada, consultarSalud, crearLlamada, derivarLlamada, ErrorApi, sumarTurno, terminarLlamada, valorDato } from './api'
+import type { Ajustes, Aviso, Carta, Catalogo, DetalleValidacion, Ejemplo, Llamada, PosibleDuplicado, Proveedor, Salud, Turno } from './api'
 import AvisoDuplicados from './AvisoDuplicados'
 import CartaLlamada from './CartaLlamada'
 import FormularioSugerencia from './FormularioSugerencia'
+import type { AccionCarta } from './FormularioSugerencia'
 import FormularioTurno from './FormularioTurno'
 import { calcularPausa, separarIntercambios } from './reproduccion'
 import SelectorDeModo from './SelectorDeModo'
@@ -49,28 +50,51 @@ function cambiarUrl(identificador: string | null) {
   window.history.pushState(null, '', url)
 }
 
-function anunciarAvisos(avisos: Aviso[]) {
+function anunciarAvisos(avisos: Aviso[], derivada = false) {
   const pendientes = avisos.filter(({ codigo }) => codigo !== 'modelo_no_disponible').length
   const mensajes = avisos.filter(({ codigo }) => codigo === 'modelo_no_disponible').map(({ mensaje }) => mensaje)
-  if (pendientes === 1) mensajes.push('La sugerencia tiene un aviso para revisar antes de derivar.')
-  if (pendientes > 1) mensajes.push(`La sugerencia tiene ${pendientes} avisos para revisar antes de derivar.`)
+  const cuando = derivada ? '' : ' antes de derivar'
+  if (pendientes === 1) mensajes.push(`La sugerencia tiene un aviso para revisar${cuando}.`)
+  if (pendientes > 1) mensajes.push(`La sugerencia tiene ${pendientes} avisos para revisar${cuando}.`)
   return mensajes.join(' ')
 }
 
 function anunciarResultado(llamada: Llamada, anunciarTodosLosAvisos = false) {
-  if (llamada.estado === 'derivada') return 'Carta de Llamada disponible.'
+  if (llamada.estado === 'terminada') return 'Llamada terminada. Carta de Llamada disponible.'
   if (llamada.estado === 'en_proceso') return 'Llamada en proceso.'
   if (llamada.estado !== 'esperando_operador') return ''
 
   const avisos = anunciarTodosLosAvisos ? llamada.sugerencia.avisos
     : llamada.sugerencia.avisos.filter(({ codigo }) => codigo === 'modelo_no_disponible')
-  return ['Sugerencia lista.', anunciarAvisos(avisos)].filter(Boolean).join(' ')
+  const estado = llamada.carta ? 'Carta derivada: la llamada sigue abierta.' : 'Sugerencia lista.'
+  return [estado, anunciarAvisos(avisos, Boolean(llamada.carta)), anunciarCartaVieja(llamada)].filter(Boolean).join(' ')
 }
 
-function anunciarReanalisis(avisos: Aviso[]) {
+function anunciarReanalisis(llamada: LlamadaAbierta) {
+  const { avisos } = llamada.sugerencia
   const cambio = avisos.find(({ codigo }) => codigo === 'prioridad_cambiada')
   const otrosAvisos = avisos.filter(({ codigo }) => codigo !== 'prioridad_cambiada')
-  return ['Sugerencia actualizada.', cambio?.mensaje, anunciarAvisos(otrosAvisos)].filter(Boolean).join(' ')
+  return ['Sugerencia actualizada.', cambio?.mensaje, anunciarAvisos(otrosAvisos, Boolean(llamada.carta)), anunciarCartaVieja(llamada)]
+    .filter(Boolean).join(' ')
+}
+
+// Lo que dijo el llamante después de derivar puede cambiar lo que saldría en la carta.
+function anunciarCartaVieja(llamada: Llamada) {
+  return llamada.carta_al_dia === false ? 'La carta derivada no tiene lo último: revisá y actualizala.' : ''
+}
+
+function anunciarCarta(previa: Carta | null, llamada: Llamada) {
+  if (!previa) {
+    const avisos = llamada.carta?.avisos?.length ? ' Hay avisos sin confirmar.' : ''
+    return `Carta derivada.${avisos} La llamada sigue abierta: podés seguir con el protocolo.`
+  }
+  return llamada.carta?.actualizada_en !== previa.actualizada_en ? 'Carta actualizada.' : 'La carta ya tenía todo: no cambió.'
+}
+
+const anunciosDeAccion: Record<AccionCarta, string> = {
+  derivar: 'Derivando carta…',
+  actualizar: 'Actualizando la carta…',
+  terminar: 'Terminando la llamada…',
 }
 
 function mensajeErrorTurno(fallo: unknown) {
@@ -99,6 +123,7 @@ function App() {
   const [anuncio, setAnuncio] = useState('')
   const [anuncioDireccion, setAnuncioDireccion] = useState('')
   const [sumando, setSumando] = useState<'turno' | 'intercambio' | null>(null)
+  const [accionCarta, setAccionCarta] = useState<AccionCarta | null>(null)
   const [errorTurno, setErrorTurno] = useState('')
   const solicitud = useRef<AbortController | null>(null)
   const solicitudDuplicados = useRef<AbortController | null>(null)
@@ -110,6 +135,7 @@ function App() {
   const analisisBloqueado = bloqueado || !catalogo
   const analizando = llamada?.estado === 'analizando'
   const analisisEnCurso = analizando && ocupado
+  const accionEnCurso = ocupado && !analizando && !sumando ? accionCarta : null
   const sumandoIntercambio = sumando === 'intercambio'
   const nuevaLlamadaBloqueada = bloqueado && !analizando && !sumandoIntercambio
   const edicionBloqueada = (bloqueado || analizando) && !sumandoIntercambio
@@ -247,12 +273,12 @@ function App() {
       setHuboAnalisis(true)
       reanalizando.current = false
       if (trasSumar && definitiva.estado === 'esperando_operador') {
-        setAnuncio(anunciarReanalisis(definitiva.sugerencia.avisos))
+        setAnuncio(anunciarReanalisis(definitiva))
       } else {
         setAnuncio(anunciarResultado(definitiva, true))
       }
     } else if (nuevoTurno && recibida.estado === 'esperando_operador') {
-      setAnuncio(`${sumado} ${anunciarReanalisis(recibida.sugerencia.avisos)}`)
+      setAnuncio(`${sumado} ${anunciarReanalisis(recibida)}`)
     } else if (origen === 'alta') {
       setAnuncio(anunciarAvisos(recibida.sugerencia?.avisos ?? []) || 'Sugerencia lista.')
     } else {
@@ -387,31 +413,66 @@ function App() {
     sumar(llamada.llamada_id, turno, alAceptar)
   }
 
+  // Un 409: la llamada cambió en otro lado (otra pestaña la derivó o la terminó). Se vuelve a pedir
+  // y se muestra como está ahora. El formulario no se desarma: lo que el operador tenía en pantalla
+  // sigue, y la barra dice si la carta no lo tiene.
+  async function recuperarDe409(fallo: unknown, id: string, derivada: boolean, senal: AbortSignal) {
+    if (!(fallo instanceof ErrorApi) || fallo.estado !== 409) throw fallo
+    const actual = await consultarLlamada(id, senal)
+    if (senal.aborted) return
+    if (actual.estado === 'terminada') {
+      mostrarLlamada(actual)
+      setAviso('La llamada ya estaba terminada.')
+    } else if (!derivada && actual.carta) {
+      mostrarLlamada(actual)
+      setAviso('La llamada ya estaba derivada. Lo que tenés en pantalla sigue acá: si hay cambios, actualizá la carta.')
+    } else {
+      await recibirLlamada(actual, senal)
+    }
+  }
+
+  // Derivar la carta o, si ya se derivó, mandar una versión nueva. La reproducción sigue: la
+  // llamada no termina al derivar.
   function derivar(ajustes: Ajustes) {
     if (bloqueado || !catalogo || llamada?.estado !== 'esperando_operador') return
     if (solicitud.current) return
-    const id = llamada.llamada_id
-    detenerReproduccion()
+    const { llamada_id: id, carta: previa } = llamada
+    setAccionCarta(previa ? 'actualizar' : 'derivar')
     void solicitar(async (senal) => {
       try {
-        const derivada = await derivarLlamada(id, ajustes, senal)
+        const respuesta = previa ? await actualizarCarta(id, ajustes, senal) : await derivarLlamada(id, ajustes, senal)
         if (senal.aborted) return
-        mostrarLlamada(derivada)
-        setAnuncio(derivada.carta?.avisos?.length
-          ? 'Carta derivada. Hay avisos sin confirmar.'
-          : 'Carta derivada.')
+        mostrarLlamada(respuesta)
+        setAnuncio(anunciarCarta(previa, respuesta))
       } catch (fallo) {
         if (senal.aborted) return
-        if (!(fallo instanceof ErrorApi) || fallo.estado !== 409) throw fallo
-        mostrarLlamada(null)
-        const actual = await consultarLlamada(id, senal)
-        if (senal.aborted) return
-        if (actual.estado === 'derivada') {
-          mostrarLlamada(actual)
-          setAviso('La llamada ya estaba derivada.')
-        } else {
-          await recibirLlamada(actual, senal)
+        await recuperarDe409(fallo, id, Boolean(previa), senal)
+      }
+    })
+  }
+
+  // Cierra la llamada. Con cambios que la carta no tiene, primero la actualiza: si eso falla (por
+  // ejemplo, falta un dato), la llamada sigue abierta.
+  function terminar(ajustes: Ajustes | null) {
+    if (bloqueado || llamada?.estado !== 'esperando_operador' || !llamada.carta) return
+    if (solicitud.current) return
+    const id = llamada.llamada_id
+    setAccionCarta('terminar')
+    void solicitar(async (senal) => {
+      try {
+        if (ajustes) {
+          const actualizada = await actualizarCarta(id, ajustes, senal)
+          if (senal.aborted) return
+          mostrarLlamada(actualizada)
         }
+        const terminada = await terminarLlamada(id, senal)
+        if (senal.aborted) return
+        detenerReproduccion()
+        mostrarLlamada(terminada)
+        setAnuncio(ajustes ? 'Carta actualizada. Llamada terminada.' : 'Llamada terminada.')
+      } catch (fallo) {
+        if (senal.aborted) return
+        await recuperarDe409(fallo, id, true, senal)
       }
     })
   }
@@ -470,7 +531,7 @@ function App() {
         <div aria-atomic={!analisisEnCurso}>
           {analisisEnCurso && <p className="aviso">El modelo está leyendo la llamada… La ubicación ya está leída.</p>}
           <span className="solo-lectores">{ocupado && !analizando
-            ? (sumandoIntercambio ? 'Sumando intercambio…' : sumando ? 'Sumando turno…' : llamada?.estado === 'esperando_operador' ? 'Derivando carta…' : identificador ? 'Consultando llamada…' : 'Analizando llamada…')
+            ? (sumandoIntercambio ? 'Sumando intercambio…' : sumando ? 'Sumando turno…' : accionEnCurso ? anunciosDeAccion[accionEnCurso] : identificador ? 'Consultando llamada…' : 'Analizando llamada…')
             : anuncio}</span>
           <span className="solo-lectores">{estadoReproduccion}</span>
           {aviso && <p className="aviso">{aviso}</p>}
@@ -561,12 +622,13 @@ function App() {
         muestraFormulario ? (
           <FormularioSugerencia key={llamada.llamada_id} analizando={analizando} pieTranscripcion={pieTranscripcion}
             turnos={llamada.turnos} sugerencia={llamada.sugerencia} catalogo={catalogo ?? null}
+            carta={llamada.carta} ajustesEnviados={llamada.ajustes} cartaAlDia={llamada.carta_al_dia}
             avisoDuplicados={duplicadosVisibles?.recibidaEn && (
               <AvisoDuplicados recibidaEn={duplicadosVisibles.recibidaEn} posibles={duplicadosVisibles.posibles} />
             )}
             derivacionBloqueada={bloqueado || analizando || !catalogo} edicionBloqueada={edicionBloqueada || !catalogo}
-            ocupado={ocupado && !analizando && !sumando} nuevaLlamadaBloqueada={nuevaLlamadaBloqueada}
-            alDerivar={derivar} errores={Array.isArray(error) ? error : []}
+            accion={accionEnCurso} nuevaLlamadaBloqueada={nuevaLlamadaBloqueada}
+            alDerivar={derivar} alTerminar={terminar} errores={Array.isArray(error) ? error : []}
             alCambiarProtocolo={setAnuncio} alAnunciarDireccion={setAnuncioDireccion}
             alValidar={setError} alEmpezar={nuevaLlamada} />
         ) : (
@@ -588,7 +650,7 @@ function App() {
         <section className="panel">
           {ocupado && <p role="status">Consultando la llamada…</p>}
           {llamada?.estado === 'en_proceso' && <h2>Llamada en proceso</h2>}
-          {llamada?.estado === 'derivada' && <CartaLlamada carta={llamada.carta} catalogo={catalogo ?? null} />}
+          {llamada?.estado === 'terminada' && <CartaLlamada carta={llamada.carta} catalogo={catalogo ?? null} />}
           <div className="acciones">
             <button type="button" className="secundario" disabled={bloqueado} onClick={nuevaLlamada}>
               Nueva llamada

@@ -42,7 +42,7 @@ def test_los_eventos_salen_de_los_puntos_guardados(sugerencia, con_escrituras):
     llamada = Llamada.model_validate(
         {
             "llamada_id": "abc",
-            "estado": "derivada",
+            "estado": "terminada",
             "proveedor": "ollama",
             "turnos": TURNOS,
             "sugerencia": sugerencia,
@@ -145,3 +145,55 @@ def test_del_protocolo_nuevo_solo_cuentan_las_preguntas_que_se_marcaron(sugerenc
     assert [cambio.campo for cambio in cambios] == ["tipo_hecho", "subtipo", "pregunta SFX-005-Q1"]
     assert cambios[-1].sugerido.model_dump() == {"respondida": False, "propuesta": False}
     assert cambios[-1].final.model_dump() == {"respondida": True, "propuesta": False}
+
+
+def test_lo_que_cambio_el_operador_se_mide_contra_la_sugerencia_de_la_ultima_carta(sugerencia):
+    # Después de derivar entra un turno y la sugerencia sugiere otra prioridad. El operador no la
+    # usó: lo que cambió se mide contra lo que tenía a la vista cuando armó la carta.
+    carta = flujo.derivar("abc", sugerencia, Ajustes(prioridad="P2"), AHORA)
+    posterior = Sugerencia.model_validate(
+        {
+            **sugerencia.model_dump(mode="json"),
+            "prioridad": {"origen": "inferido", "valor": "P3", "fuente": "reglas"},
+        }
+    )
+    inicial = {"turnos": TURNOS, "sugerencia": sugerencia.model_dump(mode="json")}
+    confirmada = {**inicial, "ajustes": {"prioridad": "P2"}, "respuesta": "ajustes"}
+    derivada = {**confirmada, "carta": carta.model_dump(mode="json")}
+    otro_turno = {
+        **derivada,
+        "turnos": [*TURNOS, {"texto": "Ya no hace falta.", "hablante": "llamante"}],
+        "respuesta": "turno",
+    }
+    reanalizada = {
+        **otro_turno,
+        "sugerencia": posterior.model_dump(mode="json"),
+        "turnos_analizados": 2,
+    }
+    llamada = Llamada.model_validate(
+        {
+            "llamada_id": "abc",
+            "estado": "esperando_operador",
+            "proveedor": "mock",
+            "turnos": otro_turno["turnos"],
+            "sugerencia": posterior,
+            "carta": carta,
+        }
+    )
+    puntos = [
+        PuntoGuardado(AHORA.replace(second=segundo).isoformat(), valores, {"source": "loop"})
+        for segundo, valores in enumerate([inicial, confirmada, derivada, otro_turno, reanalizada])
+    ]
+
+    resultado = historial.armar(llamada, puntos[::-1])
+
+    assert [
+        (cambio.campo, cambio.sugerido.valor, cambio.final.valor) for cambio in resultado.cambios
+    ] == [("prioridad", "P1", "P2")]
+    assert [evento.tipo for evento in resultado.eventos] == [
+        "recibida",
+        "ajustes_operador",
+        "derivada",
+        "turno_agregado",
+        "sugerencia_reglas",
+    ]

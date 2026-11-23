@@ -1,6 +1,6 @@
 {
  "llamada_id": "llamada-del-dataset",
- "estado": "derivada",
+ "estado": "esperando_operador",
  "proveedor": "mock",
  "turnos": [
   {
@@ -182,5 +182,7 @@
   "datos_dictados": [],
   "llamada_id": "llamada-del-dataset",
   "derivada_en": "2026-01-01T12:00:00Z"
- }
+ },
+ "ajustes": {},
+ "carta_al_dia": true
 }

@@ -257,18 +257,18 @@ def test_las_citas_de_la_carta_tambien_se_verifican(sugerencia_completa):
         "derivada_en": "2026-11-22T03:00:00Z",
     }
 
-    assert Llamada.model_validate(llamada(sugerencia_completa, estado="derivada", carta=carta))
+    assert Llamada.model_validate(llamada(sugerencia_completa, estado="terminada", carta=carta))
     carta["ubicacion"]["altura"]["cita"] = {"turno": 0, "texto": "al 1540"}
     with pytest.raises(ValidationError, match="La cita no aparece"):
-        Llamada.model_validate(llamada(sugerencia_completa, estado="derivada", carta=carta))
+        Llamada.model_validate(llamada(sugerencia_completa, estado="terminada", carta=carta))
 
 
 @pytest.mark.parametrize(
     "cambios",
     [
-        {"estado": "derivada"},
+        {"estado": "terminada"},
         {"estado": "esperando_operador", "sugerencia": None},
-        {"estado": "en_proceso", "carta": "pendiente"},
+        {"estado": "analizando", "sugerencia": None, "carta": "pendiente"},
     ],
 )
 def test_el_estado_de_una_llamada_coincide_con_lo_que_tiene(sugerencia_completa, cambios):
@@ -367,7 +367,7 @@ def test_la_cita_de_una_respuesta_en_la_carta_tambien_se_verifica(sugerencia_com
     sugerencia["checklist"][0]["cita"] = {"turno": 0, "texto": "se prendió fuego"}
 
     with pytest.raises(ValidationError, match="La cita no aparece"):
-        Llamada.model_validate(llamada(sugerencia, estado="derivada", carta=carta))
+        Llamada.model_validate(llamada(sugerencia, estado="terminada", carta=carta))
 
 
 def test_una_carta_de_otra_llamada_no_es_valida(sugerencia_completa):
@@ -379,7 +379,7 @@ def test_una_carta_de_otra_llamada_no_es_valida(sugerencia_completa):
     }
 
     with pytest.raises(ValidationError, match="otra llamada"):
-        Llamada.model_validate(llamada(sugerencia_completa, estado="derivada", carta=carta))
+        Llamada.model_validate(llamada(sugerencia_completa, estado="terminada", carta=carta))
 
 
 def test_un_dato_ya_armado_no_se_puede_modificar(sugerencia_completa):

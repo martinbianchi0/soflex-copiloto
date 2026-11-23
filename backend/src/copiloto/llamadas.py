@@ -1,4 +1,4 @@
-"""Las llamadas del servicio: iniciarlas, consultarlas, sumarles turnos y derivarlas.
+"""Las llamadas del servicio: iniciarlas, consultarlas, sumarles turnos, derivarlas y terminarlas.
 
 Cada llamada es un hilo del grafo. Su estado se guarda en SQLite después de cada nodo, así que una
 llamada que quedó esperando al operador se puede derivar aunque el servicio se haya reiniciado.
@@ -40,6 +40,20 @@ class LlamadaInexistente(LookupError):
 
 class LlamadaNoEsperaOperador(RuntimeError):
     """La llamada no está esperando al operador."""
+
+    detalle = "La llamada no está esperando al operador."
+
+
+class LlamadaYaDerivada(LlamadaNoEsperaOperador):
+    """La carta ya se derivó: lo que cambie va como actualización."""
+
+    detalle = "La carta ya se derivó: los cambios se mandan como actualización."
+
+
+class LlamadaSinDerivar(LlamadaNoEsperaOperador):
+    """Todavía no hay carta para actualizar ni llamada derivada para terminar."""
+
+    detalle = "Primero hay que derivar la carta."
 
 
 class LlamadaIlegible(RuntimeError):
@@ -144,8 +158,8 @@ class Llamadas:
         llamada = self._llamada_de(llamada_id, fotos[0])
         valores: Mapping[str, object] = fotos[0].values
         try:
-            if llamada.estado == "en_proceso" and "ajustes" in valores:
-                Ajustes.model_validate(valores["ajustes"])
+            if llamada.estado == "en_proceso" and valores.get("respuesta", "ajustes") == "ajustes":
+                Ajustes.model_validate(valores.get("ajustes", {}))
             puntos = [
                 historial.PuntoGuardado(foto.created_at, foto.values, foto.metadata or {})
                 for foto in fotos
@@ -179,32 +193,76 @@ class Llamadas:
             return llamada
 
     def derivar(self, llamada_id: str, ajustes: Ajustes) -> Llamada:
-        """Retoma la llamada con lo que cambió el operador y arma la Carta de Llamada."""
+        """Retoma la llamada con lo que cambió el operador y arma la Carta de Llamada.
+
+        La llamada sigue abierta: el operador puede sumar turnos y actualizar la carta.
+        """
         with self._modificando:
-            if self._analisis_en_curso == llamada_id:
-                raise LlamadaNoEsperaOperador(llamada_id)
-            llamada = self._terminar_lo_que_quedo_a_medias(llamada_id)
-            if llamada.estado != "esperando_operador":
-                raise LlamadaNoEsperaOperador(llamada_id)
-            # Se arma la carta antes de retomar el grafo: si falta un dato obligatorio, falla acá
-            # y la llamada sigue esperando. Lo que el grafo ya aceptó no se puede volver a pedir.
-            # Se comprueba con los mismos datos planos que después recibe el nodo.
-            planos = ajustes.model_dump(mode="json", exclude_unset=True)
-            ahora = datetime.now(UTC)
-            assert llamada.sugerencia is not None  # La llamada ya está esperando al operador.
-            flujo.derivar(
-                llamada_id,
-                llamada.sugerencia,
-                Ajustes.model_validate(planos),
-                ahora,
-                turnos=llamada.turnos,
-            )
+            llamada = self._esperando_al_operador(llamada_id)
+            if llamada.carta is not None:
+                raise LlamadaYaDerivada(llamada_id)
+            planos = self._comprobar(llamada, ajustes)
             # Los ajustes van envueltos: LangGraph lee un diccionario vacío suelto como "no se
             # contesta ninguna pausa", y una derivación sin cambios dejaría la llamada esperando.
             self._avanzar(Command(resume={"ajustes": planos}), llamada_id, operacion="derivacion")
-            llamada = self._leer(llamada_id)
-            self._ubicaciones_recientes.actualizar(llamada)
-            return llamada
+            return self._leer_y_registrar(llamada_id)
+
+    def actualizar(self, llamada_id: str, ajustes: Ajustes) -> Llamada:
+        """Arma una versión nueva de la carta ya derivada, con lo que el operador tiene ahora.
+
+        Los ajustes son, como al derivar, todo lo que difiere de la sugerencia vigente. Se guardan
+        siempre, porque son los que retoma el panel; si la carta que sale es igual a la que ya
+        tiene el despacho, la carta no cambia.
+        """
+        with self._modificando:
+            llamada = self._esperando_al_operador(llamada_id)
+            if llamada.carta is None:
+                raise LlamadaSinDerivar(llamada_id)
+            planos = self._comprobar(llamada, ajustes)
+            self._avanzar(
+                Command(resume={"ajustes": planos}), llamada_id, operacion="actualizacion"
+            )
+            return self._leer_y_registrar(llamada_id)
+
+    def terminar(self, llamada_id: str) -> Llamada:
+        """Cierra una llamada derivada: su carta queda como está."""
+        with self._modificando:
+            llamada = self._esperando_al_operador(llamada_id)
+            if llamada.carta is None:
+                raise LlamadaSinDerivar(llamada_id)
+            self._avanzar(Command(resume={"terminar": True}), llamada_id, operacion="cierre")
+            return self._leer_y_registrar(llamada_id)
+
+    def _esperando_al_operador(self, llamada_id: str) -> Llamada:
+        if self._analisis_en_curso == llamada_id:
+            raise LlamadaNoEsperaOperador(llamada_id)
+        llamada = self._terminar_lo_que_quedo_a_medias(llamada_id)
+        if llamada.estado != "esperando_operador":
+            raise LlamadaNoEsperaOperador(llamada_id)
+        return llamada
+
+    def _comprobar(self, llamada: Llamada, ajustes: Ajustes) -> dict[str, object]:
+        """Arma la carta antes de retomar el grafo y devuelve los ajustes como los recibe el nodo.
+
+        Si falta un dato obligatorio, falla acá y la llamada sigue esperando: lo que el grafo ya
+        aceptó no se puede volver a pedir. Se comprueba con los mismos datos planos que después
+        recibe el nodo.
+        """
+        planos = ajustes.model_dump(mode="json", exclude_unset=True)
+        assert llamada.sugerencia is not None  # La llamada ya está esperando al operador.
+        flujo.derivar(
+            llamada.llamada_id,
+            llamada.sugerencia,
+            Ajustes.model_validate(planos),
+            datetime.now(UTC),
+            turnos=llamada.turnos,
+        )
+        return planos
+
+    def _leer_y_registrar(self, llamada_id: str) -> Llamada:
+        llamada = self._leer(llamada_id)
+        self._ubicaciones_recientes.actualizar(llamada)
+        return llamada
 
     def _avanzar(
         self,
@@ -245,18 +303,20 @@ class Llamadas:
         if not valores:
             raise LlamadaInexistente(llamada_id)
         carta = valores.get("carta")
-        # Una llamada sólo cuenta como derivada si ya tiene su carta.
-        if carta is not None:
-            estado = "derivada"
+        # Terminada es la que llegó al final del recorrido con su carta (las guardadas con el
+        # grafo anterior también: ahí derivar era el último paso). Con carta y en otro punto, la
+        # llamada está derivada y sigue abierta.
+        if not foto.next and carta is not None:
+            estado = "terminada"
         elif foto.next == ("consultar_modelo",) and valores.get("falta_el_modelo", True):
             estado = "analizando"
-        elif foto.next == ("esperar_operador",) and foto.interrupts and "ajustes" not in valores:
+        elif foto.next == ("esperar_operador",) and foto.interrupts:
             estado = "esperando_operador"
         else:
             estado = "en_proceso"
         # Lo guardado se valida al leerlo: de acá no sale una llamada que rompa sus propias reglas.
         try:
-            return Llamada.model_validate(
+            llamada = Llamada.model_validate(
                 {
                     "llamada_id": llamada_id,
                     "estado": estado,
@@ -266,7 +326,49 @@ class Llamadas:
                     "turnos": valores.get("turnos"),
                     "sugerencia": valores.get("sugerencia"),
                     "carta": carta,
+                    "ajustes": _ajustes_legibles(valores.get("ajustes"))
+                    if carta is not None
+                    else None,
                 }
             )
         except ValidationError as error:
             raise LlamadaIlegible(llamada_id) from error
+        if llamada.carta is None or llamada.estado == "terminada":
+            return llamada
+        return llamada.model_copy(update={"carta_al_dia": _carta_al_dia(llamada)})
+
+
+def _ajustes_legibles(guardados: object) -> Ajustes | None:
+    """Los últimos ajustes del operador, si esta versión los puede leer.
+
+    Los de una llamada guardada con una versión anterior pueden tener otra forma (el tipo de hecho
+    era una categoría suelta). La llamada se lee igual, sin ellos: su carta es la que vale.
+    """
+    try:
+        return Ajustes.model_validate(guardados)
+    except ValidationError:
+        return None
+
+
+def _carta_al_dia(llamada: Llamada) -> bool:
+    """Si la carta tiene lo que saldría hoy de la sugerencia vigente con los últimos ajustes.
+
+    Deja de estarlo cuando un turno sumado cambia la sugerencia: entonces el operador tiene algo
+    para mandarle al despacho aunque no haya tocado nada.
+    """
+    assert llamada.carta is not None
+    if llamada.sugerencia is None:
+        return False
+    try:
+        hoy = flujo.derivar(
+            llamada.llamada_id,
+            llamada.sugerencia,
+            llamada.ajustes or Ajustes(),
+            datetime.now(UTC),
+            turnos=llamada.turnos,
+        )
+    except ValueError:
+        # Con la sugerencia nueva, lo que mandó el operador ya no arma una carta (por ejemplo,
+        # falta la calle): la que tiene el despacho no es la que saldría.
+        return False
+    return hoy.mismo_contenido(llamada.carta)

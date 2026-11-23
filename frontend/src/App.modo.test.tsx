@@ -125,21 +125,23 @@ test('El alta por defecto envía ollama, pide el análisis y bloquea el modo dur
 })
 
 test.each([
-  { estado: 'abierta', llamada: llamadaEnMock, rol: 'group', nombre: 'Sugerencia' },
-  { estado: 'ya derivada', llamada: respuestas.llamadaDelDatasetDerivada, rol: 'heading', nombre: 'Carta de Llamada' },
-])('Abrir por URL una llamada mock $estado marca mock aunque el servicio arranque en ollama', async ({ llamada, rol, nombre }) => {
+  { estado: 'abierta sin carta', llamada: llamadaEnMock, boton: 'Derivar Carta de Llamada' },
+  { estado: 'abierta con carta', llamada: respuestas.llamadaDelDatasetDerivada, boton: 'Actualizar carta' },
+  { estado: 'terminada', llamada: respuestas.llamadaDelDatasetTerminada, boton: null },
+])('Abrir por URL una llamada mock $estado marca mock aunque el servicio arranque en ollama', async ({ llamada, boton }) => {
   const servicio = prepararServicio()
   const pendiente = contestacionPendiente()
   const ruta = `/api/llamadas/${llamada.llamada_id}`
   servicio.responder(salud, () => pendiente.promesa)
   servicio.responder(`GET ${ruta}`, llamada)
-  if (llamada.estado === 'derivada') servicio.responder(`GET ${ruta}/historial`, respuestas.historialDerivada)
+  if (llamada.estado === 'terminada') servicio.responder(`GET ${ruta}/historial`, respuestas.historialTerminada)
   else responderDuplicados(servicio, llamada.llamada_id)
   window.history.replaceState(null, '', `/?llamada=${llamada.llamada_id}`)
   const operador = userEvent.setup()
   render(<App />)
 
-  await screen.findByRole(rol, { name: nombre })
+  if (boton) await screen.findByRole('button', { name: boton })
+  else await screen.findByRole('heading', { name: 'Carta de Llamada' })
   expect(screen.getByText('Modo: consultando…')).toBeTruthy()
   await act(async () => pendiente.entregar(contestar(saludConModelo)))
   comprobarRadios('mock', true)

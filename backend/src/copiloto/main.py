@@ -101,7 +101,7 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
 
     @api.exception_handler(LlamadaNoEsperaOperador)
     def llamada_no_espera(request: Request, error: LlamadaNoEsperaOperador) -> JSONResponse:
-        return JSONResponse({"detail": "La llamada no está esperando al operador."}, 409)
+        return JSONResponse({"detail": error.detalle}, 409)
 
     @api.exception_handler(LlamadaIlegible)
     def llamada_ilegible(request: Request, error: LlamadaIlegible) -> JSONResponse:
@@ -208,6 +208,14 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
     @api.post("/llamadas/{llamada_id}/derivar")
     def derivar_llamada(llamada_id: str, derivacion: Derivacion) -> Llamada:
         return llamadas().derivar(llamada_id, derivacion.ajustes)
+
+    @api.post("/llamadas/{llamada_id}/actualizaciones")
+    def actualizar_carta(llamada_id: str, actualizacion: Derivacion) -> Llamada:
+        return llamadas().actualizar(llamada_id, actualizacion.ajustes)
+
+    @api.post("/llamadas/{llamada_id}/terminar")
+    def terminar_llamada(llamada_id: str) -> Llamada:
+        return llamadas().terminar(llamada_id)
 
     return api
 

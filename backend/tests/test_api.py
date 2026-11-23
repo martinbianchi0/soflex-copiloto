@@ -96,7 +96,7 @@ def test_derivar_devuelve_la_carta_con_lo_que_completo_el_operador(cliente):
 
     assert respuesta.status_code == 200
     llamada = respuesta.json()
-    assert llamada["estado"] == "derivada"
+    assert llamada["estado"] == "esperando_operador"
     carta = llamada["carta"]
     assert carta.pop("derivada_en").endswith("Z")
     assert carta == {
@@ -192,7 +192,44 @@ def test_derivar_dos_veces_devuelve_409_y_no_cambia_la_carta(cliente):
     segunda = derivar(cliente, llamada_id, {**COMPLETOS, "prioridad": "P4"})
 
     assert segunda.status_code == 409
+    assert segunda.json() == {
+        "detail": "La carta ya se derivó: los cambios se mandan como actualización."
+    }
     assert cliente.get(f"/api/llamadas/{llamada_id}").json() == primera
+
+
+def test_una_actualizacion_devuelve_la_carta_nueva_y_terminar_la_cierra(cliente):
+    llamada_id = iniciar(cliente)
+    ruta = f"/api/llamadas/{llamada_id}"
+    sin_derivar = cliente.post(f"{ruta}/actualizaciones", json={"ajustes": COMPLETOS})
+    assert sin_derivar.status_code == 409
+    assert sin_derivar.json() == {"detail": "Primero hay que derivar la carta."}
+    assert cliente.post(f"{ruta}/terminar").status_code == 409
+    derivada = derivar(cliente, llamada_id, COMPLETOS).json()
+    assert "actualizada_en" not in derivada["carta"]
+
+    actualizada = cliente.post(
+        f"{ruta}/actualizaciones", json={"ajustes": {**COMPLETOS, "prioridad": "P3"}}
+    )
+
+    assert actualizada.status_code == 200
+    carta = actualizada.json()["carta"]
+    assert actualizada.json()["estado"] == "esperando_operador"
+    assert carta["prioridad"] == {"origen": "operador", "valor": "P3"}
+    assert carta["derivada_en"] == derivada["carta"]["derivada_en"]
+    assert carta["actualizada_en"].endswith("Z")
+    terminada = cliente.post(f"{ruta}/terminar")
+    assert terminada.status_code == 200
+    assert terminada.json()["estado"] == "terminada"
+    assert terminada.json()["carta"] == carta
+    otra = cliente.post(f"{ruta}/actualizaciones", json={"ajustes": COMPLETOS})
+    assert otra.status_code == 409
+    assert otra.json() == {"detail": "La llamada no está esperando al operador."}
+    assert cliente.post("/api/llamadas/no-existe/terminar").status_code == 404
+    assert (
+        cliente.post("/api/llamadas/no-existe/actualizaciones", json={"ajustes": {}}).status_code
+        == 404
+    )
 
 
 def test_una_llamada_que_no_existe_devuelve_404(cliente):
@@ -237,9 +274,16 @@ def test_sumar_turnos_en_mock_conserva_los_indices_y_deriva_la_ultima_sugerencia
         "Se sumó un turno a la llamada: ahora tiene 2.",
         "Se sumó un turno a la llamada: ahora tiene 3.",
     ]
+    # Derivada, la llamada sigue: se le suman turnos y la carta no cambia hasta que se actualiza.
+    despues = cliente.post(f"{ruta}/turnos", json={"turno": respuesta})
+    assert despues.status_code == 200
+    assert despues.json()["carta"] == derivada.json()["carta"]
+    terminada = cliente.post(f"{ruta}/terminar")
+    assert terminada.status_code == 200
+    assert terminada.json()["estado"] == "terminada"
     rechazo = cliente.post(f"{ruta}/turnos", json={"turno": respuesta})
     assert rechazo.status_code == 409
-    assert cliente.get(ruta).json() == derivada.json()
+    assert cliente.get(ruta).json() == terminada.json()
 
 
 def test_sumar_un_texto_con_marcas_registra_una_vuelta_del_grafo(cliente):
@@ -378,7 +422,7 @@ def test_una_llamada_del_dataset_se_deriva_sin_cambios_con_su_protocolo(cliente)
 
     assert respuesta.status_code == 200
     derivada = respuesta.json()
-    assert derivada["estado"] == "derivada"
+    assert derivada["estado"] == "esperando_operador"
     carta = derivada["carta"]
     assert carta["llamada_id"] == llamada_id
     assert carta["ubicacion"] == creada["sugerencia"]["ubicacion"]
@@ -494,7 +538,7 @@ def test_derivar_con_marcas_devuelve_la_carta_con_los_cambios_en_el_checklist(cl
 
     assert respuesta.status_code == 200
     llamada = respuesta.json()
-    assert llamada["estado"] == "derivada"
+    assert llamada["estado"] == "esperando_operador"
     assert llamada["sugerencia"] == sugerencia
     assert llamada["carta"]["checklist"] == [
         {**q1, "respondida": False, "cita": None, "del_operador": True},
@@ -523,7 +567,7 @@ def test_una_marca_ajena_devuelve_422_y_se_puede_derivar_con_una_valida(cliente)
 
     assert respuesta.status_code == 200
     llamada = respuesta.json()
-    assert llamada["estado"] == "derivada"
+    assert llamada["estado"] == "esperando_operador"
     marcada = next(item for item in llamada["carta"]["checklist"] if item["id"] == valida["id"])
     assert marcada["respondida"] is True
     assert marcada["del_operador"] is True
@@ -566,7 +610,7 @@ def test_una_llamada_a_medias_se_deriva_despues_de_reiniciar_el_servicio(configu
 
     assert consulta["estado"] == "esperando_operador"
     assert derivada.status_code == 200
-    assert derivada.json()["estado"] == "derivada"
+    assert derivada.json()["estado"] == "esperando_operador"
 
 
 def test_la_descripcion_de_la_api_se_genera_con_los_esquemas(cliente):

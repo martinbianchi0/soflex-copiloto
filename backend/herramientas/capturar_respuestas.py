@@ -90,12 +90,31 @@ def capturar() -> dict[str, Any]:
                 "llamada-del-dataset-derivada",
                 cliente.post(f"/api/llamadas/{del_dataset}/derivar", json={"ajustes": {}}),
             )
-            guardar("historial-derivada", cliente.get(f"/api/llamadas/{del_dataset}/historial"))
             guardar(
                 "error-ya-derivada",
                 cliente.post(f"/api/llamadas/{del_dataset}/derivar", json={"ajustes": {}}),
                 409,
             )
+            # Derivada, la llamada sigue: un turno más, una actualización de la carta y el cierre.
+            guardar(
+                "llamada-del-dataset-con-turno-tras-derivar",
+                cliente.post(
+                    f"/api/llamadas/{del_dataset}/turnos",
+                    json={"turno": {"texto": "Ahora sale humo del primer piso.", "hablante": None}},
+                ),
+            )
+            guardar(
+                "llamada-del-dataset-actualizada",
+                cliente.post(
+                    f"/api/llamadas/{del_dataset}/actualizaciones",
+                    json={"ajustes": {"prioridad": "P2"}},
+                ),
+            )
+            guardar(
+                "llamada-del-dataset-terminada",
+                cliente.post(f"/api/llamadas/{del_dataset}/terminar"),
+            )
+            guardar("historial-terminada", cliente.get(f"/api/llamadas/{del_dataset}/historial"))
 
             # La misma dirección, minutos después: el aviso de otra llamada del mismo lugar.
             repetida = iniciar(cliente, "llamada-repetida", texto_de("SFX-001"))
@@ -124,6 +143,23 @@ def capturar() -> dict[str, Any]:
                 "llamada-por-turnos-con-altura",
                 cliente.post(
                     f"/api/llamadas/{por_turnos}/turnos",
+                    json={"turno": {"texto": segundo, "hablante": None}},
+                ),
+            )
+            # La misma, derivada después del primer intercambio: la altura que llega después
+            # deja la carta desactualizada, aunque el operador no toque nada.
+            temprana = iniciar(cliente, "llamada-por-turnos-temprana", [{"texto": primero}])
+            del respuestas["llamada-por-turnos-temprana"]  # Es igual a «llamada-por-turnos».
+            guardar(
+                "llamada-por-turnos-derivada",
+                cliente.post(
+                    f"/api/llamadas/{temprana}/derivar", json={"ajustes": {"prioridad": "P1"}}
+                ),
+            )
+            guardar(
+                "llamada-por-turnos-carta-desactualizada",
+                cliente.post(
+                    f"/api/llamadas/{temprana}/turnos",
                     json={"turno": {"texto": segundo, "hablante": None}},
                 ),
             )

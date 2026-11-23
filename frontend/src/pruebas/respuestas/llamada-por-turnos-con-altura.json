@@ -68,5 +68,7 @@
   "datos_dictados": [],
   "direccion_alternativa": null
  },
- "carta": null
+ "carta": null,
+ "ajustes": null,
+ "carta_al_dia": null
 }
