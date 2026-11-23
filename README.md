@@ -160,12 +160,27 @@ Cada intercambio vuelve a analizar la llamada entera, así que tarda más a medi
 
 ## Desarrollo
 
+Los comandos van desde la raíz del repositorio. Tests, estilo y tipos del backend:
+
 ```bash
-(cd backend && uv run pytest)                               # tests del backend
-(cd backend && uv run ruff check . && uv run mypy src)      # estilo y tipos
-(cd backend && uv run uvicorn copiloto.main:app --reload)   # la API, en el puerto 8000
-(cd frontend && pnpm install && pnpm dev)                   # en otra terminal: el panel con recarga, apuntando a esa API
-(cd frontend && pnpm test && pnpm lint)                     # tests y estilo del panel
+(cd backend && uv run pytest)
+(cd backend && uv run ruff check . && uv run ruff format --check . && uv run mypy src)
+```
+
+Tests y estilo del panel:
+
+```bash
+(cd frontend && pnpm install && pnpm test && pnpm lint)
+```
+
+Para desarrollar con recarga, la API y el panel van en dos terminales. El panel queda en el puerto que informa Vite y le pasa a la API, en el 8000, lo que empieza con `/api`:
+
+```bash
+(cd backend && uv run uvicorn copiloto.main:app --reload)
+```
+
+```bash
+(cd frontend && pnpm install && pnpm dev)
 ```
 
 Fuera de Docker la configuración también sale de variables de entorno. Para usar el `.env` de la raíz: `(cd backend && uv run --env-file ../.env uvicorn copiloto.main:app)`.
