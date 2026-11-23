@@ -458,7 +458,9 @@ function App() {
     <main className={muestraSugerencia ? 'vista-operador' : undefined}>
       <header className="encabezado">
         <h1>Copiloto para Operadores de Sala</h1>
-        <span className="modo">Modo: {modo === undefined ? 'consultando…' : modo ?? 'no disponible'}</span>
+        <span className="modo" title="El modo se elige al levantar el servicio.">
+          Modo: {modo === undefined ? 'consultando…' : modo ?? 'no disponible'}
+        </span>
       </header>
 
       <div className="avisos" ref={regionAvisos} role={analisisEnCurso ? 'status' : undefined}
