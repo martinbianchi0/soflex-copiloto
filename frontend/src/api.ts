@@ -117,10 +117,12 @@ export type Ajustes = {
 export type Carta = Ficha & {
   llamada_id: string
   derivada_en: string
+  // Sólo si se actualizó después de derivarla.
+  actualizada_en?: string
 }
 
 type EventoHistorial = {
-  tipo: 'recibida' | 'sugerencia_reglas' | 'sugerencia_modelo' | 'turno_agregado' | 'ajustes_operador' | 'derivada'
+  tipo: 'recibida' | 'sugerencia_reglas' | 'sugerencia_modelo' | 'turno_agregado' | 'ajustes_operador' | 'derivada' | 'carta_actualizada' | 'terminada'
   cuando: string
   detalle: string
 }
@@ -136,15 +138,21 @@ export type Historial = {
 export type Turno = { texto: string; hablante: 'operador' | 'llamante' | null }
 export type Proveedor = 'mock' | 'ollama'
 
+// Una llamada derivada sigue abierta (para sumar turnos y actualizar la carta) hasta que se termina.
+// Con carta, `ajustes` es lo último que mandó el operador y `carta_al_dia` dice si la carta tiene
+// lo que saldría hoy con esos ajustes: deja de tenerlo si un turno cambia la sugerencia.
+type ConCarta =
+  | { carta: null; ajustes: null; carta_al_dia: null }
+  | { carta: Carta; ajustes: Ajustes; carta_al_dia: boolean }
+
 export type Llamada = {
   llamada_id: string
   turnos: Turno[]
   proveedor: Proveedor
 } & (
-  | { estado: 'en_proceso'; sugerencia: Sugerencia | null; carta: null }
-  | { estado: 'analizando'; sugerencia: Sugerencia; carta: null }
-  | { estado: 'esperando_operador'; sugerencia: Sugerencia; carta: null }
-  | { estado: 'derivada'; sugerencia: Sugerencia; carta: Carta }
+  | ({ estado: 'en_proceso'; sugerencia: Sugerencia | null } & ConCarta)
+  | ({ estado: 'analizando' | 'esperando_operador'; sugerencia: Sugerencia } & ConCarta)
+  | { estado: 'terminada'; sugerencia: Sugerencia; carta: Carta; ajustes: Ajustes | null; carta_al_dia: null }
 )
 
 export type PosibleDuplicado = {
@@ -249,4 +257,13 @@ export function sumarTurno(identificador: string, turno: Turno, senal: AbortSign
 
 export function derivarLlamada(identificador: string, ajustes: Ajustes, senal: AbortSignal) {
   return enviar<Llamada>(`/llamadas/${encodeURIComponent(identificador)}/derivar`, senal, { ajustes })
+}
+
+// Como al derivar, los ajustes son todo lo que difiere de la sugerencia vigente.
+export function actualizarCarta(identificador: string, ajustes: Ajustes, senal: AbortSignal) {
+  return enviar<Llamada>(`/llamadas/${encodeURIComponent(identificador)}/actualizaciones`, senal, { ajustes })
+}
+
+export function terminarLlamada(identificador: string, senal: AbortSignal) {
+  return pedir<Llamada>(`/llamadas/${encodeURIComponent(identificador)}/terminar`, senal, { method: 'POST' })
 }

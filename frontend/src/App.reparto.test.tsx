@@ -52,14 +52,14 @@ describe('El reparto de la sugerencia', () => {
     expect(protocolo.getByRole('region', { name: 'Preguntas del protocolo' })).toBeTruthy()
   })
 
-  test('El orden del documento es el de la pantalla, y Derivar queda después del protocolo', async () => {
+  test('Derivar queda entre Hecho y prioridad y el protocolo', async () => {
     abrirLlamada()
     await screen.findByRole('group', { name: 'Sugerencia' })
     const enOrden = [
       screen.getByRole('region', { name: 'Ubicación' }),
       screen.getByRole('region', { name: 'Hecho y prioridad' }),
-      screen.getByRole('region', { name: 'Protocolo' }),
       screen.getByRole('button', { name: 'Derivar Carta de Llamada' }),
+      screen.getByRole('region', { name: 'Protocolo' }),
     ]
 
     enOrden.slice(1).forEach((elemento, indice) => expect(estaAntes(enOrden[indice], elemento)).toBe(true))

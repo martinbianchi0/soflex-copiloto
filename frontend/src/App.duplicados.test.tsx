@@ -2,6 +2,7 @@
 import { act, configure, getConfig, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, onTestFinished, test, vi } from 'vitest'
+import type { Llamada } from './api'
 import App from './App'
 import './pruebas/dom'
 import { respuestas } from './pruebas/respuestas'
@@ -23,15 +24,13 @@ function duplicadosSinOtraParaEstaLlamada() {
 function llamadaRepetidaDerivada() {
   // Variante de la derivación de la misma transcripción, con el identificador de la repetida.
   const llamada = structuredClone(respuestas.llamadaDelDatasetDerivada)
-  if (llamada.estado !== 'derivada') throw new Error('Falta la carta derivada')
-  llamada.llamada_id = id
-  llamada.carta.llamada_id = id
-  return llamada
+  if (llamada.estado !== 'esperando_operador' || !llamada.carta) throw new Error('Falta la carta derivada')
+  return { ...llamada, llamada_id: id, carta: { ...llamada.carta, llamada_id: id } }
 }
 
 function historialDeLaRepetida() {
   // Variante del historial con el identificador de la llamada repetida.
-  const historial = structuredClone(respuestas.historialDerivada)
+  const historial = structuredClone(respuestas.historialTerminada)
   historial.llamada_id = id
   return historial
 }
@@ -120,10 +119,13 @@ test('Si falla el refresco conserva el aviso que ya mostraba', async () => {
   expect(within(screen.getByRole('region', { name: tituloAviso })).getByRole('listitem').textContent).toBe(contenido)
 })
 
-test('Después de derivar desaparece el aviso y cesan las consultas de duplicados', async () => {
+test('El aviso y las consultas de duplicados siguen al derivar y cesan al terminar', async () => {
   const servicio = simularPanel()
+  const derivada = llamadaRepetidaDerivada()
+  const terminada: Llamada = { ...derivada, estado: 'terminada', carta_al_dia: null }
   servicio.responder(rutaDuplicados, respuestas.duplicadosConOtra)
-  servicio.responder(`POST ${ruta}/derivar`, llamadaRepetidaDerivada())
+  servicio.responder(`POST ${ruta}/derivar`, derivada)
+  servicio.responder(`POST ${ruta}/terminar`, terminada)
   servicio.responder(`GET ${ruta}/historial`, historialDeLaRepetida())
   await abrirLlamada(servicio)
   expect(screen.getByRole('region', { name: tituloAviso })).toBeTruthy()
@@ -133,8 +135,14 @@ test('Después de derivar desaparece el aviso y cesan las consultas de duplicado
   const usuario = userEvent.setup({ advanceTimers: (ms) => { vi.advanceTimersByTime(ms) } })
   await act(async () => { await usuario.click(screen.getByRole('button', { name: 'Derivar Carta de Llamada' })) })
 
+  expect(screen.getByRole('region', { name: tituloAviso })).toBeTruthy()
+  const consultasAlDerivar = servicio.pedidosA(rutaDuplicados).length
+  await avanzar(15_000)
+  expect(servicio.pedidosA(rutaDuplicados)).toHaveLength(consultasAlDerivar + 1)
+
+  await act(async () => { await usuario.click(screen.getByRole('button', { name: 'Terminar llamada' })) })
   expect(screen.getByRole('heading', { name: 'Carta de Llamada' })).toBeTruthy()
   expect(screen.queryByRole('region', { name: tituloAviso })).toBeNull()
   await avanzar(30_000)
-  expect(servicio.pedidosA(rutaDuplicados)).toHaveLength(1)
+  expect(servicio.pedidosA(rutaDuplicados)).toHaveLength(consultasAlDerivar + 1)
 })

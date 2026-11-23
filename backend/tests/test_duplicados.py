@@ -325,7 +325,7 @@ def test_un_error_cualquiera_del_indice_no_hace_fallar_a_la_llamada(servicio, mo
     derivada = llamadas.derivar(llamada.llamada_id, Ajustes.model_validate({"prioridad": "P2"}))
 
     assert len(con_turno.turnos) == 2
-    assert derivada.estado == "derivada"
+    assert derivada.carta is not None
     assert llamadas.consultar_duplicados(llamada.llamada_id) == (None, [])
     assert caplog.text.count("falla simulada") >= 3
 

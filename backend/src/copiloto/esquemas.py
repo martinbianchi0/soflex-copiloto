@@ -346,10 +346,18 @@ class Sugerencia(Ficha):
 
 
 class Carta(Ficha):
-    """La Carta de Llamada: lo que el operador confirmó y derivó."""
+    """La Carta de Llamada: lo que el operador confirmó y derivó.
+
+    Se deriva una vez y, mientras la llamada sigue, se actualiza: cada versión reemplaza a la
+    anterior y conserva la hora de la primera derivación.
+    """
 
     llamada_id: Texto
     derivada_en: AwareDatetime
+    # Sin actualizaciones no se escribe: una carta que nunca cambió se guarda igual que antes.
+    actualizada_en: AwareDatetime | None = Field(
+        default=None, exclude_if=lambda fecha: fecha is None
+    )
 
     @model_validator(mode="after")
     def con_lo_minimo_para_derivar(self) -> Self:
@@ -357,25 +365,49 @@ class Carta(Ficha):
             raise ValueError(f"Para derivar falta completar: {', '.join(faltan)}.")
         return self
 
+    @model_validator(mode="after")
+    def se_actualiza_despues_de_derivarse(self) -> Self:
+        if self.actualizada_en is not None and self.actualizada_en < self.derivada_en:
+            raise ValueError("Una carta no se actualiza antes de derivarse.")
+        return self
+
+    def mismo_contenido(self, otra: "Carta") -> bool:
+        """Si dicen lo mismo, sin mirar cuándo se derivaron o se actualizaron."""
+        horas = {"derivada_en", "actualizada_en"}
+        return self.model_dump(exclude=horas) == otra.model_dump(exclude=horas)
+
 
 class Llamada(Esquema):
-    """Una llamada con todo lo suyo: lo que se dijo, lo que se sugirió y, si se derivó, su carta."""
+    """Una llamada con todo lo suyo: lo que se dijo, lo que se sugirió y, si se derivó, su carta.
+
+    El estado dice en qué punto del recorrido está; la carta, si ya se derivó. Una llamada derivada
+    sigue esperando al operador (para sumar turnos y actualizar la carta) hasta que la termina.
+    """
 
     llamada_id: Texto
-    estado: Literal["en_proceso", "analizando", "esperando_operador", "derivada"]
+    estado: Literal["en_proceso", "analizando", "esperando_operador", "terminada"]
     proveedor: Proveedor
     turnos: list[Turno] = Field(min_length=1, max_length=MAXIMO_DE_TURNOS)
     sugerencia: Sugerencia | None
     carta: Carta | None
+    # Con carta: lo último que mandó el operador, para retomar la revisión donde quedó.
+    ajustes: "Ajustes | None" = None
+    # Con la llamada abierta: si la carta tiene lo que saldría hoy con esos ajustes. Deja de
+    # estarlo cuando un turno sumado cambia la sugerencia.
+    carta_al_dia: bool | None = None
 
     @model_validator(mode="after")
     def el_estado_coincide_con_lo_que_hay(self) -> Self:
-        if (self.estado == "derivada") != (self.carta is not None):
-            raise ValueError("Una llamada está derivada si y sólo si tiene su carta.")
+        if self.estado == "terminada" and self.carta is None:
+            raise ValueError("Una llamada se termina después de derivar su carta.")
         if self.estado != "en_proceso" and self.sugerencia is None:
             raise ValueError("Una llamada que ya se analizó tiene su sugerencia.")
         if self.carta is not None and self.carta.llamada_id != self.llamada_id:
             raise ValueError("La carta es de otra llamada.")
+        if self.carta is None and (self.ajustes is not None or self.carta_al_dia is not None):
+            raise ValueError("Los ajustes y si la carta está al día son de una llamada derivada.")
+        if self.estado == "terminada" and self.carta_al_dia is not None:
+            raise ValueError("Una llamada terminada no se actualiza: no tiene carta al día.")
         return self
 
     @model_validator(mode="after")
@@ -438,6 +470,8 @@ type TipoEvento = Literal[
     "turno_agregado",
     "ajustes_operador",
     "derivada",
+    "carta_actualizada",
+    "terminada",
 ]
 
 
@@ -526,16 +560,21 @@ class MarcaChecklist(Esquema):
         return self
 
 
+def _es_none(valor: object) -> bool:
+    return valor is None
+
+
 class Ajustes(Esquema):
     """Lo que el operador cambia de la sugerencia. Lo que no manda queda como estaba."""
 
-    ubicacion: UbicacionAjustada | None = None
-    tipo_hecho: TipoAjustado | None = None
-    prioridad: Prioridad | None = None
+    # Lo que no se mandó tampoco sale al devolverlos: así se pueden volver a mandar tal cual.
+    ubicacion: UbicacionAjustada | None = Field(default=None, exclude_if=_es_none)
+    tipo_hecho: TipoAjustado | None = Field(default=None, exclude_if=_es_none)
+    prioridad: Prioridad | None = Field(default=None, exclude_if=_es_none)
     # Sólo las preguntas que el operador marcó o desmarcó.
-    checklist: list[MarcaChecklist] | None = Field(default=None, max_length=50)
+    checklist: list[MarcaChecklist] | None = Field(default=None, max_length=50, exclude_if=_es_none)
     dictados_quitados: list[DictadoQuitado] | None = Field(
-        default=None, max_length=MAXIMO_DE_DICTADOS
+        default=None, max_length=MAXIMO_DE_DICTADOS, exclude_if=_es_none
     )
 
     @model_validator(mode="after")
@@ -555,4 +594,14 @@ class Ajustes(Esquema):
 
 
 class Derivacion(Esquema):
+    """Lo que manda el operador al derivar la carta o al actualizarla.
+
+    Al actualizar valen las mismas reglas que al derivar: los ajustes son todo lo que difiere de la
+    sugerencia vigente, no sólo lo que cambió desde la versión anterior.
+    """
+
     ajustes: Ajustes = Field(default_factory=Ajustes)
+
+
+# `Llamada` nombra a `Ajustes`, que se define más abajo, con lo que manda el operador.
+Llamada.model_rebuild()

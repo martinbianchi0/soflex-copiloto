@@ -1,5 +1,5 @@
-import { valorDato } from './api'
-import type { Aviso, Catalogo, DireccionAlternativa, MarcaChecklist, Prioridad, Sugerencia, TipoHecho } from './api'
+import { idDictado, valorDato } from './api'
+import type { Ajustes, Aviso, Catalogo, DireccionAlternativa, MarcaChecklist, Prioridad, Sugerencia, TipoHecho } from './api'
 
 export type CamposSugerencia = {
   calle: string
@@ -51,10 +51,38 @@ function camposDe(sugerencia: Sugerencia, catalogo: Catalogo | null): CamposSuge
   }
 }
 
-export function iniciarBorrador(sugerencia: Sugerencia, catalogo: Catalogo | null): BorradorSugerencia {
-  return {
+// Con los ajustes de una carta ya derivada, el formulario vuelve a quedar como lo dejó el operador
+// al mandarla: lo que cambió es suyo y lo demás sigue a la sugerencia vigente.
+export function iniciarBorrador(sugerencia: Sugerencia, catalogo: Catalogo | null, ajustes: Ajustes | null = null): BorradorSugerencia {
+  const borrador: BorradorSugerencia = {
     sugerencia, catalogo, campos: camposDe(sugerencia, catalogo), editados: new Set(), marcas: new Map(),
     dictadosQuitados: new Set(), avisosAtendidos: new Set(),
+  }
+  if (!ajustes) return borrador
+
+  const { ubicacion, tipo_hecho: tipo, prioridad, checklist, dictados_quitados: quitados } = ajustes
+  const campos = { ...borrador.campos }
+  const editados = new Set<keyof CamposSugerencia>()
+  if (ubicacion) {
+    const [esquinaUno = '', esquinaDos = ''] = ubicacion.esquinas
+    Object.assign(campos, { calle: ubicacion.calle, altura: ubicacion.altura?.toString() ?? '', esquinaUno, esquinaDos })
+    camposUbicacion.forEach((campo) => editados.add(campo))
+  }
+  if (tipo) {
+    Object.assign(campos, { categoria: tipo.categoria, subtipo: subtipoDe(tipo.categoria, tipo.subtipo, catalogo) })
+    editados.add('categoria').add('subtipo')
+  }
+  if (prioridad) {
+    campos.prioridad = prioridad
+    editados.add('prioridad')
+  }
+  return {
+    ...borrador,
+    campos,
+    editados,
+    marcas: new Map((checklist ?? []).map(({ id, respondida, cita }) => [id, { id, respondida, cita: cita ?? null }])),
+    dictadosQuitados: new Set((quitados ?? []).map(idDictado)),
+    avisosAtendidos: ubicacion ? avisosSobreLaDireccion(sugerencia) : new Set(),
   }
 }
 
@@ -83,6 +111,74 @@ export function leerAltura(altura: string) {
   const numero = texto ? Number(texto) : null
   const invalida = numero !== null && (!/^\d+$/.test(texto) || numero < 1 || numero > 99999)
   return { numero, invalida }
+}
+
+function esquinasDe({ esquinaUno, esquinaDos }: CamposSugerencia) {
+  return [esquinaUno, esquinaDos].filter((esquina) => esquina.trim())
+}
+
+// Si la ubicación del formulario no es la sugerida. Entonces viaja entera como ajuste, y los avisos
+// sobre la dirección sugerida que el operador ya tuvo a la vista dejan de mostrarse.
+export function ubicacionCambiada({ sugerencia, campos }: BorradorSugerencia) {
+  const { calle, altura, esquinas } = sugerencia.ubicacion
+  const sugeridas = esquinas.map((dato) => valorDato(dato) ?? '').filter((esquina) => esquina.trim())
+  const escritas = esquinasDe(campos)
+  return campos.calle !== (valorDato(calle) ?? '') || leerAltura(campos.altura).numero !== valorDato(altura) ||
+    escritas.length !== sugeridas.length || escritas.some((esquina, indice) => esquina !== sugeridas[indice])
+}
+
+// Las preguntas que se ven: las del subtipo elegido, según el catálogo; sin catálogo, las sugeridas.
+function preguntasVisibles({ sugerencia, catalogo, campos }: BorradorSugerencia) {
+  if (!catalogo) return sugerencia.checklist.map(({ id }) => id)
+  const protocolo = catalogo.protocolos.find(({ id, categoria }) => id === campos.subtipo && categoria === campos.categoria)
+  return protocolo?.preguntas.map(({ id }) => id) ?? []
+}
+
+// Lo que viaja al derivar o al actualizar la carta: todo lo que difiere de la sugerencia vigente.
+export function ajustesDe(borrador: BorradorSugerencia): Ajustes {
+  const { sugerencia, campos, marcas, dictadosQuitados } = borrador
+  const { calle, altura, categoria, subtipo, prioridad } = campos
+  const ajustes: Ajustes = {}
+  if (ubicacionCambiada(borrador)) {
+    ajustes.ubicacion = { calle, altura: leerAltura(altura).numero, esquinas: esquinasDe(campos) }
+  }
+  if (categoria && (categoria !== valorDato(sugerencia.tipo_hecho) || subtipo !== valorDato(sugerencia.subtipo))) {
+    ajustes.tipo_hecho = { categoria, subtipo }
+  }
+  if (prioridad && prioridad !== valorDato(sugerencia.prioridad)) ajustes.prioridad = prioridad
+  const cambios = preguntasVisibles(borrador).flatMap((id) => marcas.get(id) ?? [])
+  if (cambios.length) ajustes.checklist = cambios
+  const quitados = sugerencia.datos_dictados.filter((dato) => dictadosQuitados.has(idDictado(dato)))
+    .map(({ tipo, valor }) => ({ tipo, valor }))
+  if (quitados.length) ajustes.dictados_quitados = quitados
+  return ajustes
+}
+
+// Lo que los ajustes cambian de verdad sobre esta sugerencia. Un campo igual al sugerido no cambia
+// nada (los guardados pueden tenerlo si un turno trajo después lo mismo que había puesto el
+// operador), y el servicio los devuelve sin los espacios de los bordes y sin lo que no se mandó.
+function comparable(ajustes: Ajustes, sugerencia: Sugerencia) {
+  const { ubicacion, tipo_hecho: tipo, prioridad, checklist, dictados_quitados: quitados } = ajustes
+  const sugerida = sugerencia.ubicacion
+  const direccion = ubicacion && [ubicacion.calle.trim(), ubicacion.altura ?? null, ubicacion.esquinas.map((esquina) => esquina.trim())]
+  const direccionSugerida = [valorDato(sugerida.calle) ?? '', valorDato(sugerida.altura), sugerida.esquinas.flatMap((dato) => valorDato(dato) ?? [])]
+  const hecho = tipo && [tipo.categoria, tipo.subtipo?.trim() ?? null]
+  const hechoSugerido = [valorDato(sugerencia.tipo_hecho), valorDato(sugerencia.subtipo)]
+  const dictados = new Set(sugerencia.datos_dictados.map(idDictado))
+  const distinto = (valor: unknown, sugerido: unknown) => JSON.stringify(valor) !== JSON.stringify(sugerido)
+  return JSON.stringify([
+    direccion && distinto(direccion, direccionSugerida) ? direccion : null,
+    hecho && distinto(hecho, hechoSugerido) ? hecho : null,
+    prioridad && prioridad !== valorDato(sugerencia.prioridad) ? prioridad : null,
+    (checklist ?? []).map(({ id, respondida, cita }) => JSON.stringify([id.trim(), respondida, cita ? [cita.turno, cita.texto.trim()] : null])).sort(),
+    (quitados ?? []).map(({ tipo: clase, valor }) => ({ tipo: clase, valor: valor.trim() }))
+      .filter((dato) => dictados.has(idDictado(dato)))
+      .map(({ tipo: clase, valor }) => JSON.stringify([clase, valor])).sort(),
+  ])
+}
+
+export function mismosAjustes(unos: Ajustes, otros: Ajustes, sugerencia: Sugerencia) {
+  return comparable(unos, sugerencia) === comparable(otros, sugerencia)
 }
 
 export function usarDireccion(borrador: BorradorSugerencia, direccion: DireccionAlternativa): BorradorSugerencia {

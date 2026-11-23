@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent, ReactNode } from 'react'
 import { citaDato, explicacionOrigen, idDictado, nombresTiposHecho, textoOrigen, valorDato } from './api'
-import type { Ajustes, Catalogo, Criterio, Dato, DetalleValidacion, DireccionAlternativa, Pregunta, Prioridad, Sugerencia, TipoHecho, Turno } from './api'
-import { actualizarBorrador, avisosVigentes, editarCampo, iniciarBorrador, leerAltura, usarDireccion } from './borradorSugerencia'
+import type { Ajustes, Carta, Catalogo, Criterio, Dato, DetalleValidacion, DireccionAlternativa, Pregunta, Prioridad, Sugerencia, TipoHecho, Turno } from './api'
+import { actualizarBorrador, ajustesDe, avisosVigentes, editarCampo, iniciarBorrador, leerAltura, mismosAjustes, ubicacionCambiada as cambioLaUbicacion, usarDireccion } from './borradorSugerencia'
 import type { CamposSugerencia } from './borradorSugerencia'
 import AvisosSugerencia from './AvisosSugerencia'
 import DatosDictados from './DatosDictados'
@@ -12,14 +12,20 @@ import PrioridadEtiqueta from './PrioridadEtiqueta'
 import Transcripcion from './Transcripcion'
 import { campoSugerencia } from './validacion'
 
+export type AccionCarta = 'derivar' | 'actualizar' | 'terminar'
+
 type Propiedades = {
   turnos: Turno[]
   sugerencia: Sugerencia
   catalogo: Catalogo | null
+  // Con la carta ya derivada: la carta, lo último que mandó el operador y si sigue al día.
+  carta: Carta | null
+  ajustesEnviados: Ajustes | null
+  cartaAlDia: boolean | null
   analizando: boolean
   derivacionBloqueada: boolean
   edicionBloqueada: boolean
-  ocupado: boolean
+  accion: AccionCarta | null
   nuevaLlamadaBloqueada: boolean
   errores: DetalleValidacion[]
   pieTranscripcion: ReactNode
@@ -27,12 +33,19 @@ type Propiedades = {
   alCambiarProtocolo: (mensaje: string) => void
   alAnunciarDireccion: (mensaje: string) => void
   alDerivar: (ajustes: Ajustes) => void
+  // Sin ajustes, la carta ya tiene todo y sólo se cierra la llamada.
+  alTerminar: (ajustes: Ajustes | null) => void
   alValidar: (errores: DetalleValidacion[]) => void
   alEmpezar: () => void
 }
 
 type Control = { id: string; name: string; 'aria-describedby': string; 'aria-invalid'?: true }
 const faltante = { origen: 'falta' } as const
+const horaCorta = new Intl.DateTimeFormat('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+
+function Hora({ cuando }: { cuando: string }) {
+  return <time dateTime={cuando}>{horaCorta.format(new Date(cuando))}</time>
+}
 
 function datoVisible<Valor>(dato: Dato<Valor>, valor: Valor | null, invalido = false): Dato<Valor> {
   return invalido || valor !== valorDato(dato) ? { origen: 'operador', valor } : dato
@@ -112,11 +125,11 @@ function CriterioPrioridad({ niveles, reglas }: Criterio) {
 }
 
 export default function FormularioSugerencia({
-  turnos, sugerencia: recibida, catalogo, analizando, derivacionBloqueada, edicionBloqueada, ocupado,
-  nuevaLlamadaBloqueada, errores, pieTranscripcion, avisoDuplicados,
-  alCambiarProtocolo, alAnunciarDireccion, alDerivar, alValidar, alEmpezar,
+  turnos, sugerencia: recibida, catalogo, carta, ajustesEnviados, cartaAlDia, analizando, derivacionBloqueada,
+  edicionBloqueada, accion, nuevaLlamadaBloqueada, errores, pieTranscripcion, avisoDuplicados,
+  alCambiarProtocolo, alAnunciarDireccion, alDerivar, alTerminar, alValidar, alEmpezar,
 }: Propiedades) {
-  const [borrador, setBorrador] = useState(() => iniciarBorrador(recibida, catalogo))
+  const [borrador, setBorrador] = useState(() => iniciarBorrador(recibida, catalogo, ajustesEnviados))
   // Durante el reanálisis se conserva la última sugerencia completa como base de las ediciones.
   if (borrador.catalogo !== catalogo || (!analizando && borrador.sugerencia !== recibida)) {
     setBorrador(actualizarBorrador(borrador, analizando ? borrador.sugerencia : recibida, catalogo))
@@ -125,21 +138,19 @@ export default function FormularioSugerencia({
   const { calle, altura, esquinaUno, esquinaDos, categoria, subtipo, prioridad } = campos
   const ubicacion = sugerencia.ubicacion
   const [primeraEsquina = faltante, segundaEsquina = faltante] = ubicacion.esquinas
-  const calleSugerida = valorDato(ubicacion.calle) ?? ''
-  const alturaSugerida = valorDato(ubicacion.altura)
   const categoriaSugerida = valorDato(sugerencia.tipo_hecho)
   const subtipoSugerido = valorDato(sugerencia.subtipo)
   const prioridadSugerida = valorDato(sugerencia.prioridad)
   const [enFoco, setEnFoco] = useState('')
   const formulario = useRef<HTMLFormElement>(null)
+  const estadoCarta = useRef<HTMLParagraphElement>(null)
+  const esperandoCarta = useRef(false)
   const { numero: numeroAltura, invalida: alturaInvalida } = leerAltura(altura)
   const esquinas = [esquinaUno, esquinaDos].filter((esquina) => esquina.trim())
-  const esquinasSugeridas = ubicacion.esquinas.map((dato) => valorDato(dato) ?? '').filter((esquina) => esquina.trim())
-  // Decide si la ubicación viaja como ajuste al derivar y si los avisos sobre la dirección sugerida
-  // que el operador ya tuvo a la vista siguen mostrándose.
-  const ubicacionCambiada = calle !== calleSugerida || numeroAltura !== alturaSugerida ||
-    esquinas.length !== esquinasSugeridas.length ||
-    esquinas.some((esquina, indice) => esquina !== esquinasSugeridas[indice])
+  const ubicacionCambiada = cambioLaUbicacion(borrador)
+  // Con la carta derivada: si lo que está en pantalla no es lo que tiene el despacho, porque el
+  // operador cambió algo o porque un turno cambió la sugerencia.
+  const pendiente = carta !== null && (cartaAlDia === false || !mismosAjustes(ajustesDe(borrador), ajustesEnviados ?? {}, sugerencia))
   const alternativa = sugerencia.direccion_alternativa
   const coincideConAlternativa = alternativa && !alturaInvalida && numeroAltura === alternativa.altura &&
     nombreComparable(calle) === nombreComparable(alternativa.calle) &&
@@ -201,9 +212,19 @@ export default function FormularioSugerencia({
 
   useEffect(() => {
     if (!edicionBloqueada && errores.length > 0) {
+      esperandoCarta.current = false
       formulario.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
     }
   }, [edicionBloqueada, errores])
+
+  // Mientras se manda la carta el botón queda deshabilitado y, si tenía el foco, lo pierde. Cuando
+  // llega la respuesta, el foco va al estado de la carta, que dice a qué hora salió y si está al día.
+  useEffect(() => {
+    if (!esperandoCarta.current || !carta) return
+    esperandoCarta.current = false
+    const activo = document.activeElement
+    if (activo === document.body || activo?.matches(':disabled')) estadoCarta.current?.focus()
+  }, [carta])
 
   function editar<Campo extends keyof CamposSugerencia>(campo: Campo, valor: CamposSugerencia[Campo]) {
     setBorrador((actual) => editarCampo(actual, campo, valor))
@@ -247,10 +268,7 @@ export default function FormularioSugerencia({
     })
   }
 
-  function enviar(evento: FormEvent<HTMLFormElement>) {
-    evento.preventDefault()
-    if (derivacionBloqueada) return
-
+  function validar() {
     const pendientes: DetalleValidacion[] = []
     if (!calle.trim()) pendientes.push({ loc: ['calle'], msg: 'Ingresá una calle.' })
     const nombres = [calle, ...esquinas].map((nombre) => nombre.trim().toLowerCase())
@@ -261,23 +279,25 @@ export default function FormularioSugerencia({
       pendientes.push({ loc: ['altura'], msg: 'Ingresá un número entero entre 1 y 99999.' })
     }
     if (!prioridad) pendientes.push({ loc: ['prioridad'], msg: 'Elegí una prioridad.' })
-    if (pendientes.length) {
-      alValidar(pendientes)
-      return
-    }
+    if (pendientes.length) alValidar(pendientes)
+    return pendientes.length === 0
+  }
 
-    const ajustes: Ajustes = {}
-    if (ubicacionCambiada) ajustes.ubicacion = { calle, altura: numeroAltura, esquinas }
-    if (categoria && (categoria !== categoriaSugerida || subtipo !== subtipoSugerido)) {
-      ajustes.tipo_hecho = { categoria, subtipo }
-    }
-    if (prioridad && prioridad !== prioridadSugerida) ajustes.prioridad = prioridad
-    const cambiosChecklist = checklist.flatMap(({ id }) => marcas.get(id) ?? [])
-    if (cambiosChecklist.length) ajustes.checklist = cambiosChecklist
-    const quitados = sugerencia.datos_dictados.filter((dato) => dictadosQuitados.has(idDictado(dato)))
-      .map(({ tipo, valor }) => ({ tipo, valor }))
-    if (quitados.length) ajustes.dictados_quitados = quitados
-    alDerivar(ajustes)
+  function enviar(evento: FormEvent<HTMLFormElement>) {
+    evento.preventDefault()
+    // Ctrl+Enter llega acá aunque el botón esté deshabilitado.
+    if (derivacionBloqueada || (carta && !pendiente)) return
+    if (!validar()) return
+    esperandoCarta.current = true
+    alDerivar(ajustesDe(borrador))
+  }
+
+  // Terminar cierra la llamada con lo que está en pantalla: si la carta no lo tiene, antes se
+  // actualiza.
+  function terminar() {
+    if (derivacionBloqueada) return
+    if (!pendiente) alTerminar(null)
+    else if (validar()) alTerminar(ajustesDe(borrador))
   }
 
   function alTeclear(evento: KeyboardEvent<HTMLFormElement>) {
@@ -286,8 +306,8 @@ export default function FormularioSugerencia({
       evento.preventDefault()
       formulario.current?.requestSubmit()
     } else if (evento.target instanceof HTMLInputElement || evento.target instanceof HTMLSelectElement) {
-      // Enter dentro de un campo o de un desplegable no deriva: una carta derivada no se puede
-      // deshacer, y el foco suele quedar en el desplegable de la prioridad.
+      // Enter dentro de un campo o de un desplegable no deriva: la carta va al despacho apenas
+      // sale, y el foco suele quedar en el desplegable de la prioridad.
       evento.preventDefault()
     }
   }
@@ -382,6 +402,31 @@ export default function FormularioSugerencia({
             <DatosDictados datos={sugerencia.datos_dictados} edicion={{ quitados: dictadosQuitados, alMarcar: marcarDictado }} />
           </div>
         </fieldset>
+        {/* Pegada a «Hecho y prioridad»: se deriva en cuanto están la dirección, el tipo y la
+            prioridad, y el protocolo de abajo sigue después de derivar. */}
+        <div className="acciones acciones-fijas">
+          <button type="submit" disabled={derivacionBloqueada || (carta !== null && !pendiente)}
+            aria-keyshortcuts="Control+Enter Meta+Enter" aria-describedby={carta ? 'estado-carta' : undefined}>
+            {carta ? (accion === 'actualizar' ? 'Actualizando…' : 'Actualizar carta')
+              : (accion === 'derivar' ? 'Derivando…' : 'Derivar Carta de Llamada')}
+          </button>
+          <small className="atajo"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></small>
+          {carta && (
+            <button type="button" className="secundario" disabled={derivacionBloqueada} onClick={terminar}>
+              {accion === 'terminar' ? 'Terminando…' : pendiente ? 'Actualizar y terminar' : 'Terminar llamada'}
+            </button>
+          )}
+          <button type="button" className="secundario" disabled={nuevaLlamadaBloqueada} onClick={alEmpezar}>
+            Nueva llamada
+          </button>
+          {carta && (
+            <p className="estado-carta" id="estado-carta" ref={estadoCarta} tabIndex={-1}>
+              <strong>Carta derivada a las <Hora cuando={carta.derivada_en} /></strong>
+              {carta.actualizada_en && <>, actualizada a las <Hora cuando={carta.actualizada_en} /></>}.{' '}
+              {pendiente ? <strong className="carta-pendiente">Hay cambios que la carta no tiene.</strong> : 'Está al día.'}
+            </p>
+          )}
+        </div>
         <section className="bloque protocolo" aria-labelledby="titulo-protocolo">
           <h3 id="titulo-protocolo">Protocolo</h3>
           {!subtipo && (
@@ -393,15 +438,6 @@ export default function FormularioSugerencia({
           <DetallesSugerencia checklist={checklist} instrucciones={protocolo?.instrucciones ?? (catalogo ? [] : sugerencia.instrucciones)}
             errores={erroresDe('checklist')} bloqueado={edicionBloqueada} alMarcar={marcarPregunta} />
         </section>
-        <div className="acciones acciones-fijas">
-          <button type="submit" disabled={derivacionBloqueada} aria-keyshortcuts="Control+Enter Meta+Enter">
-            {ocupado ? 'Derivando…' : 'Derivar Carta de Llamada'}
-          </button>
-          <small className="atajo"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></small>
-          <button type="button" className="secundario" disabled={nuevaLlamadaBloqueada} onClick={alEmpezar}>
-            Nueva llamada
-          </button>
-        </div>
       </form>
     </div>
   )

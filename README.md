@@ -1,8 +1,8 @@
 # Copiloto para Operadores de Sala
 
-Prototipo que asiste al operador de una sala de emergencias: lee la transcripción de una llamada, propone ubicación, tipo de hecho y prioridad, y el operador revisa, ajusta y deriva la Carta de Llamada.
+Prototipo que asiste al operador de una sala de emergencias: lee la transcripción de una llamada, propone ubicación, tipo de hecho y prioridad, y el operador revisa, ajusta y deriva la Carta de Llamada en cuanto alcanza para despachar, y la actualiza mientras sigue con el protocolo.
 
-**Estado:** funcionan los dos modos. En `mock`, sin red ni modelo, las reglas proponen la ubicación contrastada con el callejero de la Ciudad, con la cita de lo que dijo el llamante y avisos cuando la dirección no cierra; para un texto nuevo proponen además la categoría por palabras clave, y si la llamada es una de las 30 del dataset, su tipo, su subtipo, su prioridad y las preguntas del protocolo que el relato ya responde. Con un modelo local, la ubicación sigue saliendo de las reglas y el modelo propone el tipo de hecho, la prioridad con la cita que la justifica y posibles respuestas a las preguntas del protocolo, que el operador confirma; y cuando las reglas avisan que la dirección no cierra, el modelo la lee de nuevo y el panel ofrece la que propone si el callejero la confirma. En los dos modos el operador revisa, marca el protocolo, suma lo que el llamante dice después (la sugerencia se actualiza sin pisar lo que ya corrigió) y deriva la carta. Si el llamante dicta una patente o un teléfono, también van a la carta, y si los dicta a medias el panel avisa para pedir que los repita. Si en la media hora anterior o posterior entró otra llamada del mismo lugar, el panel lo avisa. Junto a la dirección hay un plano chico de la cuadra, dibujado con el callejero y sin red, que sigue lo que el operador corrige. La carta lleva los avisos sobre la dirección que quedaron sin resolver y el historial de la llamada: qué propuso el sistema, cuándo, y qué cambió el operador. El panel trae llamadas de ejemplo para cargar.
+**Estado:** funcionan los dos modos. En `mock`, sin red ni modelo, las reglas proponen la ubicación contrastada con el callejero de la Ciudad, con la cita de lo que dijo el llamante y avisos cuando la dirección no cierra; para un texto nuevo proponen además la categoría por palabras clave, y si la llamada es una de las 30 del dataset, su tipo, su subtipo, su prioridad y las preguntas del protocolo que el relato ya responde. Con un modelo local, la ubicación sigue saliendo de las reglas y el modelo propone el tipo de hecho, la prioridad con la cita que la justifica y posibles respuestas a las preguntas del protocolo, que el operador confirma; y cuando las reglas avisan que la dirección no cierra, el modelo la lee de nuevo y el panel ofrece la que propone si el callejero la confirma. En los dos modos el operador revisa, marca el protocolo, suma lo que el llamante dice después (la sugerencia se actualiza sin pisar lo que ya corrigió) y deriva la carta en cuanto tiene la dirección, el tipo y la prioridad. La llamada sigue abierta para el protocolo: si lo que se dice o se marca después cambia la carta, el panel lo avisa y el operador la actualiza. Si el llamante dicta una patente o un teléfono, también van a la carta, y si los dicta a medias el panel avisa para pedir que los repita. Si en la media hora anterior o posterior entró otra llamada del mismo lugar, el panel lo avisa. Junto a la dirección hay un plano chico de la cuadra, dibujado con el callejero y sin red, que sigue lo que el operador corrige. La carta lleva los avisos sobre la dirección que quedaron sin resolver y, al terminar la llamada, se ve con su historial: qué propuso el sistema, cuándo, qué cambió el operador y cada actualización de la carta. El panel trae llamadas de ejemplo para cargar.
 
 ## Cómo levantarlo
 
@@ -12,7 +12,7 @@ docker compose up --build
 
 El panel queda en <http://localhost:8000>. Hace falta Docker con Compose 2.24 o más nuevo. No hace falta `.env`: sin configuración corre en modo `mock`, que no usa red ni claves. Las variables que se pueden cambiar están en `.env.example`. Compose publica el puerto 8000 en todas las interfaces de la máquina y la API no pide autenticación: es para una máquina de desarrollo o una red de confianza.
 
-Para probarlo: en "Cargar un ejemplo", elegir *Choque con moto · la llamada llega de a un intercambio*, tildar "Reproducir de a un intercambio" y apretar "Analizar llamada". La llamada llega de a poco: la altura aparece cuando el operador la pregunta. Mientras tanto se puede corregir la sugerencia, elegir el subtipo para marcar su protocolo y derivar; lo que el operador cambia no se pisa.
+Para probarlo: en "Cargar un ejemplo", elegir *Choque con moto · la llamada llega de a un intercambio*, tildar "Reproducir de a un intercambio" y apretar "Analizar llamada". La llamada llega de a poco: la altura aparece cuando el operador la pregunta. Mientras tanto se puede corregir la sugerencia, elegir el subtipo para marcar su protocolo y derivar: la llamada sigue llegando, y cuando lo nuevo cambia lo que saldría en la carta, la barra dice «Hay cambios que la carta no tiene» y «Actualizar carta» los manda. Lo que el operador cambia no se pisa. «Terminar llamada» la cierra y muestra la carta con su historial.
 
 Al corregir la calle, la altura o una esquina de la sugerencia, el plano se actualiza: muestra dónde cae la dirección y qué calles la cruzan.
 
@@ -47,7 +47,7 @@ Para revisar qué se le pidió al modelo en una llamada, qué contestó y cuánt
 2. En el `.env`: `LANGFUSE_PUBLIC_KEY` y `LANGFUSE_SECRET_KEY`. Por defecto apunta al de la misma máquina, en el puerto 3000; se cambia con `LANGFUSE_BASE_URL`.
 3. Levantar con `docker compose up --build`.
 
-Cada llamada queda como una sesión, con una traza por operación (el alta, cada turno sumado, el análisis del modelo y la derivación) y, dentro del análisis, cada pedido al modelo con su entrada, su salida y su duración.
+Cada llamada queda como una sesión, con una traza por operación (el alta, cada turno sumado, el análisis del modelo, la derivación, cada actualización de la carta y el cierre) y, dentro del análisis, cada pedido al modelo con su entrada, su salida y su duración.
 
 Las trazas llevan el texto de la llamada y lo que entra y sale de cada paso: la sugerencia, los datos dictados y la carta. Por eso se piensa para un Langfuse propio, y este repositorio no levanta uno.
 
@@ -116,10 +116,10 @@ Cada intercambio vuelve a analizar la llamada entera, así que tarda más a medi
 
 - **La llamada llega como texto**, en una lista de turnos con quién habla si se sabe. No hay audio ni reconocimiento de voz.
 - **Las llamadas son de la Ciudad de Buenos Aires.** Toda dirección se lee contra su callejero: una calle de otro lugar que se llama igual que una porteña se toma por la porteña. El operador tiene la cita al lado y la corrige.
-- **El operador no despacha.** Revisa, completa y deriva la Carta de Llamada; el despacho es de otro sistema.
+- **El operador no despacha.** Revisa, completa y deriva la Carta de Llamada en cuanto alcanza para despachar, y la actualiza mientras sigue en la línea; el despacho es de otro sistema.
 - **Todo lo que propone el sistema es una sugerencia.** El operador revisa la ubicación, el tipo, la prioridad y las preguntas respondidas, y al derivar los da por buenos; la carta dice de dónde salió cada dato.
 - **El catálogo tiene los 30 protocolos del dataset provisto, uno por subtipo.** Un hecho que no está ahí queda con su categoría y sin protocolo. Su contenido no está validado por una autoridad médica ni operativa.
-- **Un puesto, un proceso.** No hay usuarios ni permisos: quien llega al puerto del servicio puede leer y derivar cualquier llamada. La garantía de que una llamada se deriva una sola vez vale con un solo proceso del servicio.
+- **Un puesto, un proceso.** No hay usuarios ni permisos: quien llega al puerto del servicio puede leer, derivar y actualizar cualquier llamada. La garantía de que una llamada se deriva una sola vez vale con un solo proceso del servicio.
 
 ## Qué haría con más tiempo
 

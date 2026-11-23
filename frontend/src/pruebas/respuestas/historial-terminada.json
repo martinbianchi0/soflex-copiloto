@@ -1,0 +1,59 @@
+{
+ "llamada_id": "llamada-del-dataset",
+ "eventos": [
+  {
+   "tipo": "recibida",
+   "cuando": "2026-01-01T12:00:00Z",
+   "detalle": "Llamada recibida, con 2 turnos."
+  },
+  {
+   "tipo": "sugerencia_reglas",
+   "cuando": "2026-01-01T12:00:00Z",
+   "detalle": "Sugerencia de las reglas, sin avisos."
+  },
+  {
+   "tipo": "ajustes_operador",
+   "cuando": "2026-01-01T12:00:00Z",
+   "detalle": "El operador confirmó sin cambios."
+  },
+  {
+   "tipo": "derivada",
+   "cuando": "2026-01-01T12:00:00Z",
+   "detalle": "Carta de Llamada derivada."
+  },
+  {
+   "tipo": "turno_agregado",
+   "cuando": "2026-01-01T12:00:00Z",
+   "detalle": "Se sumó un turno a la llamada: ahora tiene 3."
+  },
+  {
+   "tipo": "sugerencia_reglas",
+   "cuando": "2026-01-01T12:00:00Z",
+   "detalle": "Sugerencia de las reglas, con 1 aviso."
+  },
+  {
+   "tipo": "carta_actualizada",
+   "cuando": "2026-01-01T12:00:00Z",
+   "detalle": "Carta actualizada: prioridad P1 → P2."
+  },
+  {
+   "tipo": "terminada",
+   "cuando": "2026-01-01T12:00:00Z",
+   "detalle": "Llamada terminada."
+  }
+ ],
+ "cambios": [
+  {
+   "campo": "prioridad",
+   "sugerido": {
+    "origen": "inferido",
+    "valor": "P1",
+    "fuente": "dataset"
+   },
+   "final": {
+    "origen": "operador",
+    "valor": "P2"
+   }
+  }
+ ]
+}

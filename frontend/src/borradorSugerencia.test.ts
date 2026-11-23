@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'vitest'
-import type { Llamada, Prioridad, Sugerencia, TipoHecho } from './api'
-import { actualizarBorrador, avisosVigentes, editarCampo, iniciarBorrador, leerAltura, usarDireccion } from './borradorSugerencia'
+import { idDictado } from './api'
+import type { Ajustes, Llamada, Prioridad, Sugerencia, TipoHecho } from './api'
+import {
+  actualizarBorrador, ajustesDe, avisosVigentes, editarCampo, iniciarBorrador, leerAltura, mismosAjustes,
+  ubicacionCambiada, usarDireccion,
+} from './borradorSugerencia'
 import type { BorradorSugerencia, CamposSugerencia } from './borradorSugerencia'
 import { respuestas } from './pruebas/respuestas'
 
@@ -83,6 +87,129 @@ describe('Al abrir la sugerencia', () => {
   test('el subtipo sugerido se conserva mientras el catálogo no está disponible', () => {
     const sugerencia = conCategoria(corrientes, 'ACCIDENTE_VIAL')
     expect(iniciarBorrador(sugerencia, null).campos.subtipo).toBe('SFX-001')
+  })
+
+  test('los ajustes restauran los campos editados, las marcas y los dictados quitados', () => {
+    const ajustes: Ajustes = {
+      ubicacion: { calle: 'Av. Córdoba', altura: null, esquinas: ['Callao'] },
+      tipo_hecho: { categoria: 'ACCIDENTE_VIAL', subtipo: 'SFX-005' },
+      prioridad: 'P2',
+      checklist: [
+        { id: 'SFX-005-Q1', respondida: true, cita: { turno: 2, texto: 'Sí, respira' } },
+        { id: 'SFX-005-Q2', respondida: false, cita: null },
+      ],
+      dictados_quitados: [{ tipo: 'patente', valor: 'ZA345BD' }],
+    }
+
+    const { campos, editados, marcas, dictadosQuitados } = iniciarBorrador(corrientes, catalogo, ajustes)
+
+    expect(campos).toEqual({
+      calle: 'Av. Córdoba', altura: '', esquinaUno: 'Callao', esquinaDos: '',
+      categoria: 'ACCIDENTE_VIAL', subtipo: 'SFX-005', prioridad: 'P2',
+    })
+    expect(editados).toEqual(new Set(['calle', 'altura', 'esquinaUno', 'esquinaDos', 'categoria', 'subtipo', 'prioridad']))
+    expect(marcas).toEqual(new Map(ajustes.checklist?.map((marca) => [marca.id, marca])))
+    expect(dictadosQuitados).toEqual(new Set(['dictado-patente-ZA345BD']))
+  })
+})
+
+describe('Los ajustes de la carta', () => {
+  test('volver a abrir el borrador con lo que mandó el operador devuelve los mismos ajustes', () => {
+    const sugerencia = structuredClone(corrientes)
+    const patente = { tipo: 'patente', valor: 'ZA345BD' } as const
+    sugerencia.datos_dictados.push({ ...patente, cita: { turno: 1, texto: 'La patente es ZA345BD' } })
+    const ubicacion = { calle: 'Av. Córdoba', altura: 1500, esquinas: ['Parana'] }
+    const marca = { id: 'SFX-002-Q1', respondida: true, cita: null }
+    let borrador = usarDireccion(iniciarBorrador(sugerencia, catalogo), ubicacion)
+    borrador = editarCampo(borrador, 'prioridad', 'P2')
+    borrador = editarCampo(borrador, 'subtipo', 'SFX-002')
+    borrador = {
+      ...borrador,
+      marcas: new Map([[marca.id, marca]]),
+      dictadosQuitados: new Set([idDictado(patente)]),
+    }
+
+    const enviados = ajustesDe(borrador)
+    const reabierto = iniciarBorrador(sugerencia, catalogo, enviados)
+
+    expect(enviados).toEqual({
+      ubicacion, tipo_hecho: { categoria: 'INCENDIO_RESCATE', subtipo: 'SFX-002' }, prioridad: 'P2',
+      checklist: [marca], dictados_quitados: [patente],
+    })
+    expect(mismosAjustes(ajustesDe(reabierto), enviados, sugerencia)).toBe(true)
+  })
+
+  test('se comparan sin los espacios de los bordes y sin importar el orden de las marcas y los dictados', () => {
+    const enviados: Ajustes = {
+      ubicacion: { calle: ' Av. Córdoba ', altura: 1500, esquinas: [' Callao ', ' Parana '] },
+      tipo_hecho: { categoria: 'ACCIDENTE_VIAL', subtipo: ' SFX-005 ' },
+      prioridad: 'P2',
+      checklist: [
+        { id: ' SFX-005-Q1 ', respondida: true, cita: { turno: 2, texto: ' Sí, respira ' } },
+        { id: ' SFX-005-Q2 ', respondida: false, cita: null },
+      ],
+      dictados_quitados: [{ tipo: 'patente', valor: 'ZA345BD' }, { tipo: 'telefono', valor: '55501234' }],
+    }
+    const guardados: Ajustes = {
+      ubicacion: { calle: 'Av. Córdoba', altura: 1500, esquinas: ['Callao', 'Parana'] },
+      tipo_hecho: { categoria: 'ACCIDENTE_VIAL', subtipo: 'SFX-005' },
+      prioridad: 'P2',
+      checklist: [
+        { id: 'SFX-005-Q2', respondida: false, cita: null },
+        { id: 'SFX-005-Q1', respondida: true, cita: { turno: 2, texto: 'Sí, respira' } },
+      ],
+      dictados_quitados: [{ tipo: 'telefono', valor: '55501234' }, { tipo: 'patente', valor: 'ZA345BD' }],
+    }
+
+    const sugerencia = structuredClone(corrientes)
+    sugerencia.datos_dictados = guardados.dictados_quitados!.map((dato) => ({
+      ...dato, cita: { turno: 1, texto: dato.valor },
+    }))
+
+    expect(mismosAjustes(enviados, guardados, sugerencia)).toBe(true)
+    expect(mismosAjustes(enviados, { ...guardados, prioridad: 'P1' }, sugerencia)).toBe(false)
+    expect(mismosAjustes(enviados, { ...guardados, dictados_quitados: [] }, sugerencia)).toBe(false)
+  })
+
+  test('una lista vacía de marcas o dictados equivale a dejarla sin mandar', () => {
+    expect(mismosAjustes({ checklist: [] }, { dictados_quitados: [] }, corrientes)).toBe(true)
+    expect(mismosAjustes({}, { checklist: [], dictados_quitados: [] }, corrientes)).toBe(true)
+  })
+
+  test('se ignoran los espacios de los bordes en el valor del dictado quitado', () => {
+    const sugerencia = structuredClone(corrientes)
+    const patente = { tipo: 'patente', valor: 'ZA345BD' } as const
+    sugerencia.datos_dictados.push({ ...patente, cita: { turno: 1, texto: patente.valor } })
+
+    expect(mismosAjustes(
+      { dictados_quitados: [{ ...patente, valor: ' ZA345BD ' }] },
+      { dictados_quitados: [patente] },
+      sugerencia,
+    )).toBe(true)
+  })
+})
+
+describe('La ubicación del borrador', () => {
+  test.each([
+    { campo: 'calle', valor: 'Av. Córdoba' },
+    { campo: 'altura', valor: '1550' },
+    { campo: 'esquinaDos', valor: 'Callao' },
+    { campo: 'esquinaUno', valor: '' },
+  ] as const)('cambia si se edita $campo y vuelve a coincidir si se restaura', ({ campo, valor }) => {
+    const inicial = iniciarBorrador(corrientes, catalogo)
+    const editado = editarCampo(inicial, campo, valor)
+
+    expect(ubicacionCambiada(editado)).toBe(true)
+    expect(ubicacionCambiada(editarCampo(editado, campo, inicial.campos[campo]))).toBe(false)
+  })
+
+  test('la misma altura escrita con espacios y un cambio de prioridad dejan la ubicación igual', () => {
+    const inicial = iniciarBorrador(corrientes, catalogo)
+
+    expect(ubicacionCambiada(inicial)).toBe(false)
+    expect(ubicacionCambiada(editarCampo(inicial, 'altura', ' 1540 '))).toBe(false)
+    expect(ubicacionCambiada(editarCampo(inicial, 'prioridad', 'P2'))).toBe(false)
+    expect(ubicacionCambiada(iniciarBorrador(sanJuan, catalogo))).toBe(false)
   })
 })
 

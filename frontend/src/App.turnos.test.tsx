@@ -7,7 +7,10 @@ import './pruebas/dom'
 import { respuestas } from './pruebas/respuestas'
 import { contestar, contestacionPendiente, simularServicio } from './pruebas/servicio'
 
-const { llamadaPorTurnos, llamadaPorTurnosConAltura, llamadaDelDataset } = respuestas
+const {
+  llamadaPorTurnos, llamadaPorTurnosConAltura, llamadaDelDataset,
+  llamadaPorTurnosDerivada, llamadaPorTurnosCartaDesactualizada,
+} = respuestas
 const identificador = llamadaPorTurnos.llamada_id
 const sumaDeTurno = `POST /api/llamadas/${identificador}/turnos`
 
@@ -72,6 +75,29 @@ describe('Sumar lo que se dijo después', () => {
 
     await screen.findByText('Se sumó un turno. Sugerencia actualizada.')
     expect(campoPrioridad().value).toBe('P2')
+  })
+
+  test('Un turno puede dejar pendiente la carta sin que el operador edite la sugerencia', async () => {
+    const servicio = abrirLlamada(llamadaPorTurnosDerivada)
+    const pedido = `POST /api/llamadas/${llamadaPorTurnosDerivada.llamada_id}/turnos`
+    servicio.responder(pedido, llamadaPorTurnosCartaDesactualizada)
+    const operador = userEvent.setup()
+    await screen.findByRole('button', { name: 'Actualizar carta', description: /Está al día\.$/ })
+    expect(campoPrioridad().value).toBe('P1')
+    expect(campoAltura().value).toBe('')
+
+    await operador.type(textoDelTurno(), intercambio)
+    await operador.click(screen.getByRole('button', { name: 'Sumar a la llamada' }))
+
+    await screen.findByText(
+      'Se sumó un turno. Sugerencia actualizada. La carta derivada no tiene lo último: revisá y actualizala.',
+      { selector: '[aria-live="polite"] span' },
+    )
+    expect(servicio.pedidosA(pedido).map(({ cuerpo }) => cuerpo)).toEqual([{ turno: { texto: intercambio, hablante: null } }])
+    expect(screen.getByText('Hay cambios que la carta no tiene.')).toBeTruthy()
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Actualizar carta' }).disabled).toBe(false)
+    expect(campoPrioridad().value).toBe('P1')
+    expect(campoAltura().value).toBe('2100')
   })
 
   test('Sumar un turno conserva toda la ubicación corregida y muestra la nueva dirección sugerida', async () => {

@@ -1,5 +1,8 @@
 """El recorrido de una llamada: analizar, consultar al modelo, esperar al operador y derivar.
 
+Después de derivar, la llamada vuelve a esperar al operador: puede sumar turnos (se vuelve a
+analizar) y actualizar la carta, hasta que la termina.
+
 Los nodos sólo conectan las funciones de `flujo.py`; la lógica no vive acá. El estado guarda datos
 planos (lo que se puede escribir en JSON): cada nodo los valida al entrar y los aplana al salir.
 """
@@ -13,7 +16,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 
 from copiloto import flujo
-from copiloto.esquemas import Ajustes, Prioridad, Proveedor, Sugerencia, Turno, valor_de
+from copiloto.esquemas import Ajustes, Carta, Prioridad, Proveedor, Sugerencia, Turno, valor_de
 from copiloto.modelo import Modelo
 from copiloto.turnos import separar_hablantes
 
@@ -29,6 +32,9 @@ class Estado(TypedDict, total=False):
     prioridad_previa: str | None
     sugerencia: dict[str, object]
     falta_el_modelo: bool
+    # Lo último que hizo el operador. Decide el paso siguiente: los ajustes quedan guardados
+    # después de derivar, así que su presencia no dice qué se pidió ahora.
+    respuesta: Literal["turno", "ajustes", "terminar"]
     ajustes: dict[str, object]
     carta: dict[str, object]
 
@@ -36,6 +42,7 @@ class Estado(TypedDict, total=False):
 class _RespuestaOperador(TypedDict, total=False):
     turno: dict[str, object]
     ajustes: dict[str, object]
+    terminar: bool
 
 
 def proveedor_efectivo(proveedor: object, *, hay_modelo: bool) -> Proveedor:
@@ -100,22 +107,44 @@ def esperar_operador(estado: Estado) -> Estado:
         return {
             "turnos": [*estado["turnos"], *(t.model_dump(mode="json") for t in nuevos)],
             "prioridad_previa": previa.value if previa else None,
+            "respuesta": "turno",
         }
-    return {"ajustes": respuesta["ajustes"]}
+    if respuesta.get("terminar"):
+        return {"respuesta": "terminar"}
+    return {"ajustes": respuesta["ajustes"], "respuesta": "ajustes"}
 
 
-def despues_del_operador(estado: Estado) -> Literal["analizar", "derivar"]:
+def despues_del_operador(estado: Estado) -> str:
+    """El nodo que sigue: analizar, derivar o el final del recorrido (`END`)."""
+    match estado.get("respuesta"):
+        case "terminar":
+            return END
+        case "ajustes":
+            return "derivar"
+        case "turno":
+            return "analizar"
+    # Puntos guardados antes de que existiera la marca: sólo se derivaba una vez.
     return "derivar" if "ajustes" in estado else "analizar"
 
 
 def derivar(estado: Estado) -> Estado:
+    ahora = datetime.now(UTC)
     carta = flujo.derivar(
         estado["llamada_id"],
         Sugerencia.model_validate(estado["sugerencia"]),
         Ajustes.model_validate(estado["ajustes"]),
-        datetime.now(UTC),
+        ahora,
         turnos=[Turno.model_validate(turno) for turno in estado["turnos"]],
     )
+    if (previa := estado.get("carta")) is not None:
+        # Una actualización: la carta conserva la hora en que se derivó por primera vez. Si no
+        # cambia nada, queda la misma, también su hora.
+        anterior = Carta.model_validate(previa)
+        if carta.mismo_contenido(anterior):
+            return {"carta": previa}
+        carta = Carta.model_validate(
+            {**carta.model_dump(), "derivada_en": anterior.derivada_en, "actualizada_en": ahora}
+        )
     return {"carta": carta.model_dump(mode="json")}
 
 
@@ -130,5 +159,6 @@ def construir(modelo: Modelo | None, espera_s: float) -> StateGraph[Estado]:
     grafo.add_edge("analizar", "consultar_modelo")
     grafo.add_edge("consultar_modelo", "esperar_operador")
     grafo.add_conditional_edges("esperar_operador", despues_del_operador)
-    grafo.add_edge("derivar", END)
+    # Derivar no cierra la llamada: el operador sigue en la línea con el protocolo.
+    grafo.add_edge("derivar", "esperar_operador")
     return grafo

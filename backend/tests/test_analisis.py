@@ -490,7 +490,7 @@ def test_la_llamada_pendiente_del_modelo_se_rescata_si_el_servicio_vuelve_en_moc
         )
         final = despues.completar_analisis(inicial.llamada_id)
         assert despues.completar_analisis(inicial.llamada_id) == final
-        assert despues.derivar(inicial.llamada_id, Ajustes()).estado == "derivada"
+        assert despues.derivar(inicial.llamada_id, Ajustes()).carta is not None
 
     assert not modelo.pedidos
     assert final.estado == "esperando_operador"
@@ -589,7 +589,7 @@ def test_al_reiniciar_una_llamada_a_medias_se_respeta_el_proveedor_guardado(
     [
         ("analizando", False),
         ("esperando_operador", False),
-        ("derivada", False),
+        ("terminada", False),
         ("esperando_operador", True),
     ],
 )
@@ -639,7 +639,7 @@ def test_se_pueden_retomar_llamadas_guardadas_con_el_grafo_anterior(
             hilo,
             interrupt_after=["analizar"] if pendiente else None,
         )
-        if estado_anterior == "derivada":
+        if estado_anterior == "terminada":
             compilado.invoke(Command(resume={"ajustes": {}}), hilo)
 
     with abrir_servicio() as servicio:
@@ -662,7 +662,7 @@ def test_se_pueden_retomar_llamadas_guardadas_con_el_grafo_anterior(
         if llamada.estado == "esperando_operador":
             llamada = servicio.derivar(llamada_id, Ajustes())
 
-    assert llamada.estado == "derivada"
+    assert llamada.carta is not None
     assert llamada.carta.prioridad.fuente == "dataset"
 
 
@@ -673,7 +673,7 @@ def test_activar_el_modelo_permite_derivar_una_llamada_que_ya_esperaba(abrir_ser
     modelo = ModeloGuionado()
     with abrir_servicio(modelo) as despues:
         assert despues.completar_analisis(inicial.llamada_id) == inicial
-        assert despues.derivar(inicial.llamada_id, Ajustes()).estado == "derivada"
+        assert despues.derivar(inicial.llamada_id, Ajustes()).carta is not None
     assert not modelo.pedidos
 
 
@@ -698,7 +698,7 @@ def test_dos_pedidos_simultaneos_completan_la_llamada_una_sola_vez(abrir_servici
             assert servicio.consultar(inicial.llamada_id) == inicial
             with pytest.raises(LlamadaNoEsperaOperador):
                 servicio.sumar_turno(inicial.llamada_id, Turno(texto="Hay humo."))
-            assert servicio.derivar(lista.llamada_id, Ajustes()).estado == "derivada"
+            assert servicio.derivar(lista.llamada_id, Ajustes()).carta is not None
         finally:
             terminar.set()
         assert primero.result(timeout=5) == segundo.result(timeout=5)
@@ -1107,3 +1107,34 @@ def test_segunda_lectura_ausente_en_mock_y_tras_rescatar_el_analisis(abrir_servi
         final = servicio.completar_analisis(inicial.llamada_id)
     assert final.sugerencia.direccion_alternativa is None
     assert len(modelo.pedidos) == (0 if en_mock else 1)
+
+
+def test_con_modelo_un_turno_despues_de_derivar_se_analiza_y_la_carta_espera_la_actualizacion(
+    abrir_servicio,
+):
+    urgente = json.dumps({**RESPUESTA, "prioridad": "P1"})
+    modelo = ModeloGuionado(CLASIFICACION, CHECKLIST, urgente, CHECKLIST)
+    with abrir_servicio(modelo) as servicio:
+        inicial = servicio.completar_analisis(alta_001(servicio).llamada_id)
+        derivada = servicio.derivar(inicial.llamada_id, Ajustes())
+        assert derivada.carta.prioridad.valor == "P2"
+
+        ampliada = servicio.sumar_turno(
+            inicial.llamada_id, Turno(texto="Ahora hay una persona inconsciente.")
+        )
+        assert ampliada.estado == "analizando"
+        assert ampliada.carta == derivada.carta
+        with pytest.raises(LlamadaNoEsperaOperador):
+            servicio.actualizar(inicial.llamada_id, Ajustes())
+
+        analizada = servicio.completar_analisis(inicial.llamada_id)
+        assert analizada.estado == "esperando_operador"
+        assert analizada.sugerencia.prioridad.valor == "P1"
+        assert analizada.carta == derivada.carta
+
+        # Con los mismos ajustes (ninguno), la carta toma la sugerencia nueva: el operador la vio.
+        actualizada = servicio.actualizar(inicial.llamada_id, Ajustes())
+
+    assert actualizada.carta.prioridad.valor == "P1"
+    assert actualizada.carta.prioridad.fuente == "modelo"
+    assert actualizada.carta.derivada_en == derivada.carta.derivada_en

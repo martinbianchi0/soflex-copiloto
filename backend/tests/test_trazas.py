@@ -147,7 +147,7 @@ def test_el_contexto_del_grafo_llega_a_cada_pedido_del_modelo(monkeypatch, tmp_p
         assert valor_de(analisis.sugerencia.subtipo) == "SFX-001"
         llamadas.sumar_turno(llamada_id, Turno(texto="Ya salieron todos."))
         llamadas.completar_analisis(llamada_id)
-        assert llamadas.derivar(llamada_id, Ajustes()).estado == "derivada"
+        assert llamadas.derivar(llamada_id, Ajustes()).carta is not None
     finally:
         llamadas.cerrar()
 
@@ -263,7 +263,7 @@ def _recorrer_app(configuracion: Configuracion, *, con_trazas: bool = False):
         assert analisis.status_code == 200
         derivacion = cliente.post(f"{ruta}/derivar", json={})
         assert derivacion.status_code == 200
-        assert derivacion.json()["estado"] == "derivada"
+        assert derivacion.json()["carta"] is not None
         antes_del_cierre = monotonic()
     assert monotonic() - antes_del_cierre < 3
     return alta.json()["sugerencia"], analisis.json()["sugerencia"]
