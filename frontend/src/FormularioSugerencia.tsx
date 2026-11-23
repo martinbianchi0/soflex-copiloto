@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent, ReactNode } from 'react'
-import { citaDato, idDictado, nombresTiposHecho, textoOrigen, valorDato } from './api'
+import { citaDato, explicacionOrigen, idDictado, nombresTiposHecho, textoOrigen, valorDato } from './api'
 import type { Ajustes, Catalogo, Criterio, Dato, DetalleValidacion, DireccionAlternativa, Pregunta, Prioridad, Sugerencia, TipoHecho, Turno } from './api'
 import { actualizarBorrador, avisosVigentes, editarCampo, iniciarBorrador, leerAltura, usarDireccion } from './borradorSugerencia'
 import type { CamposSugerencia } from './borradorSugerencia'
@@ -62,10 +62,10 @@ function CampoSugerido({ nombre, etiqueta, dato, opcional, nota, errores = [], e
   const descripcion = [origen, idCita, idNota, error, errorCompartido].filter(Boolean).join(' ')
 
   return (
-    <div className="campo">
+    <div className="campo" data-origen={dato.origen}>
       <div className="etiqueta-campo">
         <label htmlFor={nombre}>{etiqueta}{opcional && <> <span className="opcional">(opcional)</span></>}</label>
-        <small id={origen} className="origen">{textoOrigen(dato)}</small>
+        <small id={origen} className={`origen origen-${dato.origen}`} title={explicacionOrigen(dato)}>{textoOrigen(dato)}</small>
       </div>
       <div>
         {dibujarControl({ id: nombre, name: nombre, 'aria-describedby': descripcion, 'aria-invalid': error || errorCompartido ? true : undefined })}
@@ -73,6 +73,23 @@ function CampoSugerido({ nombre, etiqueta, dato, opcional, nota, errores = [], e
         {nota && <small id={idNota} className="cita">{nota}</small>}
         {error && <p id={error} className="error-campo">{errores.join(' ')}</p>}
       </div>
+    </div>
+  )
+}
+
+// El título de la sugerencia y, al lado, de dónde puede salir cada dato y cuánto respaldo tiene.
+// Va escrito, no sólo con color. El título visible repite la leyenda del grupo, que es la que
+// leen los lectores de pantalla.
+function CabeceraDeLaSugerencia() {
+  return (
+    <div className="cabecera-ficha">
+      <span className="titulo-ficha" aria-hidden="true">Sugerencia</span>
+      <ul className="leyenda-origenes" aria-label="De dónde sale cada dato">
+        <li><span className="origen origen-dicho">Dicho</span> lo dijo el llamante</li>
+        <li><span className="origen origen-inferido">Inferido</span> lo completó el sistema: confirmalo</li>
+        <li><span className="origen origen-falta">Falta</span> nadie lo dijo</li>
+        <li><span className="origen origen-operador">Del operador</span> lo cambiaste vos</li>
+      </ul>
     </div>
   )
 }
@@ -285,6 +302,7 @@ export default function FormularioSugerencia({
         onFocus={(evento) => setEnFoco(evento.target.id)} onBlur={() => setEnFoco('')}>
         <fieldset disabled={edicionBloqueada}>
           <legend>Sugerencia</legend>
+          <CabeceraDeLaSugerencia />
           {avisoDuplicados}
           <AvisosSugerencia avisos={avisosVigentes(borrador, ubicacionCambiada)}
             alternativa={coincideConAlternativa ? null : alternativa}
