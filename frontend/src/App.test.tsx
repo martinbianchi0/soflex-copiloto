@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, render, screen, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test } from 'vitest'
 import App from './App'
@@ -178,14 +178,14 @@ describe('La sugerencia', () => {
     abrirLlamada(llamada)
 
     const faltante = await screen.findByLabelText(campo)
-    expect(document.activeElement).toBe(faltante)
+    await waitFor(() => expect(document.activeElement).toBe(faltante))
   })
 
   test('Si la sugerencia está completa el foco queda en la transcripción', async () => {
     abrirLlamada()
 
     const transcripcion = await screen.findByRole('region', { name: 'Transcripción de la llamada' })
-    expect(document.activeElement).toBe(transcripcion)
+    await waitFor(() => expect(document.activeElement).toBe(transcripcion))
   })
 
   test('El aviso de dirección que no cierra aparece arriba de los campos de la sugerencia', async () => {

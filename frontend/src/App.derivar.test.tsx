@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test } from 'vitest'
 import App from './App'
@@ -255,7 +255,7 @@ describe('Derivar', () => {
     await operador.click(botonDerivar())
 
     const titulo = await screen.findByRole('heading', { name: 'Carta de Llamada' })
-    expect(document.activeElement).toBe(titulo)
+    await waitFor(() => expect(document.activeElement).toBe(titulo))
     expect(screen.queryByRole('group', { name: 'Sugerencia' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Derivar Carta de Llamada' })).toBeNull()
     for (const dato of ['Av. Corrientes', '1540', 'Montevideo', 'Parana', 'Incendio o rescate', protocoloIncendio.nombre, 'P1 · Riesgo de vida ahora']) {
