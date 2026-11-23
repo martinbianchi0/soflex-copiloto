@@ -14,7 +14,7 @@ def test_texto_del_sistema():
 
     Si cambia, hay que volver a medir.
     """
-    huella = hashlib.sha256(segunda_lectura.SISTEMA_CON_DATOS.encode("utf-8")).hexdigest()
+    huella = hashlib.sha256(segunda_lectura.SISTEMA.encode("utf-8")).hexdigest()
     assert huella == "301b0bfa22aeb387f233aee5952bd081f294221286d30e9ec32450705cd86cc2"
 
 

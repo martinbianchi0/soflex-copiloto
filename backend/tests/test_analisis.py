@@ -881,7 +881,7 @@ def test_la_segunda_lectura_va_despues_del_protocolo_y_queda_en_el_historial(abr
     clasificar, protocolo, direccion = modelo.pedidos
     assert "Tipo de hecho propuesto:" in protocolo[0]
     assert clasificar[2] == protocolo[2] == direccion[2]
-    assert direccion[0] == segunda_lectura.SISTEMA_CON_DATOS
+    assert direccion[0] == segunda_lectura.SISTEMA
     assert TEXTO_CON_DOS_DIRECCIONES in direccion[1]
     assert "¿Dónde es la emergencia?" not in clasificar[1]
 

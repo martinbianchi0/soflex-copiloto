@@ -98,7 +98,7 @@ class Cronometro:
         self.segundos: float | None = None
 
     def __call__(self, sistema: str, usuario: str, vence: float) -> str:
-        if sistema != segunda_lectura.SISTEMA_CON_DATOS:
+        if sistema != segunda_lectura.SISTEMA:
             return self._modelo(sistema, usuario, vence)
         inicio = perf_counter()
         try:
