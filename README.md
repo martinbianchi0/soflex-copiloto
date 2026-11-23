@@ -10,7 +10,7 @@ Prototipo que asiste al operador de una sala de emergencias: lee la transcripci�
 docker compose up --build
 ```
 
-El panel queda en <http://localhost:8000>. Hace falta Docker con Compose 2.24 o más nuevo. No hace falta `.env`: sin configuración corre en modo `mock`, que no usa red ni claves. Las variables que se pueden cambiar están en `.env.example`.
+El panel queda en <http://localhost:8000>. Hace falta Docker con Compose 2.24 o más nuevo. No hace falta `.env`: sin configuración corre en modo `mock`, que no usa red ni claves. Las variables que se pueden cambiar están en `.env.example`. Compose publica el puerto 8000 en todas las interfaces de la máquina y la API no pide autenticación: es para una máquina de desarrollo o una red de confianza.
 
 Para probarlo: en "Cargar un ejemplo", elegir *Choque con moto · la llamada llega de a un intercambio*, tildar "Reproducir de a un intercambio" y apretar "Analizar llamada". La llamada llega de a poco: la altura aparece cuando el operador la pregunta. Mientras tanto se puede corregir la sugerencia, elegir el subtipo para marcar su protocolo y derivar; lo que el operador cambia no se pisa.
 
@@ -119,7 +119,7 @@ Cada intercambio vuelve a analizar la llamada entera, así que tarda más a medi
 - **El operador no despacha.** Revisa, completa y deriva la Carta de Llamada; el despacho es de otro sistema.
 - **Todo lo que propone el sistema es una sugerencia.** El operador revisa la ubicación, el tipo, la prioridad y las preguntas respondidas, y al derivar los da por buenos; la carta dice de dónde salió cada dato.
 - **El catálogo tiene los 30 protocolos del dataset provisto, uno por subtipo.** Un hecho que no está ahí queda con su categoría y sin protocolo. Su contenido no está validado por una autoridad médica ni operativa.
-- **Un puesto, un proceso.** No hay usuarios ni permisos, y la garantía de que una llamada se deriva una sola vez vale con un solo proceso del servicio.
+- **Un puesto, un proceso.** No hay usuarios ni permisos: quien llega al puerto del servicio puede leer y derivar cualquier llamada. La garantía de que una llamada se deriva una sola vez vale con un solo proceso del servicio.
 
 ## Qué haría con más tiempo
 
