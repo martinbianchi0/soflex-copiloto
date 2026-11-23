@@ -10,6 +10,8 @@ def con_panel(tmp_path):
     panel = tmp_path / "panel"
     panel.mkdir()
     (panel / "index.html").write_text("<title>Copiloto</title>", encoding="utf-8")
+    (panel / "assets").mkdir()
+    (panel / "assets" / "index-abc123.js").write_text("// panel", encoding="utf-8")
     configuracion = Configuracion(sqlite_path=tmp_path / "llamadas.sqlite", static_dir=panel)
     with TestClient(crear_app(configuracion)) as cliente:
         yield cliente
@@ -20,6 +22,18 @@ def test_la_raiz_sirve_el_panel_compilado(con_panel):
 
     assert respuesta.status_code == 200
     assert "<title>Copiloto</title>" in respuesta.text
+
+
+def test_la_pagina_se_vuelve_a_pedir_siempre_y_los_archivos_con_huella_no(con_panel):
+    pagina = con_panel.get("/")
+    sin_cambios = con_panel.get("/", headers={"If-None-Match": pagina.headers["etag"]})
+    archivo = con_panel.get("/assets/index-abc123.js")
+
+    assert pagina.headers["cache-control"] == "no-cache"
+    assert sin_cambios.status_code == 304
+    assert sin_cambios.headers["cache-control"] == "no-cache"
+    assert archivo.status_code == 200
+    assert "cache-control" not in archivo.headers
 
 
 def test_el_panel_no_tapa_la_api(con_panel):
