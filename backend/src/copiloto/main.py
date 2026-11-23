@@ -1,12 +1,14 @@
 """La aplicación web: la API vive bajo `/api` y, si está compilado, el panel se sirve en `/`."""
 
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.types import Scope
 
 from copiloto import callejero, catalogo, dataset, ejemplos, mapa
 from copiloto.catalogo import Catalogo, SubtipoInvalido
@@ -36,6 +38,25 @@ from copiloto.modelo import de_ollama
 from copiloto.trazas import callbacks_de_trazas
 
 
+class Panel(StaticFiles):
+    """Los archivos del panel compilado."""
+
+    def file_response(
+        self,
+        full_path: str | os.PathLike[str],
+        stat_result: os.stat_result,
+        scope: Scope,
+        status_code: int = 200,
+    ) -> Response:
+        respuesta = super().file_response(full_path, stat_result, scope, status_code)
+        if os.fspath(full_path).endswith(".html"):
+            # La página se vuelve a pedir siempre: sin esto, el navegador puede seguir mostrando
+            # el panel anterior después de reconstruir la imagen. Los demás archivos llevan su
+            # huella en el nombre.
+            respuesta.headers["Cache-Control"] = "no-cache"
+        return respuesta
+
+
 def crear_app(configuracion: Configuracion | None = None) -> FastAPI:
     configuracion = configuracion or Configuracion()
 
@@ -63,7 +84,7 @@ def crear_app(configuracion: Configuracion | None = None) -> FastAPI:
     app = FastAPI(lifespan=ciclo_de_vida, docs_url=None, redoc_url=None, openapi_url=None)
     app.mount("/api", crear_api(app, configuracion))
     if configuracion.static_dir is not None:
-        app.mount("/", StaticFiles(directory=configuracion.static_dir, html=True), name="panel")
+        app.mount("/", Panel(directory=configuracion.static_dir, html=True), name="panel")
     return app
 
 
