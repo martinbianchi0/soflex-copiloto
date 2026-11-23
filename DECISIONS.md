@@ -217,6 +217,7 @@ Los números están en el `README.md` y el detalle por llamada, en `evaluacion/`
 - **Lo que entra se valida antes de tocar el flujo.** Los esquemas rechazan campos desconocidos, textos vacíos y prioridades fuera de P1–P4. Una llamada puede tener hasta 500 turnos y 50.000 caracteres en total, y cada turno hasta 20.000. El total es, según una estimación, unas cinco veces una llamada de diez minutos: el tope acota lo que tarda el análisis. La regla que depende de la sugerencia (lo mínimo para derivar) también se comprueba antes de retomar el grafo. En todos los casos la respuesta es 422 y la llamada sigue esperando al operador.
 - **El operador manda sólo lo que cambia, con los valores a secas.** Lo que no manda queda como lo sugirió el sistema. La ubicación se manda entera, y el servicio compara cada parte con la sugerida para decidir qué conserva su origen y qué pasa a ser del operador. Del checklist se mandan sólo las preguntas cuya marca cambió; una marca sobre una pregunta que no es del protocolo de la carta se rechaza con 422.
 - **Los errores dicen qué pasó:** 404 si la llamada no existe y 409 si no está esperando al operador (todavía se analiza, o ya se derivó).
+- **No hay autenticación.** Quien llega al puerto puede leer, sumar turnos y derivar cualquier llamada con su identificador, y Compose publica el puerto 8000 en todas las interfaces de la máquina. Alcanza para un prototipo en una máquina de desarrollo; en una sala, el servicio va detrás de la autenticación y de la red de la sala.
 
 ## Panel
 
