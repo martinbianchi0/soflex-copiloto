@@ -539,7 +539,7 @@ button:disabled { border-color: #aebbc8; color: #46596c; background: #e9eef3; cu
   .bloque .hecho > .campo { display: block; grid-row: auto; }
   .ubicacion .mini-mapa { inline-size: 100%; block-size: 9.5rem; }
   .protocolo { grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); column-gap: 1rem; }
-  .protocolo > h3 { grid-column: 1 / -1; }
+  .protocolo > :is(h3, .sin-protocolo) { grid-column: 1 / -1; }
 }
 
 /* Con lugar, el plano va al lado de los campos y toma su alto: no queda espacio vacío. */
