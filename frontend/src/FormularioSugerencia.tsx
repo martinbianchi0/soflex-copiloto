@@ -386,7 +386,8 @@ export default function FormularioSugerencia({
           <h3 id="titulo-protocolo">Protocolo</h3>
           {!subtipo && (
             <p className="sin-protocolo" id="ayuda-subtipo">
-              Elegí un subtipo para ver las instrucciones y las preguntas.
+              <strong>Falta el subtipo.</strong> Las preguntas para el llamante y las instrucciones de pre-arribo son
+              las de cada subtipo: elegilo en «Hecho y prioridad» para verlas.
             </p>
           )}
           <DetallesSugerencia checklist={checklist} instrucciones={protocolo?.instrucciones ?? (catalogo ? [] : sugerencia.instrucciones)}

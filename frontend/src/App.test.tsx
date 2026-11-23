@@ -269,6 +269,20 @@ describe('La sugerencia', () => {
     expect(screen.queryByRole('heading', { name: 'Leele al llamante, textual' })).toBeNull()
   })
 
+  test('Sin subtipo, el bloque del protocolo dice que falta y lo explica', async () => {
+    abrirLlamada()
+    const operador = userEvent.setup()
+    const subtipo = await screen.findByRole('combobox', { name: 'Subtipo (opcional)' })
+    const protocolo = within(screen.getByRole('region', { name: 'Protocolo' }))
+    expect(protocolo.queryByText('Falta el subtipo.')).toBeNull()
+
+    await operador.selectOptions(subtipo, 'Sin subtipo')
+
+    expect(protocolo.getByText('Falta el subtipo.')).toBeTruthy()
+    expect(subtipo.getAttribute('aria-describedby')).toContain('ayuda-subtipo')
+    expect(document.getElementById('ayuda-subtipo')?.textContent).toMatch(/elegilo en «Hecho y prioridad»/)
+  })
+
   test('La pregunta respondida por el servicio llega tildada con su cita', async () => {
     abrirLlamada()
 
