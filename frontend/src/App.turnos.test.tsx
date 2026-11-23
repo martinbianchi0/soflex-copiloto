@@ -159,7 +159,7 @@ describe('Sumar lo que se dijo después', () => {
     await operador.click(screen.getByRole('button', { name: 'Sumar a la llamada' }))
 
     await screen.findByText('Se sumó un turno. Sugerencia actualizada.')
-    expect(document.activeElement).toBe(textoDelTurno())
+    await waitFor(() => expect(document.activeElement).toBe(textoDelTurno()))
   })
 
   test('Al llegar la sugerencia actualizada se conserva el foco donde lo dejó el operador', async () => {
