@@ -1,6 +1,7 @@
 {
  "llamada_id": "llamada-sin-datos",
  "estado": "esperando_operador",
+ "proveedor": "mock",
  "turnos": [
   {
    "texto": "Hola, ¿me escuchan?",

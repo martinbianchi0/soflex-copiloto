@@ -214,6 +214,7 @@ def llamada(sugerencia, **cambios):
     base = {
         "llamada_id": "abc",
         "estado": "esperando_operador",
+        "proveedor": "mock",
         "turnos": TURNOS,
         "sugerencia": sugerencia,
         "carta": None,

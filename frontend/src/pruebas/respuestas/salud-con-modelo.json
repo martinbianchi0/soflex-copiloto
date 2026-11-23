@@ -1,0 +1,9 @@
+{
+ "status": "ok",
+ "llm_provider": "ollama",
+ "modelo": "qwen3.5:4b-q4_K_M",
+ "proveedores": [
+  "mock",
+  "ollama"
+ ]
+}

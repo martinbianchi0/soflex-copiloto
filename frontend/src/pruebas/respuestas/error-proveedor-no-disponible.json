@@ -1,0 +1,12 @@
+{
+ "detail": [
+  {
+   "type": "value_error",
+   "loc": [
+    "body",
+    "proveedor"
+   ],
+   "msg": "Este servicio no tiene un modelo configurado."
+  }
+ ]
+}

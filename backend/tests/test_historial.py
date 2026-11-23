@@ -43,6 +43,7 @@ def test_los_eventos_salen_de_los_puntos_guardados(sugerencia, con_escrituras):
         {
             "llamada_id": "abc",
             "estado": "derivada",
+            "proveedor": "ollama",
             "turnos": TURNOS,
             "sugerencia": sugerencia,
             "carta": carta,

@@ -23,7 +23,7 @@ from copiloto.esquemas import (
     Turno,
     UbicacionAjustada,
 )
-from copiloto.llamadas import LlamadaNoEsperaOperador, Llamadas
+from copiloto.llamadas import LlamadaNoEsperaOperador, Llamadas, _hilo
 from copiloto.modelo import ModeloNoDisponible
 from copiloto.turnos import separar_hablantes
 
@@ -485,17 +485,103 @@ def test_la_llamada_pendiente_del_modelo_se_rescata_si_el_servicio_vuelve_en_moc
         assert inicial.estado == "analizando"
 
     with abrir_servicio() as despues:
-        assert despues.consultar(inicial.llamada_id) == inicial
+        assert despues.consultar(inicial.llamada_id) == inicial.model_copy(
+            update={"proveedor": "mock"}
+        )
         final = despues.completar_analisis(inicial.llamada_id)
         assert despues.completar_analisis(inicial.llamada_id) == final
         assert despues.derivar(inicial.llamada_id, Ajustes()).estado == "derivada"
 
     assert not modelo.pedidos
     assert final.estado == "esperando_operador"
+    assert final.proveedor == "mock"
     simulada = flujo.ajustar_al_catalogo(flujo.analizar(final.turnos))
     assert final.sugerencia == simulada.model_copy(
         update={"avisos": [*simulada.avisos, aviso_rescate("el servicio está en modo mock")]}
     )
+
+
+def test_una_llamada_ollama_se_reanaliza_con_reglas_si_el_servicio_vuelve_en_mock(abrir_servicio):
+    with abrir_servicio(ModeloGuionado(CLASIFICACION, CHECKLIST)) as antes:
+        inicial = antes.iniciar([Turno(texto=TEXTO_001)], proveedor="ollama")
+        lista = antes.completar_analisis(inicial.llamada_id)
+        assert lista.estado == "esperando_operador"
+        assert lista.sugerencia.prioridad.fuente == "modelo"
+
+    nuevo = Turno(texto="¿Sigue ahí?", hablante="operador")
+    with abrir_servicio() as despues:
+        assert despues.consultar(inicial.llamada_id).proveedor == "mock"
+        ampliada = despues.sumar_turno(inicial.llamada_id, nuevo)
+
+    assert ampliada.estado == "esperando_operador"
+    assert ampliada.proveedor == "mock"
+    assert ampliada.turnos == [*inicial.turnos, nuevo]
+    assert ampliada.sugerencia.prioridad.fuente == "dataset"
+
+    with abrir_servicio(ModeloGuionado()) as con_modelo:
+        assert con_modelo.consultar(inicial.llamada_id).proveedor == "ollama"
+
+
+@pytest.mark.parametrize("proveedor", ["mock", "ollama"])
+def test_una_llamada_sin_proveedor_sigue_el_modo_del_servicio(abrir_servicio, proveedor):
+    llamada_id = "llamada-sin-proveedor"
+    turnos = separar_hablantes([Turno(texto=TEXTO_001)])
+    with abrir_servicio() as anterior:
+        anterior._grafo.invoke(
+            {
+                "llamada_id": llamada_id,
+                "turnos": [turno.model_dump(mode="json") for turno in turnos],
+            },
+            _hilo(llamada_id),
+        )
+
+    modelo = ModeloGuionado(CLASIFICACION, CHECKLIST) if proveedor == "ollama" else None
+    nuevo = Turno(texto="¿Sigue ahí?", hablante="operador")
+    with abrir_servicio(modelo) as servicio:
+        assert servicio.consultar(llamada_id).proveedor == proveedor
+        ampliada = servicio.sumar_turno(llamada_id, nuevo)
+        assert ampliada.proveedor == proveedor
+        assert ampliada.turnos == [*turnos, nuevo]
+        if modelo is None:
+            assert ampliada.estado == "esperando_operador"
+            assert ampliada.sugerencia.prioridad.fuente == "dataset"
+        else:
+            assert ampliada.estado == "analizando"
+            assert ampliada.sugerencia.prioridad == Falta()
+            assert not modelo.pedidos
+            final = servicio.completar_analisis(llamada_id)
+            assert final.estado == "esperando_operador"
+            assert final.sugerencia.prioridad.fuente == "modelo"
+            assert len(modelo.pedidos) == 2
+
+
+@pytest.mark.parametrize(
+    ("proveedor", "funcion", "estado"),
+    [("mock", "analizar", "esperando_operador"), ("ollama", "analizar_base", "analizando")],
+)
+def test_al_reiniciar_una_llamada_a_medias_se_respeta_el_proveedor_guardado(
+    abrir_servicio, monkeypatch, proveedor, funcion, estado
+):
+    def se_corta(_turnos):
+        raise RuntimeError("el servicio se cortó")
+
+    with abrir_servicio(ModeloGuionado(CLASIFICACION, CHECKLIST)) as antes:
+        inicial = antes.iniciar([Turno(texto=TEXTO_001)], proveedor=proveedor)
+        antes.completar_analisis(inicial.llamada_id)
+        nuevo = Turno(texto="¿Sigue ahí?", hablante="operador")
+        with monkeypatch.context() as corte:
+            corte.setattr(flujo, funcion, se_corta)
+            with pytest.raises(RuntimeError, match="se cortó"):
+                antes.sumar_turno(inicial.llamada_id, nuevo)
+
+    modelo = ModeloGuionado()
+    with abrir_servicio(modelo) as despues:
+        ampliada = despues.consultar(inicial.llamada_id)
+
+    assert ampliada.proveedor == proveedor
+    assert ampliada.estado == estado
+    assert ampliada.turnos == [*inicial.turnos, nuevo]
+    assert not modelo.pedidos
 
 
 @pytest.mark.parametrize(
@@ -514,7 +600,7 @@ def test_se_pueden_retomar_llamadas_guardadas_con_el_grafo_anterior(
     pendiente = estado_anterior == "analizando"
 
     def analizar_sin_marca(estado):
-        cambios = grafo.analizar(estado, con_modelo=pendiente)
+        cambios = grafo.analizar(estado, hay_modelo=pendiente)
         del cambios["falta_el_modelo"]
         del cambios["turnos_analizados"]
         del cambios["sugerencia"]["direccion_alternativa"]
@@ -620,7 +706,8 @@ def test_dos_pedidos_simultaneos_completan_la_llamada_una_sola_vez(abrir_servici
     assert len(pedidos) == 1
 
 
-def test_la_api_devuelve_el_analisis_en_dos_tiempos(tmp_path, monkeypatch):
+@pytest.mark.parametrize("campos", [{}, {"proveedor": "ollama"}], ids=["por_defecto", "explicito"])
+def test_la_api_devuelve_el_analisis_en_dos_tiempos(tmp_path, monkeypatch, campos):
     modelo = ModeloGuionado(CLASIFICACION, CHECKLIST)
     configuracion = Configuracion(
         llm_provider="ollama",
@@ -639,11 +726,17 @@ def test_la_api_devuelve_el_analisis_en_dos_tiempos(tmp_path, monkeypatch):
     with TestClient(main.crear_app(configuracion)) as cliente:
         health = cliente.get("/api/health")
         assert health.status_code == 200
-        assert health.json() == {"status": "ok", "llm_provider": "ollama", "modelo": "de-prueba"}
-        alta = cliente.post("/api/llamadas", json={"turnos": [{"texto": TEXTO_001}]})
+        assert health.json() == {
+            "status": "ok",
+            "llm_provider": "ollama",
+            "modelo": "de-prueba",
+            "proveedores": ["mock", "ollama"],
+        }
+        alta = cliente.post("/api/llamadas", json={"turnos": [{"texto": TEXTO_001}], **campos})
         assert alta.status_code == 201
         inicial = alta.json()
         assert inicial["estado"] == "analizando"
+        assert inicial["proveedor"] == "ollama"
         sugerencia = inicial["sugerencia"]
         assert sugerencia["ubicacion"]["calle"]["valor"] == "Av. Corrientes"
         assert sugerencia["ubicacion"]["altura"]["valor"] == 1540
@@ -755,6 +848,44 @@ def test_en_mock_el_alta_ya_espera_al_operador_y_completar_no_cambia_la_llamada(
     analisis = cliente.post(f"/api/llamadas/{inicial['llamada_id']}/analisis")
     assert analisis.status_code == 200
     assert analisis.json() == inicial
+
+
+def test_pedir_mock_en_un_servicio_con_modelo_usa_las_reglas_al_crear_y_sumar_turnos(
+    tmp_path, monkeypatch
+):
+    modelo = ModeloGuionado()
+    monkeypatch.setattr(main, "de_ollama", lambda _: modelo)
+    configuracion = Configuracion(llm_provider="ollama", sqlite_path=tmp_path / "llamadas.sqlite")
+    with TestClient(main.crear_app(configuracion)) as cliente:
+        alta = cliente.post(
+            "/api/llamadas", json={"turnos": [{"texto": TEXTO_001}], "proveedor": "mock"}
+        )
+        assert alta.status_code == 201
+        inicial = alta.json()
+        assert inicial["estado"] == "esperando_operador"
+        assert inicial["proveedor"] == "mock"
+        assert inicial["sugerencia"]["prioridad"]["fuente"] == "dataset"
+        assert not modelo.pedidos
+
+        ruta = f"/api/llamadas/{inicial['llamada_id']}"
+        nuevo = {"texto": "¿Sigue ahí?", "hablante": "operador"}
+        respuesta = cliente.post(f"{ruta}/turnos", json={"turno": nuevo})
+        assert respuesta.status_code == 200
+        ampliada = respuesta.json()
+        assert ampliada["estado"] == "esperando_operador"
+        assert ampliada["proveedor"] == "mock"
+        assert ampliada["turnos"] == [*inicial["turnos"], nuevo]
+        assert ampliada["sugerencia"]["prioridad"]["fuente"] == "dataset"
+        assert not modelo.pedidos
+
+        historial = cliente.get(f"{ruta}/historial")
+        assert historial.status_code == 200
+        assert [evento["tipo"] for evento in historial.json()["eventos"]] == [
+            "recibida",
+            "sugerencia_reglas",
+            "turno_agregado",
+            "sugerencia_reglas",
+        ]
 
 
 @pytest.mark.parametrize(

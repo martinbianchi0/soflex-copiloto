@@ -1,0 +1,57 @@
+{
+ "llamada_id": "llamada-con-modelo-analizando",
+ "estado": "analizando",
+ "proveedor": "ollama",
+ "turnos": [
+  {
+   "texto": "Guardia Urbana, buenas noches.",
+   "hablante": "operador"
+  },
+  {
+   "texto": "Estoy reportando desde Av. Juan B. Justo y Muñecas. En el carril del Metrobus se abrió un pozo de unos dos metros de diámetro con agua fluyendo abajo. Un colectivo casi se va adentro de la fosa.",
+   "hablante": "llamante"
+  }
+ ],
+ "sugerencia": {
+  "ubicacion": {
+   "calle": {
+    "origen": "dicho",
+    "valor": "Av. Juan B. Justo",
+    "cita": {
+     "turno": 1,
+     "texto": "Av. Juan B. Justo"
+    }
+   },
+   "altura": {
+    "origen": "falta"
+   },
+   "esquinas": [
+    {
+     "origen": "dicho",
+     "valor": "Muñecas",
+     "cita": {
+      "turno": 1,
+      "texto": "Muñecas"
+     }
+    }
+   ]
+  },
+  "tipo_hecho": {
+   "origen": "inferido",
+   "valor": "SERVICIOS_PUBLICOS",
+   "fuente": "reglas"
+  },
+  "subtipo": {
+   "origen": "falta"
+  },
+  "prioridad": {
+   "origen": "falta"
+  },
+  "checklist": [],
+  "instrucciones": [],
+  "avisos": [],
+  "datos_dictados": [],
+  "direccion_alternativa": null
+ },
+ "carta": null
+}

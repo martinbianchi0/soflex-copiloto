@@ -21,6 +21,7 @@ from copiloto.esquemas import (
     NuevoTurno,
     PedidoDePlano,
     Plano,
+    Proveedor,
 )
 from copiloto.flujo import DictadoInvalido, FaltanDatos, MarcaInvalida
 from copiloto.llamadas import (
@@ -28,6 +29,7 @@ from copiloto.llamadas import (
     LlamadaInexistente,
     LlamadaNoEsperaOperador,
     Llamadas,
+    ProveedorNoDisponible,
     TurnoNoEntra,
 )
 from copiloto.modelo import de_ollama
@@ -124,9 +126,15 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
         )
 
     @api.get("/health")
-    def health() -> dict[str, str | None]:
-        modelo = configuracion.ollama_model if configuracion.llm_provider == "ollama" else None
-        return {"status": "ok", "llm_provider": configuracion.llm_provider, "modelo": modelo}
+    def health() -> dict[str, str | list[Proveedor] | None]:
+        hay_modelo = configuracion.llm_provider == "ollama"
+        proveedores: list[Proveedor] = ["mock", "ollama"] if hay_modelo else ["mock"]
+        return {
+            "status": "ok",
+            "llm_provider": configuracion.llm_provider,
+            "modelo": configuracion.ollama_model if hay_modelo else None,
+            "proveedores": proveedores,
+        }
 
     @api.get("/ejemplos")
     def listar_ejemplos() -> list[Ejemplo]:
@@ -145,7 +153,11 @@ def crear_api(app: FastAPI, configuracion: Configuracion) -> FastAPI:
 
     @api.post("/llamadas", status_code=201)
     def iniciar_llamada(nueva: NuevaLlamada) -> Llamada:
-        return llamadas().iniciar(nueva.turnos)
+        try:
+            return llamadas().iniciar(nueva.turnos, nueva.proveedor)
+        except ProveedorNoDisponible as error:
+            detalle = {"type": "value_error", "loc": ["body", "proveedor"], "msg": str(error)}
+            raise RequestValidationError([detalle]) from error
 
     @api.get("/llamadas/{llamada_id}")
     def consultar_llamada(llamada_id: str) -> Llamada:

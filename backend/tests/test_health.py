@@ -8,7 +8,12 @@ def test_health_responde_ok_y_dice_el_proveedor(cliente):
     respuesta = cliente.get("/api/health")
 
     assert respuesta.status_code == 200
-    assert respuesta.json() == {"status": "ok", "llm_provider": "mock", "modelo": None}
+    assert respuesta.json() == {
+        "status": "ok",
+        "llm_provider": "mock",
+        "modelo": None,
+        "proveedores": ["mock"],
+    }
 
 
 def test_un_proveedor_desconocido_no_arranca(monkeypatch):
