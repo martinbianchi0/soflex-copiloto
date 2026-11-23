@@ -1,6 +1,7 @@
 {
  "llamada_id": "llamada-por-turnos",
  "estado": "esperando_operador",
+ "proveedor": "mock",
  "turnos": [
   {
    "texto": "911, ¿cuál es su emergencia?",

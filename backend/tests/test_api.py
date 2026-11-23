@@ -38,6 +38,7 @@ def test_iniciar_una_llamada_devuelve_la_sugerencia_y_queda_esperando(cliente):
     assert respuesta.status_code == 201
     llamada = respuesta.json()
     assert llamada["estado"] == "esperando_operador"
+    assert llamada["proveedor"] == "mock"
     assert llamada["turnos"] == TURNOS_SIN_DATOS
     sugerencia = llamada["sugerencia"]
     assert [aviso["codigo"] for aviso in sugerencia.pop("avisos")] == ["sin_calle"]
@@ -52,6 +53,22 @@ def test_iniciar_una_llamada_devuelve_la_sugerencia_y_queda_esperando(cliente):
         "direccion_alternativa": None,
     }
     assert llamada["carta"] is None
+
+
+def test_pedir_ollama_sin_modelo_devuelve_422_y_no_crea_la_llamada(cliente):
+    respuesta = cliente.post("/api/llamadas", json={**LLAMADA, "proveedor": "ollama"})
+
+    assert respuesta.status_code == 422
+    assert respuesta.json() == {
+        "detail": [
+            {
+                "type": "value_error",
+                "loc": ["body", "proveedor"],
+                "msg": "Este servicio no tiene un modelo configurado.",
+            }
+        ]
+    }
+    assert list(cliente.app.state.llamadas._grafo.checkpointer.list(None)) == []
 
 
 def test_cada_llamada_se_consulta_por_su_identificador(cliente):

@@ -88,6 +88,9 @@ class Prioridad(StrEnum):
 # ---------- La llamada: una lista de turnos ----------
 
 
+type Proveedor = Literal["mock", "ollama"]
+
+
 class Turno(Esquema):
     texto: TextoDeTurno
     # Quién habla, cuando se sabe. Lo que dice el operador no es evidencia de lo que pasó.
@@ -360,6 +363,7 @@ class Llamada(Esquema):
 
     llamada_id: Texto
     estado: Literal["en_proceso", "analizando", "esperando_operador", "derivada"]
+    proveedor: Proveedor
     turnos: list[Turno] = Field(min_length=1, max_length=MAXIMO_DE_TURNOS)
     sugerencia: Sugerencia | None
     carta: Carta | None
@@ -469,6 +473,7 @@ class Historial(Esquema):
 
 class NuevaLlamada(Esquema):
     turnos: list[Turno] = Field(min_length=1, max_length=MAXIMO_DE_TURNOS)
+    proveedor: Proveedor | None = None
 
     @model_validator(mode="after")
     def de_un_largo_razonable(self) -> Self:

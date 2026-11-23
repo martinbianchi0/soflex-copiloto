@@ -20,8 +20,16 @@ from pydantic import ValidationError
 from copiloto import flujo, historial
 from copiloto.config import ESPERA_DEL_MODELO_S
 from copiloto.duplicados import UbicacionesRecientes
-from copiloto.esquemas import Ajustes, Historial, Llamada, NuevaLlamada, PosibleDuplicado, Turno
-from copiloto.grafo import Estado, construir
+from copiloto.esquemas import (
+    Ajustes,
+    Historial,
+    Llamada,
+    NuevaLlamada,
+    PosibleDuplicado,
+    Proveedor,
+    Turno,
+)
+from copiloto.grafo import Estado, construir, proveedor_efectivo
 from copiloto.modelo import Modelo
 from copiloto.turnos import separar_hablantes
 
@@ -40,6 +48,10 @@ class LlamadaIlegible(RuntimeError):
 
 class TurnoNoEntra(ValueError):
     """El turno nuevo supera los límites de la transcripción."""
+
+
+class ProveedorNoDisponible(ValueError):
+    """Se pidió un proveedor que el servicio no tiene configurado."""
 
 
 def _hilo(llamada_id: str) -> RunnableConfig:
@@ -63,7 +75,7 @@ class Llamadas:
         self._ubicaciones_recientes = UbicacionesRecientes(ruta)
         self._reloj = reloj
         self._callbacks = tuple(callbacks) if callbacks else ()
-        self._pausa_tras_las_reglas = ["analizar"] if modelo is not None else None
+        self._hay_modelo = modelo is not None
         self._analizando = threading.Lock()
         self._analisis_en_curso: str | None = None
         # Dos pedidos simultáneos no pueden contestar la misma pausa del operador.
@@ -74,17 +86,20 @@ class Llamadas:
         self._ubicaciones_recientes.cerrar()
         self._conexion.close()
 
-    def iniciar(self, turnos: list[Turno]) -> Llamada:
+    def iniciar(self, turnos: list[Turno], proveedor: Proveedor | None = None) -> Llamada:
         """Guarda lo que proponen las reglas para que el operador lo vea enseguida."""
+        if proveedor == "ollama" and not self._hay_modelo:
+            raise ProveedorNoDisponible("Este servicio no tiene un modelo configurado.")
+        proveedor = proveedor_efectivo(proveedor, hay_modelo=self._hay_modelo)
         recibida_en = self._reloj()
         llamada_id = uuid.uuid4().hex
         # Se guarda ya partida en turnos: las citas señalan cada turno por su posición.
         planos = [turno.model_dump(mode="json") for turno in separar_hablantes(turnos)]
         self._avanzar(
-            {"llamada_id": llamada_id, "turnos": planos},
+            {"llamada_id": llamada_id, "turnos": planos, "proveedor": proveedor},
             llamada_id,
-            self._pausa_tras_las_reglas,
             operacion="alta",
+            proveedor=proveedor,
         )
         llamada = self._leer(llamada_id)
         self._ubicaciones_recientes.actualizar(llamada, recibida_en)
@@ -156,8 +171,8 @@ class Llamadas:
             self._avanzar(
                 Command(resume={"turno": turno.model_dump(mode="json")}),
                 llamada_id,
-                self._pausa_tras_las_reglas,
                 operacion="turno_sumado",
+                proveedor=llamada.proveedor,
             )
             llamada = self._leer(llamada_id)
             self._ubicaciones_recientes.actualizar(llamada)
@@ -195,15 +210,16 @@ class Llamadas:
         self,
         entrada: Estado | Command[str] | None,
         llamada_id: str,
-        parar_despues: list[str] | None = None,
         *,
         operacion: str,
+        proveedor: Proveedor | None = None,
     ) -> None:
         configuracion = _hilo(llamada_id)
         if self._callbacks:
             configuracion["callbacks"] = list(self._callbacks)
             configuracion["metadata"] = {"langfuse_session_id": llamada_id}
             configuracion["run_name"] = operacion
+        parar_despues = ["analizar"] if proveedor == "ollama" else None
         # `sync`: cada nodo queda guardado en disco antes de que empiece el siguiente.
         self._grafo.invoke(entrada, configuracion, durability="sync", interrupt_after=parar_despues)
 
@@ -213,7 +229,7 @@ class Llamadas:
         if llamada.estado == "en_proceso":
             try:
                 self._avanzar(
-                    None, llamada_id, self._pausa_tras_las_reglas, operacion="retomar_llamada"
+                    None, llamada_id, operacion="retomar_llamada", proveedor=llamada.proveedor
                 )
             except ValidationError as error:
                 # Lo que quedó guardado (por ejemplo, los ajustes) es de otra versión del servicio.
@@ -224,8 +240,7 @@ class Llamadas:
     def _leer(self, llamada_id: str) -> Llamada:
         return self._llamada_de(llamada_id, self._grafo.get_state(_hilo(llamada_id)))
 
-    @staticmethod
-    def _llamada_de(llamada_id: str, foto: StateSnapshot) -> Llamada:
+    def _llamada_de(self, llamada_id: str, foto: StateSnapshot) -> Llamada:
         valores: Mapping[str, object] = foto.values
         if not valores:
             raise LlamadaInexistente(llamada_id)
@@ -245,6 +260,9 @@ class Llamadas:
                 {
                     "llamada_id": llamada_id,
                     "estado": estado,
+                    "proveedor": proveedor_efectivo(
+                        valores.get("proveedor"), hay_modelo=self._hay_modelo
+                    ),
                     "turnos": valores.get("turnos"),
                     "sugerencia": valores.get("sugerencia"),
                     "carta": carta,

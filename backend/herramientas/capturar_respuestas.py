@@ -1,4 +1,4 @@
-"""Guarda respuestas reales del servicio, en modo `mock`, para los tests del panel.
+"""Guarda respuestas reales del servicio para los tests del panel.
 
 Los tests del panel no levantan el servicio: simulan `fetch` con estas respuestas. Para que no
 envejezcan, `tests/test_respuestas_del_panel.py` las vuelve a capturar y las compara con las
@@ -17,6 +17,7 @@ from typing import Any
 from fastapi.testclient import TestClient
 
 from copiloto.config import Configuracion
+from copiloto.esquemas import Proveedor
 from copiloto.main import crear_app
 
 SALIDA = Path(__file__).parents[2] / "frontend" / "src" / "pruebas" / "respuestas"
@@ -41,24 +42,29 @@ def capturar() -> dict[str, Any]:
     respuestas: dict[str, Any] = {}
     identificadores: dict[str, str] = {}
 
+    def guardar(nombre: str, respuesta: Any, estado: int = 200) -> Any:
+        assert respuesta.status_code == estado, (nombre, respuesta.status_code)
+        respuestas[nombre] = respuesta.json()
+        return respuestas[nombre]
+
+    def iniciar(
+        cliente: TestClient,
+        nombre: str,
+        turnos: list[dict[str, Any]],
+        proveedor: Proveedor | None = None,
+    ) -> str:
+        pedido: dict[str, object] = {"turnos": turnos}
+        if proveedor is not None:
+            pedido["proveedor"] = proveedor
+        llamada = guardar(nombre, cliente.post("/api/llamadas", json=pedido), 201)
+        identificadores[llamada["llamada_id"]] = nombre
+        return str(llamada["llamada_id"])
+
     with tempfile.TemporaryDirectory() as carpeta:
         configuracion = Configuracion(
             llm_provider="mock", sqlite_path=Path(carpeta) / "llamadas.sqlite", static_dir=None
         )
         with TestClient(crear_app(configuracion)) as cliente:
-
-            def guardar(nombre: str, respuesta: Any, estado: int = 200) -> Any:
-                assert respuesta.status_code == estado, (nombre, respuesta.status_code)
-                respuestas[nombre] = respuesta.json()
-                return respuestas[nombre]
-
-            def iniciar(nombre: str, turnos: list[dict[str, Any]]) -> str:
-                llamada = guardar(
-                    nombre, cliente.post("/api/llamadas", json={"turnos": turnos}), 201
-                )
-                identificadores[llamada["llamada_id"]] = nombre
-                return str(llamada["llamada_id"])
-
             guardar("salud", cliente.get("/api/health"))
             guardar("catalogo", cliente.get("/api/catalogo"))
             ejemplos = {
@@ -69,8 +75,16 @@ def capturar() -> dict[str, Any]:
             def texto_de(ejemplo: str) -> list[dict[str, Any]]:
                 return [{"texto": ejemplos[ejemplo]["texto"]}]
 
+            guardar(
+                "error-proveedor-no-disponible",
+                cliente.post(
+                    "/api/llamadas", json={"turnos": texto_de("SFX-013"), "proveedor": "ollama"}
+                ),
+                422,
+            )
+
             # Una llamada del dataset: trae tipo, subtipo, prioridad y una pregunta respondida.
-            del_dataset = iniciar("llamada-del-dataset", texto_de("SFX-001"))
+            del_dataset = iniciar(cliente, "llamada-del-dataset", texto_de("SFX-001"))
             guardar("duplicados-sin-otra", cliente.get(f"/api/llamadas/{del_dataset}/duplicados"))
             guardar(
                 "llamada-del-dataset-derivada",
@@ -84,14 +98,14 @@ def capturar() -> dict[str, Any]:
             )
 
             # La misma dirección, minutos después: el aviso de otra llamada del mismo lugar.
-            repetida = iniciar("llamada-repetida", texto_de("SFX-001"))
+            repetida = iniciar(cliente, "llamada-repetida", texto_de("SFX-001"))
             guardar("duplicados-con-otra", cliente.get(f"/api/llamadas/{repetida}/duplicados"))
 
             # Un texto nuevo: la prioridad queda sin sugerir y hay un aviso sobre la dirección.
-            iniciar("llamada-con-aviso", texto_de("nueva-3"))
+            iniciar(cliente, "llamada-con-aviso", texto_de("nueva-3"))
 
             # Sin ningún dato: derivar así no pasa la validación.
-            sin_datos = iniciar("llamada-sin-datos", [{"texto": "Hola, ¿me escuchan?"}])
+            sin_datos = iniciar(cliente, "llamada-sin-datos", [{"texto": "Hola, ¿me escuchan?"}])
             guardar(
                 "error-falta-lo-minimo",
                 cliente.post(f"/api/llamadas/{sin_datos}/derivar", json={"ajustes": {}}),
@@ -105,7 +119,7 @@ def capturar() -> dict[str, Any]:
                 " ".join(f"{turno['hablante'].capitalize()}: {turno['texto']}" for turno in par)
                 for par in (turnos[:2], turnos[2:4])
             )
-            por_turnos = iniciar("llamada-por-turnos", [{"texto": primero}])
+            por_turnos = iniciar(cliente, "llamada-por-turnos", [{"texto": primero}])
             guardar(
                 "llamada-por-turnos-con-altura",
                 cliente.post(
@@ -122,6 +136,18 @@ def capturar() -> dict[str, Any]:
                 404,
             )
             guardar("error-llamada-inexistente", cliente.get("/api/llamadas/no-existe"), 404)
+
+        con_modelo = Configuracion(
+            llm_provider="ollama",
+            ollama_model="qwen3.5:4b-q4_K_M",
+            sqlite_path=Path(carpeta) / "llamadas-con-modelo.sqlite",
+            static_dir=None,
+        )
+        with TestClient(crear_app(con_modelo)) as cliente:
+            guardar("salud-con-modelo", cliente.get("/api/health"))
+            # El alta deja pendiente la consulta para poder capturar sin conexión al modelo.
+            iniciar(cliente, "llamada-con-modelo-analizando", texto_de("SFX-013"), "ollama")
+            iniciar(cliente, "llamada-en-mock-con-modelo-disponible", texto_de("SFX-013"), "mock")
 
     return {
         f"{nombre}.json": _fijar(respuesta, identificadores)

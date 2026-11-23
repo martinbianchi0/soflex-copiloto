@@ -121,10 +121,12 @@ export type Historial = {
 }
 
 export type Turno = { texto: string; hablante: 'operador' | 'llamante' | null }
+export type Proveedor = 'mock' | 'ollama'
 
 export type Llamada = {
   llamada_id: string
   turnos: Turno[]
+  proveedor: Proveedor
 } & (
   | { estado: 'en_proceso'; sugerencia: Sugerencia | null; carta: null }
   | { estado: 'analizando'; sugerencia: Sugerencia; carta: null }
@@ -159,7 +161,7 @@ export type CuadraDelPlano = {
 
 export type Plano = { radio_m: number; exacto: boolean; leyenda: string; cuadras: CuadraDelPlano[] }
 
-export type Salud = { status: string; llm_provider: string; modelo: string | null }
+export type Salud = { status: string; llm_provider: Proveedor; modelo: string | null; proveedores: Proveedor[] }
 export type DetalleValidacion = { loc: (string | number)[]; msg: string }
 
 export class ErrorApi extends Error {
@@ -208,8 +210,8 @@ export function consultarPlano(pedido: PedidoDePlano, senal: AbortSignal) {
   return enviar<Plano>('/mapa', senal, pedido)
 }
 
-export function crearLlamada(texto: string, senal: AbortSignal) {
-  return enviar<Llamada>('/llamadas', senal, { turnos: [{ texto }] })
+export function crearLlamada(texto: string, senal: AbortSignal, proveedor?: Proveedor) {
+  return enviar<Llamada>('/llamadas', senal, { turnos: [{ texto }], proveedor })
 }
 
 export function consultarLlamada(identificador: string, senal: AbortSignal) {

@@ -1,5 +1,8 @@
 {
  "status": "ok",
  "llm_provider": "mock",
- "modelo": null
+ "modelo": null,
+ "proveedores": [
+  "mock"
+ ]
 }

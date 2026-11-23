@@ -1,10 +1,12 @@
 """Configuración del servicio. Sale sólo de variables de entorno (ver `.env.example`)."""
 
 from pathlib import Path
-from typing import Literal, Self
+from typing import Self
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from copiloto.esquemas import Proveedor
 
 ESPERA_DEL_MODELO_S = 60.0
 _BASE_DE_LANGFUSE = "http://localhost:3000"
@@ -14,7 +16,7 @@ class Configuracion(BaseSettings):
     model_config = SettingsConfigDict(hide_input_in_errors=True)
 
     # `mock` responde de forma determinística y sin red. Un valor desconocido corta el arranque.
-    llm_provider: Literal["mock", "ollama"] = "mock"
+    llm_provider: Proveedor = "mock"
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "qwen3.5:4b-q4_K_M"
     llm_timeout_s: float = Field(default=ESPERA_DEL_MODELO_S, gt=0)

@@ -13,7 +13,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 
 from copiloto import flujo
-from copiloto.esquemas import Ajustes, Prioridad, Sugerencia, Turno, valor_de
+from copiloto.esquemas import Ajustes, Prioridad, Proveedor, Sugerencia, Turno, valor_de
 from copiloto.modelo import Modelo
 from copiloto.turnos import separar_hablantes
 
@@ -22,6 +22,7 @@ class Estado(TypedDict, total=False):
     """Lo que se sabe de una llamada. Cada nodo devuelve sólo las claves que cambia."""
 
     llamada_id: str
+    proveedor: Proveedor
     turnos: list[dict[str, object]]
     turnos_analizados: int
     # La prioridad que se sugería antes de sumar el último turno, para avisar si cambia.
@@ -37,7 +38,13 @@ class _RespuestaOperador(TypedDict, total=False):
     ajustes: dict[str, object]
 
 
-def analizar(estado: Estado, *, con_modelo: bool = False) -> Estado:
+def proveedor_efectivo(proveedor: object, *, hay_modelo: bool) -> Proveedor:
+    # Las llamadas guardadas sin proveedor siguen el modo con el que arrancó el servicio.
+    return "ollama" if hay_modelo and proveedor != "mock" else "mock"
+
+
+def analizar(estado: Estado, *, hay_modelo: bool = False) -> Estado:
+    con_modelo = proveedor_efectivo(estado.get("proveedor"), hay_modelo=hay_modelo) == "ollama"
     turnos = [Turno.model_validate(turno) for turno in estado["turnos"]]
     sugerencia = flujo.analizar_base(turnos) if con_modelo else flujo.analizar(turnos)
     previa = None if con_modelo else _prioridad_previa(estado)
@@ -115,7 +122,7 @@ def derivar(estado: Estado) -> Estado:
 def construir(modelo: Modelo | None, espera_s: float) -> StateGraph[Estado]:
     grafo: StateGraph[Estado] = StateGraph(Estado)
     # Las sobrecargas piden un parámetro llamado «state», pero el grafo lo pasa por posición.
-    grafo.add_node("analizar", partial(analizar, con_modelo=modelo is not None))
+    grafo.add_node("analizar", partial(analizar, hay_modelo=modelo is not None))
     grafo.add_node("consultar_modelo", partial(consultar_modelo, modelo=modelo, espera_s=espera_s))
     grafo.add_node("esperar_operador", esperar_operador)  # type: ignore[call-overload]
     grafo.add_node("derivar", derivar)  # type: ignore[call-overload]
