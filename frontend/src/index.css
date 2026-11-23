@@ -33,14 +33,13 @@ h1 {
   letter-spacing: -0.02em;
 }
 
+/* Informa con qué modo se levantó el servicio. Es texto, sin borde ni fondo: no es un control. */
 .modo {
   flex: none;
   max-inline-size: 44%;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid #aebbc8;
-  border-radius: 0.25rem;
-  background: #e9eef3;
+  color: #46596c;
   font-size: 0.8125rem;
+  text-align: end;
 }
 
 .panel, .aviso, .error {
