@@ -189,6 +189,7 @@ describe('Dirección alternativa del modelo', () => {
   const derivacion = `${ruta}/derivar`
   const nombreBoton = 'Usar esta dirección'
   const mensaje = 'El modelo leyó otra dirección: Aráoz 1236, esquina José A. Cabrera. Confirmala con el llamante antes de usarla.'
+  const [{ mensaje: avisoDeLaSugerida }] = llamadaConAviso.sugerencia?.avisos ?? []
 
   function conAlternativa() {
     const llamada = structuredClone(llamadaConAviso)
@@ -214,6 +215,7 @@ describe('Dirección alternativa del modelo', () => {
     const usar = await screen.findByRole('button', { name: nombreBoton })
     const derivar = screen.getByRole<HTMLButtonElement>('button', { name: 'Derivar Carta de Llamada' })
     expect(derivar.disabled).toBe(false)
+    expect(screen.getByText(avisoDeLaSugerida)).toBeTruthy()
     expect(usar.previousElementSibling?.textContent).toBe(mensaje)
     expect((await screen.findByText(mensaje)).closest('[aria-live="polite"]')).toBeTruthy()
 
@@ -231,11 +233,55 @@ describe('Dirección alternativa del modelo', () => {
       expect(document.getElementById(`${campo.id}-origen`)?.textContent).toBe('del operador')
     }
     expect(screen.queryByRole('button', { name: nombreBoton })).toBeNull()
+    expect(screen.queryByText(avisoDeLaSugerida)).toBeNull()
     await waitFor(() => expect(servicio.pedidosA('POST /api/mapa').at(-1)?.cuerpo).toEqual(direccion))
 
     await operador.click(derivar)
     expect(servicio.pedidosA(derivacion).map(({ cuerpo }) => cuerpo))
       .toEqual([{ ajustes: { ubicacion: direccion } }])
+  })
+
+  test('Los avisos sobre la dirección se quitan al cambiarla y vuelven con la sugerida', async () => {
+    const servicio = abrirLlamada(llamadaConAviso)
+    servicio.responder(derivacion, () => contestacionPendiente().promesa)
+    const operador = userEvent.setup()
+    await screen.findByRole('group', { name: 'Sugerencia' })
+    const grupo = () => screen.queryByRole('heading', { name: 'Para confirmar con el llamante' })
+    expect(grupo()).toBeTruthy()
+    expect(screen.getByText(avisoDeLaSugerida)).toBeTruthy()
+
+    await operador.clear(campoAltura())
+    await operador.type(campoAltura(), '5100')
+    expect(grupo()).toBeNull()
+    expect(screen.queryByText(avisoDeLaSugerida)).toBeNull()
+
+    await operador.clear(campoAltura())
+    await operador.type(campoAltura(), '5000')
+    expect(grupo()).toBeTruthy()
+    expect(screen.getByText(avisoDeLaSugerida)).toBeTruthy()
+  })
+
+  test('Un aviso sobre la dirección que llega después de cambiarla se muestra', async () => {
+    const turno = { texto: 'Llamante: No, pará, es Rivadavia 6300.', hablante: null }
+    const otraDireccion = 'Se mencionaron Av. Rivadavia 5000 y Av. Rivadavia 6300. Confirmá con el llamante cuál es la dirección.'
+    const nueva = structuredClone(llamadaConAviso)
+    nueva.turnos = [...nueva.turnos, { ...nueva.turnos[0], texto: turno.texto }]
+    nueva.sugerencia?.avisos.push({ codigo: 'direccion_no_cierra', mensaje: otraDireccion })
+    const servicio = abrirLlamada(llamadaConAviso)
+    servicio.responder(`${ruta}/turnos`, nueva)
+    const operador = userEvent.setup()
+    await screen.findByRole('group', { name: 'Sugerencia' })
+
+    await operador.clear(campoAltura())
+    await operador.type(campoAltura(), '5100')
+    expect(screen.queryByText(avisoDeLaSugerida)).toBeNull()
+    await operador.type(textoDelTurno(), turno.texto)
+    await operador.click(screen.getByRole('button', { name: 'Sumar a la llamada' }))
+
+    await screen.findByText(/^Se sumó un turno\. Sugerencia actualizada\./)
+    expect(campoAltura().value).toBe('5100')
+    expect(screen.getByText(otraDireccion)).toBeTruthy()
+    expect(screen.queryByText(avisoDeLaSugerida)).toBeNull()
   })
 
   test('Sin alternativa no aparece el bloque', async () => {
