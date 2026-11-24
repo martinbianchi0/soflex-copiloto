@@ -65,6 +65,49 @@ def test_esquina_de_san_juan_y_entre_rios_sin_altura():
     assert not resultado.avisos
 
 
+@pytest.mark.parametrize(
+    ("texto", "calle", "esquina", "cita"),
+    [
+        ("Estoy en Pueyrredon casi Santa Fe", "Av. Pueyrredon", "Av. Santa Fe", "Santa Fe"),
+        ("Estoy en Corrientes esquina Callao", "Av. Corrientes", "Av. Callao", "Callao"),
+        ("Estoy en Corrientes casi esquina Callao", "Av. Corrientes", "Av. Callao", "Callao"),
+        ("Estoy en Cabildo esq. Juramento", "Av. Cabildo", "Av. Juramento", "Juramento"),
+        (
+            "hola si estoy en escalabrini ortiz casi corrientes hay una piba tirada",
+            "Av. Raul Scalabrini Ortiz",
+            "Av. Corrientes",
+            "corrientes",
+        ),
+    ],
+)
+def test_esquina_sin_altura_dicha_con_casi_o_esquina(texto, calle, esquina, cita):
+    resultado = interpretar([Turno(texto=texto)])
+    ubicacion = resultado.ubicacion
+
+    assert ubicacion.calle.valor == calle
+    assert ubicacion.altura.origen == "falta"
+    (dicha,) = ubicacion.esquinas
+    assert (dicha.origen, dicha.valor) == ("dicho", esquina)
+    assert dicha.cita == Cita(turno=0, texto=cita)
+    assert not resultado.avisos
+
+
+def test_casi_entre_dos_calles_que_no_se_cruzan_no_es_una_esquina():
+    resultado = interpretar([Turno(texto="Estoy en Corrientes casi Rivadavia")])
+
+    assert resultado.ubicacion.calle.origen == "falta"
+    assert _codigos(resultado) == ["sin_calle"]
+
+
+def test_casi_esquina_con_altura_no_pide_confirmar_la_palabra_esquina():
+    resultado = interpretar([Turno(texto="Av. Corrientes 1540 casi esquina Montevideo")])
+    ubicacion = resultado.ubicacion
+
+    assert ubicacion.altura.valor == 1540
+    assert ubicacion.esquinas[0].valor == "Montevideo"
+    assert not resultado.avisos
+
+
 def test_entre_rios_puede_ser_la_calle_principal_de_una_esquina():
     resultado = interpretar([Turno(texto="Entre Ríos y San Juan")])
 
