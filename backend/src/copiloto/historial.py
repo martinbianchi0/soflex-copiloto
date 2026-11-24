@@ -193,8 +193,16 @@ def _resumen(antes: Carta, despues: Carta) -> str:
         partes.append(f"{_cantidad(sumadas, 'pregunta')} {_plural(sumadas, 'respondida')}")
     if quitadas := len(respondidas_antes & {item.id for item in despues.checklist} - respondidas):
         partes.append(f"{_cantidad(quitadas, 'pregunta')} {_plural(quitadas, 'desmarcada')}")
-    if sacados := len(antes.datos_dictados) - len(despues.datos_dictados):
-        partes.append(f"{_cantidad(sacados, 'dato dictado')} {_plural(sacados, 'quitado')}")
+    dictados_antes = {(dato.tipo, dato.valor) for dato in antes.datos_dictados}
+    dictados = {(dato.tipo, dato.valor) for dato in despues.datos_dictados}
+    for cambiados, verbo in (
+        (dictados - dictados_antes, "sumado"),
+        (dictados_antes - dictados, "quitado"),
+    ):
+        if cantidad := len(cambiados):
+            partes.append(
+                f"{_cantidad(cantidad, 'dato')} {_plural(cantidad, 'dictado')} {_plural(cantidad, verbo)}"
+            )
     if not partes:
         return "sin cambios en los datos"
     return partes[0] if len(partes) == 1 else f"{', '.join(partes[:-1])} y {partes[-1]}"
