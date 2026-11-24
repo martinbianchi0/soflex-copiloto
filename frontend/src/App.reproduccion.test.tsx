@@ -140,7 +140,7 @@ test('Suma cada intercambio por orden después de su pausa y termina al llegar a
     expect(pedidos[indice].cuerpo).toEqual({ turno: { texto, hablante: null } })
   }
 
-  expect(screen.getByText('La llamada terminó.', { selector: 'p' })).toBeTruthy()
+  expect(screen.getByText('Terminó la reproducción.', { selector: 'p' })).toBeTruthy()
   expect(screen.queryByRole('button', { name: 'Detener' })).toBeNull()
   await avanzar(6_000)
   expect(servicio.pedidosA(rutaTurnos)).toHaveLength(siguientesIntercambios.length)
