@@ -193,6 +193,10 @@ MARCA_ANTES_DEL_NOMBRE = re.compile(r"^(?:LA )?(?:CALLE|AVENIDA|AV) ")
 SIGUE_OTRA_CALLE = {"O", "Y", "E", "CON", "ESQUINA", "ESQ", "CASI"}
 CONFIRMACION_DE_ALTURA = re.compile(r"AL [0-9]+(?: [0-9]{3})?")
 CONTINUACION_DE_ALTURA = re.compile(r"(?:MAS O MENOS|APROXIMADAMENTE|APROXIMADO|Y PICO)")
+# «Al 1500 frente a una farmacia»: lo que sigue ubica el lugar en la cuadra, no es otro número.
+LUGAR_EN_LA_CUADRA = re.compile(
+    rf"(?:{CONTINUACION_DE_ALTURA.pattern} )?(?:FRENTE|ENFRENTE|CERCA|AL LADO|PEGADO|JUSTO)\b"
+)
 OTRA_CIFRA_U_HORA = re.compile(
     r"(?:(?:(?:Y|O) (?:AL )?)?[0-9]+|Y (?:MEDIA|CUARTO)|DE LA (?:TARDE|NOCHE|MANANA))\b"
 )
@@ -604,10 +608,19 @@ class _Resolvedor:
         etiqueta = ETIQUETA_DEL_NUMERO.match(despues)
         if etiqueta and etiqueta[1] in OTROS_NUMEROS:
             return False
-        return bool(
+        if (
             re.search(r"[,.;!?…\n]", self._separador(i, i + 1))
             or CONTINUACION_DE_ALTURA.fullmatch(despues)
-        )
+            or LUGAR_EN_LA_CUADRA.match(despues)
+        ):
+            return True
+        # «Al 800 más o menos, frente a…»: la pausa puede venir después de la aproximación.
+        if aproximacion := CONTINUACION_DE_ALTURA.match(despues):
+            fin = i + len(aproximacion[0].split())
+            return fin + 1 in tramo and bool(
+                re.search(r"[,.;!?…\n]", self._separador(fin, fin + 1))
+            )
+        return False
 
     def _calles_para_altura_preguntada(self, limite: int) -> Iterator[_Mencion]:
         """Busca calles dichas sin altura, incluso en «hay un choque en Corrientes»."""
@@ -653,23 +666,32 @@ class _Resolvedor:
             return
         principal = calles_dichas[0]
         es_av = normalizar(principal.cita.texto).split()[0] in {"AV", "AVENIDA"}
-        calle, alternativas = self._elegir(principal.candidatos, es_av)
-        if alternativas:
-            return
-        otras = [
-            normalizar(mencion.cita.texto)
-            for mencion in calles_dichas
-            if calle not in {c.nombre for c in mencion.candidatos}
-        ]
-        if any(
-            c.nombre != calle and self.alturas_en_esquina(calle, c.nombre)
-            for mencion in self._cruces_marcados(principal.fin, limite)
-            for c in mencion.candidatos
-        ):
-            return
+        elegida, alternativas = self._elegir(principal.candidatos, es_av)
         for altura, calles in respuestas:
             if altura.cita.turno <= principal.cita.turno:
                 continue
+            calle = elegida
+            if alternativas:
+                # Un nombre de dos calles: decide dónde existe la altura, como cuando se dice de corrido.
+                con_altura = [
+                    nombre
+                    for nombre in (elegida, *alternativas)
+                    if self.cj.tramos_en(nombre, altura.valor)
+                ]
+                if len(con_altura) != 1:
+                    continue
+                calle = con_altura[0]
+            if any(
+                c.nombre != calle and self.alturas_en_esquina(calle, c.nombre)
+                for mencion in self._cruces_marcados(principal.fin, limite)
+                for c in mencion.candidatos
+            ):
+                return
+            otras = [
+                normalizar(mencion.cita.texto)
+                for mencion in calles_dichas
+                if calle not in {c.nombre for c in mencion.candidatos}
+            ]
             if any(not self._nombra_a(nombre, calle) for nombre in calles):
                 continue
             # «Al 4528, en Saavedra»: si es el barrio de esa altura, no es otra calle.

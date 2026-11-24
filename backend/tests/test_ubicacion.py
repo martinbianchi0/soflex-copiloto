@@ -381,6 +381,54 @@ def test_lee_la_altura_si_el_operador_la_pide_en_el_turno_anterior(pregunta):
 
 
 @pytest.mark.parametrize(
+    "respuesta",
+    [
+        "Al 1540 frente a una farmacia.",
+        "Al 1540 más o menos, frente a una farmacia.",
+        "Al 1540 más o menos frente al kiosco.",
+        "Al 1540 enfrente del banco.",
+    ],
+)
+def test_lee_la_altura_preguntada_aunque_el_llamante_agregue_que_hay_en_la_cuadra(respuesta):
+    turnos = [
+        Turno(texto="Hay un choque en Corrientes.", hablante="llamante"),
+        Turno(texto="¿A qué altura?", hablante="operador"),
+        Turno(texto=respuesta, hablante="llamante"),
+    ]
+    resultado = interpretar(turnos)
+
+    assert resultado.ubicacion.altura.valor == 1540
+    assert resultado.ubicacion.altura.cita == Cita(turno=2, texto="1540")
+    assert not resultado.avisos
+
+
+def test_la_altura_preguntada_decide_entre_dos_calles_con_el_mismo_nombre():
+    turnos = [
+        Turno(texto="Estoy en Scalabrini Ortiz, hay una chica tirada.", hablante="llamante"),
+        Turno(texto="¿A qué altura?", hablante="operador"),
+        Turno(texto="Al 1500.", hablante="llamante"),
+    ]
+    resultado = interpretar(turnos)
+    lugar = resultado.ubicacion
+
+    assert lugar.calle.valor == "Av. Raul Scalabrini Ortiz"
+    assert lugar.altura.valor == 1500
+    assert not resultado.avisos
+
+
+def test_con_dos_calles_del_mismo_nombre_una_altura_que_no_existe_no_elige_ninguna():
+    turnos = [
+        Turno(texto="Estoy en Scalabrini Ortiz, hay una chica tirada.", hablante="llamante"),
+        Turno(texto="¿A qué altura?", hablante="operador"),
+        Turno(texto="Al 99999.", hablante="llamante"),
+    ]
+    resultado = interpretar(turnos)
+
+    assert resultado.ubicacion.altura.origen == "falta"
+    assert "calle_ambigua" in _codigos(resultado)
+
+
+@pytest.mark.parametrize(
     ("calle", "pregunta", "respuesta"),
     [
         ("Av. Corrientes.", "¿Qué edad tiene?", "Al 1540."),
