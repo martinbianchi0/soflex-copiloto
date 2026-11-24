@@ -492,6 +492,19 @@ def test_el_historial_cuenta_la_derivacion_las_actualizaciones_y_el_cierre(llama
     assert [cambio.campo for cambio in historial.cambios] == ["esquinas"]
 
 
+def test_el_historial_cuenta_un_dato_dictado_que_llega_despues_de_derivar(llamadas):
+    llamada_id = llamadas.iniciar(turnos()).llamada_id
+    llamadas.derivar(llamada_id, ajustes(**COMPLETOS))
+    llamadas.sumar_turno(llamada_id, Turno(texto="Mi celular es 11 1000-0142."))
+    llamadas.actualizar(llamada_id, ajustes(**COMPLETOS))
+
+    eventos = llamadas.consultar_historial(llamada_id).eventos
+
+    assert ("carta_actualizada", "Carta actualizada: 1 dato dictado sumado.") in [
+        (evento.tipo, evento.detalle) for evento in eventos
+    ]
+
+
 def test_una_llamada_con_ajustes_de_una_version_anterior_se_lee_sin_ellos(ruta):
     # Antes de que existiera el subtipo, el tipo de hecho de los ajustes era una categoría suelta.
     llamada_id = "llamada-anterior"
