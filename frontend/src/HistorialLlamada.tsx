@@ -1,30 +1,38 @@
 import { useEffect, useState } from 'react'
 import { consultarHistorial, nombresTiposHecho, textoOrigen, valorDato } from './api'
-import type { Carta, Dato, Historial, ValorCambio } from './api'
+import type { Carta, Catalogo, Dato, Historial, ValorCambio } from './api'
 import { nombrarCampo } from './validacion'
 
 const horaLocal = new Intl.DateTimeFormat('es-AR', {
   hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
 })
-const nombresHechos: Partial<Record<string, string>> = nombresTiposHecho
 
-function DatoHistorial({ dato, campo }: { dato: Dato<string | number>; campo: string }) {
+type Nombres = Partial<Record<string, string>>
+
+// El tipo y el subtipo viajan con su identificador; el operador los conoce por el nombre.
+function nombresDeValores(campo: string, catalogo: Catalogo | null): Nombres {
+  if (campo === 'tipo_hecho') return nombresTiposHecho
+  if (campo === 'subtipo') return Object.fromEntries(catalogo?.protocolos.map(({ id, nombre }) => [id, nombre]) ?? [])
+  return {}
+}
+
+function DatoHistorial({ dato, nombres }: { dato: Dato<string | number>; nombres: Nombres }) {
   const valor = valorDato(dato)
-  const texto = campo === 'tipo_hecho' && typeof valor === 'string' ? nombresHechos[valor] ?? valor : valor
+  const texto = typeof valor === 'string' ? nombres[valor] ?? valor : valor
   return <>{texto ?? 'Sin dato'}<small className="origen">{textoOrigen(dato)}</small></>
 }
 
-function ValorHistorial({ valor, campo }: { valor: ValorCambio; campo: string }) {
+function ValorHistorial({ valor, nombres }: { valor: ValorCambio; nombres: Nombres }) {
   if (Array.isArray(valor)) {
     if (!valor.length) return 'Sin esquinas'
     return (
       <ul>
-        {valor.map((dato, indice) => <li key={indice}><DatoHistorial dato={dato} campo={campo} /></li>)}
+        {valor.map((dato, indice) => <li key={indice}><DatoHistorial dato={dato} nombres={nombres} /></li>)}
       </ul>
     )
   }
   if ('respondida' in valor) return valor.respondida ? 'respondida' : valor.propuesta ? 'posible respuesta' : 'pendiente'
-  return <DatoHistorial dato={valor} campo={campo} />
+  return <DatoHistorial dato={valor} nombres={nombres} />
 }
 
 function nombreCampo(campo: string, checklist: Carta['checklist']) {
@@ -33,7 +41,7 @@ function nombreCampo(campo: string, checklist: Carta['checklist']) {
   return checklist.find(({ id }) => id === campo.slice(prefijo.length))?.pregunta ?? campo
 }
 
-function Cambios({ cambios, checklist }: Pick<Historial, 'cambios'> & Pick<Carta, 'checklist'>) {
+function Cambios({ cambios, checklist, catalogo }: Pick<Historial, 'cambios'> & Pick<Carta, 'checklist'> & { catalogo: Catalogo | null }) {
   if (!cambios.length) return <p>El operador derivó la sugerencia sin cambios.</p>
   return (
     <table>
@@ -45,8 +53,8 @@ function Cambios({ cambios, checklist }: Pick<Historial, 'cambios'> & Pick<Carta
         {cambios.map(({ campo, sugerido, final }, indice) => (
           <tr key={`${campo}-${indice}`}>
             <th scope="row">{nombreCampo(campo, checklist)}</th>
-            <td><ValorHistorial valor={sugerido} campo={campo} /></td>
-            <td><ValorHistorial valor={final} campo={campo} /></td>
+            <td><ValorHistorial valor={sugerido} nombres={nombresDeValores(campo, catalogo)} /></td>
+            <td><ValorHistorial valor={final} nombres={nombresDeValores(campo, catalogo)} /></td>
           </tr>
         ))}
       </tbody>
@@ -66,7 +74,7 @@ function tiempoHastaDerivar(eventos: Historial['eventos']) {
   return minutos ? `${minutos} min ${segundos % 60} s` : `${segundos} s`
 }
 
-export default function HistorialLlamada({ carta }: { carta: Carta }) {
+export default function HistorialLlamada({ carta, catalogo }: { carta: Carta; catalogo: Catalogo | null }) {
   const { llamada_id: identificador, checklist } = carta
   const [historial, setHistorial] = useState<Historial | 'error' | null>(null)
 
@@ -99,7 +107,7 @@ export default function HistorialLlamada({ carta }: { carta: Carta }) {
                   De la llamada recibida a la carta derivada: <strong>{tiempoHastaDerivar(historial.eventos)}</strong>
                 </p>
               )}
-              <Cambios cambios={historial.cambios} checklist={checklist} />
+              <Cambios cambios={historial.cambios} checklist={checklist} catalogo={catalogo} />
             </>
           )}
     </section>

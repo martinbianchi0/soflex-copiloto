@@ -519,6 +519,26 @@ describe('Terminar la llamada', () => {
     expect(region.getByText('0 s')).toBeTruthy()
   })
 
+  test('En el historial el tipo y el subtipo se muestran con su nombre', async () => {
+    const servicio = abrirLlamada(llamadaDelDatasetActualizada)
+    servicio.responder(terminacion, llamadaDelDatasetTerminada)
+    servicio.responder(historial, {
+      ...historialTerminada,
+      cambios: [
+        { campo: 'tipo_hecho', sugerido: { origen: 'falta' }, final: { origen: 'operador', valor: 'INCENDIO_RESCATE' } },
+        { campo: 'subtipo', sugerido: { origen: 'falta' }, final: { origen: 'operador', valor: protocoloIncendio.id } },
+      ],
+    })
+    const operador = userEvent.setup()
+
+    await operador.click(await screen.findByRole('button', { name: 'Terminar llamada' }))
+
+    const tabla = within(await screen.findByRole('table', { name: 'Qué cambió el operador' }))
+    expect(tabla.getByText('Incendio o rescate')).toBeTruthy()
+    expect(tabla.getByText(protocoloIncendio.nombre)).toBeTruthy()
+    expect(tabla.queryByText(protocoloIncendio.id)).toBeNull()
+  })
+
   test('Con cambios pendientes espera que se actualice la carta antes de terminar', async () => {
     const servicio = abrirLlamada(llamadaDelDatasetConTurnoTrasDerivar)
     const respuestaDeActualizacion = contestacionPendiente()

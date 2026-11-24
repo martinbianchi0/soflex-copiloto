@@ -84,7 +84,7 @@ export default function CartaLlamada({ carta, catalogo }: { carta: Carta; catalo
           </ul>
         </section>
       )}
-      <HistorialLlamada key={carta.llamada_id} carta={carta} />
+      <HistorialLlamada key={carta.llamada_id} carta={carta} catalogo={catalogo} />
     </>
   )
 }
