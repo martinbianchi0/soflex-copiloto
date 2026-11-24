@@ -696,26 +696,42 @@ class _Resolvedor:
         return False
 
     def _en_esquina(self, limite: int | None = None) -> tuple[_Mencion, str, _Mencion, str] | None:
+        """Una esquina sin altura: «X y Z», «X esquina Z», «X casi Z» o «X casi esquina Z».
+
+        Vale sólo si las dos calles se cruzan en el callejero.
+        """
         entre = -1
         y_de_entre = None
         for i, palabra in enumerate(self.palabras[:limite]):
             if palabra == "ENTRE":
                 entre, y_de_entre = i, self._y_de_entre(i)
-            if palabra not in ("Y", "E"):
+            if palabra not in ("Y", "E", *MARCAS_DE_CRUCE):
+                continue
+            # En «casi esquina» manda «casi»: la calle de la izquierda está antes de las dos.
+            if i > 0 and self._casi_esquina(i - 1):
                 continue
             tramo = self.tramos[i]
             if i - 1 not in tramo:
                 continue
+            siguiente = i + 2 if self._casi_esquina(i) else i + 1
             izquierda, _ = self._calle_antes(i - 1, None)
             # En «entre X y Z» las calles son entrecalles. «Entre Ríos» es un nombre.
             if izquierda and i == y_de_entre and izquierda.inicio > entre:
                 continue
-            if izquierda and (derecha := self._calle_despues(i + 1, tramo.stop)):
+            if izquierda and (derecha := self._calle_despues(siguiente, tramo.stop)):
                 for a in izquierda.candidatos:
                     for b in derecha.candidatos:
                         if self.alturas_en_esquina(a.nombre, b.nombre):
                             return izquierda, a.nombre, derecha, b.nombre
         return None
+
+    def _casi_esquina(self, i: int) -> bool:
+        """«Casi esquina»: las dos palabras marcan un solo cruce."""
+        return (
+            self.palabras[i] == "CASI"
+            and i + 1 in self.tramos[i]
+            and self.palabras[i + 1] in {"ESQUINA", "ESQ"}
+        )
 
     def _con_marca(self) -> tuple[_Mencion, str, list[str]] | None:
         for i, palabra in enumerate(self.palabras):
@@ -790,7 +806,8 @@ class _Resolvedor:
                 if izquierda and derecha:
                     yield izquierda
                     yield derecha
-            elif palabra in MARCAS_DE_CRUCE:
+            # En «casi esquina» el cruce lo lee «esquina».
+            elif palabra in MARCAS_DE_CRUCE and not self._casi_esquina(i):
                 limite = self.tramos[i].stop
                 mencion = self._calle_despues(i + 1, limite)
                 if not mencion and (i == fin_direccion + 1 or palabra != "CASI"):
