@@ -142,7 +142,7 @@ function App() {
   const ejemploSeleccionado = ejemplos.find(({ id }) => id === ejemploElegido)
   const reproduciendo = reproduccion && (reproduccion.recibidos < reproduccion.intercambios.length || sumandoIntercambio)
   const estadoReproduccion = reproduccion
-    ? (reproduciendo ? `Reproduciendo la llamada: intercambio ${reproduccion.recibidos} de ${reproduccion.intercambios.length}.` : 'La llamada terminó.')
+    ? (reproduciendo ? `Reproduciendo la llamada: intercambio ${reproduccion.recibidos} de ${reproduccion.intercambios.length}.` : 'Terminó la reproducción.')
     : ''
   const muestraSugerencia = analizando || llamada?.estado === 'esperando_operador'
   const muestraFormulario = muestraSugerencia && (analizando || huboAnalisis || Boolean(catalogo))
